@@ -16,8 +16,6 @@ enum class MedioContacto(
     TELEGRAM("Telegram", "Telegram"),
     ;
 
-    val esLlamada: Boolean get() = this == MARCADOR || this == LLAMADA
-
     /** Texto de la notificacion. */
     fun aviso(nombre: String): String = when (this) {
         MARCADOR, LLAMADA -> "Toca para llamar a $nombre"

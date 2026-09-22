@@ -4,7 +4,10 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,36 +25,47 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.Contactar
+import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.flow.Flow
@@ -100,6 +113,20 @@ fun PantallaFicha(
         }
     }
 
+    // La foto se busca en la agenda con el permiso de contactos; si no esta
+    // concedido, la ficha ofrece pedirlo (una vez por ficha si se deniega).
+    var fotoPermitida by remember { mutableStateOf(FotoContacto.permitida(context)) }
+    var fotoDenegada by rememberSaveable(borrador.id) { mutableStateOf(false) }
+    val pedirContactos = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { concedido ->
+        fotoPermitida = concedido
+        fotoDenegada = !concedido
+    }
+    val foto by produceState<ImageBitmap?>(null, actual.telefono, fotoPermitida) {
+        value = FotoContacto.cargar(context, actual.telefono)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -121,9 +148,21 @@ fun PantallaFicha(
                 .padding(16.dp),
         ) {
             Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(actual.nombre, style = MaterialTheme.typography.headlineSmall)
-                    Text(actual.telefono, style = MaterialTheme.typography.bodyLarge)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Avatar(actual.nombre, foto)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(actual.nombre, style = MaterialTheme.typography.headlineSmall)
+                        Text(actual.telefono, style = MaterialTheme.typography.bodyLarge)
+                        if (!fotoPermitida && !fotoDenegada) {
+                            TextButton(onClick = { pedirContactos.launch(Manifest.permission.READ_CONTACTS) }) {
+                                Text("Mostrar foto de la agenda")
+                            }
+                        }
+                    }
                 }
             }
 
@@ -139,23 +178,37 @@ fun PantallaFicha(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Column(Modifier.selectableGroup()) {
-                Text("Al tocar el aviso", style = MaterialTheme.typography.labelLarge)
-                MedioContacto.entries.forEach { opcion ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = medio == opcion,
-                                onClick = { elegirMedio(opcion) },
-                                role = Role.RadioButton,
-                            )
-                            .padding(vertical = 4.dp),
-                    ) {
-                        RadioButton(selected = medio == opcion, onClick = null)
-                        Spacer(Modifier.size(12.dp))
-                        Text(opcion.etiqueta)
+            var desplegado by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = desplegado,
+                onExpandedChange = { desplegado = it },
+            ) {
+                OutlinedTextField(
+                    value = medio.etiqueta,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    label = { Text("Al tocar el aviso") },
+                    leadingIcon = { Icon(medio.icono(), contentDescription = null) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegado) },
+                    modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth(),
+                )
+                ExposedDropdownMenu(
+                    expanded = desplegado,
+                    onDismissRequest = { desplegado = false },
+                ) {
+                    MedioContacto.entries.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion.etiqueta) },
+                            leadingIcon = { Icon(opcion.icono(), contentDescription = null) },
+                            onClick = {
+                                desplegado = false
+                                elegirMedio(opcion)
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                        )
                     }
                 }
             }
@@ -193,11 +246,7 @@ fun PantallaFicha(
                     onClick = { onContactar(actual.telefono, medio) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Icon(
-                        if (medio.esLlamada) Icons.Filled.Call else Icons.AutoMirrored.Filled.Send,
-                        contentDescription = null,
-                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                    )
+                    Icon(medio.icono(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                     Text(medio.boton)
                 }
@@ -241,4 +290,34 @@ fun PantallaFicha(
             )
         }
     }
+}
+
+/** Foto de la agenda recortada en circulo o, si no hay, la inicial del nombre. */
+@Composable
+private fun Avatar(nombre: String, foto: ImageBitmap?) {
+    val modificador = Modifier
+        .size(72.dp)
+        .clip(CircleShape)
+    if (foto != null) {
+        Image(foto, contentDescription = null, contentScale = ContentScale.Crop, modifier = modificador)
+    } else {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modificador.background(MaterialTheme.colorScheme.primaryContainer),
+        ) {
+            Text(
+                nombre.firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
+}
+
+// Solo iconos del paquete core: ni WhatsApp ni Telegram tienen uno propio en Material.
+private fun MedioContacto.icono(): ImageVector = when (this) {
+    MedioContacto.MARCADOR -> Icons.Filled.Phone
+    MedioContacto.LLAMADA -> Icons.Filled.Call
+    MedioContacto.SMS -> Icons.Filled.Email
+    MedioContacto.WHATSAPP, MedioContacto.TELEGRAM -> Icons.AutoMirrored.Filled.Send
 }

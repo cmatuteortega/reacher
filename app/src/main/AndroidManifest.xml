@@ -13,10 +13,12 @@
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <!--
-      No hace falta READ_CONTACTS: el selector se abre con ACTION_PICK sobre
-      CommonDataKinds.Phone y el sistema concede lectura temporal SOLO de la
-      fila elegida.
+      Elegir contacto no necesita READ_CONTACTS: el selector se abre con
+      ACTION_PICK sobre CommonDataKinds.Phone y el sistema concede lectura
+      temporal SOLO de la fila elegida. El permiso es solo para la foto, que
+      vive en otra fila; se pide desde la ficha y es opcional.
     -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:name=".App"

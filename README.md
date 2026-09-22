@@ -22,7 +22,8 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 1. **Lista** — vacía al principio. *Añadir* abre el selector de contactos del
    sistema filtrado a números de teléfono.
-2. **Ficha** — nombre y número del elegido, campo de frecuencia en días, la
+2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
+   elegido, campo de frecuencia en días, la
    **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
    contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o *Telegram*),
    *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado) y
@@ -50,7 +51,8 @@ contactos existentes en `MARCADOR`, que es lo que hacían antes.
 
 ## Forma de contacto
 
-Qué se abre al tocar la notificación (y con el botón de la ficha):
+Se elige en un desplegable de la ficha. Qué se abre al tocar la notificación
+(y con el botón de la ficha):
 
 | opción               | qué hace                                                     |
 |----------------------|--------------------------------------------------------------|
@@ -85,8 +87,14 @@ Qué se abre al tocar la notificación (y con el botón de la ficha):
   que se salta la comprobación de fecha.
 
 En Android 13+ la app pide `POST_NOTIFICATIONS` al arrancar; sin ese permiso no
-hay avisos. No se pide `READ_CONTACTS`: al elegir con `ACTION_PICK` sobre
-`CommonDataKinds.Phone` el sistema da acceso solo a la fila elegida.
+hay avisos. Elegir un contacto no necesita `READ_CONTACTS`: con `ACTION_PICK`
+sobre `CommonDataKinds.Phone` el sistema da acceso solo a la fila elegida.
+
+La foto sí lo necesita, porque está en otra fila del proveedor. La ficha lo
+pide con *Mostrar foto de la agenda*; sin él se ve la inicial y todo lo demás
+funciona igual. La foto no se copia: se busca por número (`PhoneLookup`) cada
+vez que se abre la ficha, así que vale para los contactos ya guardados y sigue
+los cambios de la agenda.
 
 Tocar la notificación **no** cambia `ultimoContacto`: el aviso se repite cada
 día hasta que en la ficha se pulse **He llamado hoy**. Ese botón pone
