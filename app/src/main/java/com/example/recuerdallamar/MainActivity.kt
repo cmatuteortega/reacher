@@ -1,7 +1,11 @@
 package com.example.recuerdallamar
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -17,7 +21,13 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.recuerdallamar.avisos.Notificaciones
@@ -45,16 +55,53 @@ private fun AppRecuerda(vm: ContactosViewModel = viewModel()) {
     val contactos by vm.contactos.collectAsStateWithLifecycle()
     val ficha by vm.ficha.collectAsStateWithLifecycle()
 
-    val pedirPermiso = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { concedido ->
-        if (!concedido) {
+    // Fotos de la agenda: se relee al volver a la app, por si se concedio el
+    // permiso desde los ajustes del sistema.
+    var fotosPermitidas by remember { mutableStateOf(FotoContacto.permitida(context)) }
+    LifecycleResumeEffect(Unit) {
+        fotosPermitidas = FotoContacto.permitida(context)
+        onPauseOrDispose { }
+    }
+    // Tras dos "no" el sistema ya no muestra el dialogo: entonces el boton de
+    // la ficha lleva a los ajustes de la app, que es el unico sitio donde darlo.
+    var fotosBloqueadas by rememberSaveable { mutableStateOf(false) }
+
+    val pedirPermisos = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { resultado ->
+        if (resultado[Manifest.permission.POST_NOTIFICATIONS] == false) {
             Toast.makeText(context, "Sin permiso no habra recordatorios", Toast.LENGTH_LONG).show()
         }
+        resultado[Manifest.permission.READ_CONTACTS]?.let { concedido ->
+            fotosPermitidas = concedido
+            val puedeVolverAPreguntar = (context as? Activity)?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.READ_CONTACTS)
+            } ?: true
+            fotosBloqueadas = !concedido && !puedeVolverAPreguntar
+        }
     }
+
+    // Lo que hace falta, en un solo paso al abrir: avisos siempre que falten,
+    // fotos solo la primera vez (luego se piden desde la ficha).
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
-            pedirPermiso.launch(Manifest.permission.POST_NOTIFICATIONS)
+        val faltan = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            if (FotoContacto.preguntarAlArrancar(context)) {
+                add(Manifest.permission.READ_CONTACTS)
+                FotoContacto.marcarPreguntado(context)
+            }
+        }
+        if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
+    }
+
+    val pedirFotos = {
+        if (fotosBloqueadas) {
+            val ajustes = Uri.fromParts("package", context.packageName, null)
+            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ajustes))
+        } else {
+            pedirPermisos.launch(arrayOf(Manifest.permission.READ_CONTACTS))
         }
     }
 
@@ -80,6 +127,7 @@ private fun AppRecuerda(vm: ContactosViewModel = viewModel()) {
         if (abierta == null) {
             PantallaLista(
                 contactos = contactos,
+                fotosPermitidas = fotosPermitidas,
                 onAnadir = {
                     try {
                         elegir.launch(Unit)
@@ -93,6 +141,8 @@ private fun AppRecuerda(vm: ContactosViewModel = viewModel()) {
             PantallaFicha(
                 borrador = abierta,
                 observar = vm::observar,
+                fotosPermitidas = fotosPermitidas,
+                onPedirFotos = pedirFotos,
                 onGuardar = vm::guardar,
                 onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
                 onLlamadoHoy = { id ->

@@ -4,10 +4,7 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -54,11 +50,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -78,6 +72,8 @@ import java.time.LocalDate
 fun PantallaFicha(
     borrador: Contacto,
     observar: (Long) -> Flow<Contacto?>,
+    fotosPermitidas: Boolean,
+    onPedirFotos: () -> Unit,
     onGuardar: (Contacto, Int, MedioContacto) -> Unit,
     onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
@@ -114,18 +110,9 @@ fun PantallaFicha(
         }
     }
 
-    // La foto se busca en la agenda con el permiso de contactos; si no esta
-    // concedido, la ficha ofrece pedirlo (una vez por ficha si se deniega).
-    var fotoPermitida by remember { mutableStateOf(FotoContacto.permitida(context)) }
-    var fotoDenegada by rememberSaveable(borrador.id) { mutableStateOf(false) }
-    val pedirContactos = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { concedido ->
-        fotoPermitida = concedido
-        fotoDenegada = !concedido
-    }
+    // Sin permiso de contactos no hay foto: se ve la inicial y un boton para pedirlo.
     var foto by remember { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(actual.telefono, fotoPermitida) {
+    LaunchedEffect(actual.telefono, fotosPermitidas) {
         foto = FotoContacto.cargar(context, actual.telefono)
     }
 
@@ -155,12 +142,12 @@ fun PantallaFicha(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.padding(16.dp),
                 ) {
-                    Avatar(actual.nombre, foto)
+                    Avatar(actual.nombre, foto, 72.dp, MaterialTheme.typography.headlineMedium)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(actual.nombre, style = MaterialTheme.typography.headlineSmall)
                         Text(actual.telefono, style = MaterialTheme.typography.bodyLarge)
-                        if (!fotoPermitida && !fotoDenegada) {
-                            TextButton(onClick = { pedirContactos.launch(Manifest.permission.READ_CONTACTS) }) {
+                        if (!fotosPermitidas) {
+                            TextButton(onClick = onPedirFotos) {
                                 Text("Mostrar foto de la agenda")
                             }
                         }
@@ -289,28 +276,6 @@ fun PantallaFicha(
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-/** Foto de la agenda recortada en circulo o, si no hay, la inicial del nombre. */
-@Composable
-private fun Avatar(nombre: String, foto: ImageBitmap?) {
-    val modificador = Modifier
-        .size(72.dp)
-        .clip(CircleShape)
-    if (foto != null) {
-        Image(foto, contentDescription = null, contentScale = ContentScale.Crop, modifier = modificador)
-    } else {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modificador.background(MaterialTheme.colorScheme.primaryContainer),
-        ) {
-            Text(
-                nombre.firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }

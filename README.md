@@ -39,7 +39,8 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 ## Flujo
 
-1. **Lista** — vacía al principio. *Añadir* abre el selector de contactos del
+1. **Lista** — vacía al principio. Cada fila lleva la foto de la agenda o la
+   inicial. *Añadir* abre el selector de contactos del
    sistema filtrado a números de teléfono.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la
@@ -111,11 +112,17 @@ En Android 13+ la app pide `POST_NOTIFICATIONS` al arrancar; sin ese permiso no
 hay avisos. Elegir un contacto no necesita `READ_CONTACTS`: con `ACTION_PICK`
 sobre `CommonDataKinds.Phone` el sistema da acceso solo a la fila elegida.
 
-La foto sí lo necesita, porque está en otra fila del proveedor. La ficha lo
-pide con *Mostrar foto de la agenda*; sin él se ve la inicial y todo lo demás
-funciona igual. La foto no se copia: se busca por número (`PhoneLookup`) cada
-vez que se abre la ficha, así que vale para los contactos ya guardados y sigue
-los cambios de la agenda.
+Las fotos sí lo necesitan, porque están en otra fila del proveedor.
+`READ_CONTACTS` es un permiso peligroso de Android: no hay forma de tenerlo sin
+que el usuario lo acepte en el diálogo del sistema. Se pide **una vez al abrir
+la app por primera vez**, junto al de notificaciones. Si se deniega, la ficha
+ofrece *Mostrar foto de la agenda* para volver a pedirlo; tras dos negativas
+el sistema ya no muestra el diálogo y ese botón abre los ajustes de la app.
+Sin el permiso se ve la inicial y todo lo demás funciona igual.
+
+Las fotos no se copian: se buscan por número (`PhoneLookup`), la miniatura en
+la lista y la grande en la ficha, así que valen para los contactos ya guardados.
+Se guardan en una caché en memoria mientras la app está abierta.
 
 Tocar la notificación **no** cambia `ultimoContacto`: el aviso se repite cada
 día hasta que en la ficha se pulse **He llamado hoy**. Ese botón pone
