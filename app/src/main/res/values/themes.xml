@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- El tema de verdad lo pone Compose (ui/Tema.kt); este solo quita la barra. -->
+    <style name="Theme.RecuerdaLlamar" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

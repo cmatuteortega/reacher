@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 13+: sin este permiso concedido las notificaciones no se ven. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      No hace falta READ_CONTACTS: el selector se abre con ACTION_PICK sobre
+      CommonDataKinds.Phone y el sistema concede lectura temporal SOLO de la
+      fila elegida.
+    -->
+
+    <application
+        android:name=".App"
+        android:icon="@android:drawable/sym_action_call"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.RecuerdaLlamar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Trampolin de la notificacion: apunta el toque en la base de datos y
+          abre el marcador. Es una Activity (sin interfaz) porque desde Android 12
+          un BroadcastReceiver no puede lanzar actividades al pulsar una
+          notificacion.
+        -->
+        <activity
+            android:name=".NotificacionPulsadaActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    </application>
+</manifest>
