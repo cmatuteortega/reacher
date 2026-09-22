@@ -51,7 +51,9 @@ contactos existentes en `MARCADOR`, que es lo que hacían antes.
 
 ## Forma de contacto
 
-Se elige en un desplegable de la ficha. Qué se abre al tocar la notificación
+Se elige en un desplegable de la ficha, con un icono por opción. Material no
+trae logos de marcas, así que WhatsApp y Telegram (y el de SMS, que solo está
+en el paquete extendido) son vectores propios en `res/drawable`. Qué se abre al tocar la notificación
 (y con el botón de la ficha):
 
 | opción               | qué hace                                                     |

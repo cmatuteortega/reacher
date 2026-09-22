@@ -21,11 +21,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,10 +45,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -58,14 +56,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.Contactar
 import com.example.recuerdallamar.FotoContacto
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.flow.Flow
@@ -123,8 +124,9 @@ fun PantallaFicha(
         fotoPermitida = concedido
         fotoDenegada = !concedido
     }
-    val foto by produceState<ImageBitmap?>(null, actual.telefono, fotoPermitida) {
-        value = FotoContacto.cargar(context, actual.telefono)
+    var foto by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(actual.telefono, fotoPermitida) {
+        foto = FotoContacto.cargar(context, actual.telefono)
     }
 
     Scaffold(
@@ -314,10 +316,13 @@ private fun Avatar(nombre: String, foto: ImageBitmap?) {
     }
 }
 
-// Solo iconos del paquete core: ni WhatsApp ni Telegram tienen uno propio en Material.
-private fun MedioContacto.icono(): ImageVector = when (this) {
-    MedioContacto.MARCADOR -> Icons.Filled.Phone
-    MedioContacto.LLAMADA -> Icons.Filled.Call
-    MedioContacto.SMS -> Icons.Filled.Email
-    MedioContacto.WHATSAPP, MedioContacto.TELEGRAM -> Icons.AutoMirrored.Filled.Send
+// Material no trae logos de marcas: WhatsApp y Telegram van como vectores
+// propios en res/drawable, junto al de SMS (que solo esta en el paquete extendido).
+@Composable
+private fun MedioContacto.icono(): Painter = when (this) {
+    MedioContacto.MARCADOR -> rememberVectorPainter(Icons.Filled.Phone)
+    MedioContacto.LLAMADA -> rememberVectorPainter(Icons.Filled.Call)
+    MedioContacto.SMS -> painterResource(R.drawable.ic_sms)
+    MedioContacto.WHATSAPP -> painterResource(R.drawable.ic_whatsapp)
+    MedioContacto.TELEGRAM -> painterResource(R.drawable.ic_telegram)
 }
