@@ -1,5 +1,9 @@
 package com.example.recuerdallamar.ui
 
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
@@ -27,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -37,11 +45,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.Contactar
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
@@ -51,8 +64,8 @@ import java.time.LocalDate
 fun PantallaFicha(
     borrador: Contacto,
     observar: (Long) -> Flow<Contacto?>,
-    onGuardar: (Contacto, Int) -> Unit,
-    onLlamar: (String) -> Unit,
+    onGuardar: (Contacto, Int, MedioContacto) -> Unit,
+    onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
     onForzarNotificacion: (Long) -> Unit,
     onVolver: () -> Unit,
@@ -66,6 +79,26 @@ fun PantallaFicha(
 
     var texto by rememberSaveable(borrador.id) { mutableStateOf(borrador.frecuenciaDias.toString()) }
     val dias = texto.toIntOrNull()?.takeIf { it >= 1 }
+
+    var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
+
+    // Llamar sin pasar por el marcador pide CALL_PHONE en el momento de elegirlo;
+    // si se deniega, se vuelve al marcador en vez de dejar una opcion que no hara nada.
+    val context = LocalContext.current
+    val pedirLlamadas = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { concedido ->
+        if (!concedido) {
+            medio = MedioContacto.MARCADOR
+            Toast.makeText(context, "Sin permiso de llamadas se abrirá el marcador", Toast.LENGTH_LONG).show()
+        }
+    }
+    val elegirMedio = { nuevo: MedioContacto ->
+        medio = nuevo
+        if (nuevo == MedioContacto.LLAMADA && !Contactar.puedeLlamar(context)) {
+            pedirLlamadas.launch(Manifest.permission.CALL_PHONE)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -106,6 +139,27 @@ fun PantallaFicha(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            Column(Modifier.selectableGroup()) {
+                Text("Al tocar el aviso", style = MaterialTheme.typography.labelLarge)
+                MedioContacto.entries.forEach { opcion ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = medio == opcion,
+                                onClick = { elegirMedio(opcion) },
+                                role = Role.RadioButton,
+                            )
+                            .padding(vertical = 4.dp),
+                    ) {
+                        RadioButton(selected = medio == opcion, onClick = null)
+                        Spacer(Modifier.size(12.dp))
+                        Text(opcion.etiqueta)
+                    }
+                }
+            }
+
             if (guardado) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Último contacto: ${actual.ultimoContacto.bonita()}")
@@ -129,18 +183,23 @@ fun PantallaFicha(
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
-                    onClick = { dias?.let { onGuardar(actual, it) } },
+                    onClick = { dias?.let { onGuardar(actual, it, medio) } },
                     enabled = dias != null,
                     modifier = Modifier.weight(1f),
                 ) { Text("Guardar") }
 
+                // Prueba lo elegido aunque aun no se haya guardado.
                 FilledTonalButton(
-                    onClick = { onLlamar(actual.telefono) },
+                    onClick = { onContactar(actual.telefono, medio) },
                     modifier = Modifier.weight(1f),
                 ) {
-                    Icon(Icons.Filled.Call, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Icon(
+                        if (medio.esLlamada) Icons.Filled.Call else Icons.AutoMirrored.Filled.Send,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize),
+                    )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Llamar")
+                    Text(medio.boton)
                 }
             }
 

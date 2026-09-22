@@ -7,6 +7,7 @@ import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.avisos.RecordatorioWorker
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,12 +41,12 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
 
     fun observar(id: Long): Flow<Contacto?> = dao.observar(id)
 
-    fun guardar(borrador: Contacto, dias: Int) {
+    fun guardar(borrador: Contacto, dias: Int, medio: MedioContacto) {
         viewModelScope.launch {
             val id = if (borrador.id == 0L) {
-                dao.insertar(borrador.copy(frecuenciaDias = dias, ultimoContacto = LocalDate.now()))
+                dao.insertar(borrador.copy(frecuenciaDias = dias, medio = medio, ultimoContacto = LocalDate.now()))
             } else {
-                dao.actualizarFrecuencia(borrador.id, dias)
+                dao.actualizarFicha(borrador.id, dias, medio)
                 borrador.id
             }
             RecordatorioWorker.programar(getApplication(), id)

@@ -94,7 +94,7 @@ private fun AppRecuerda(vm: ContactosViewModel = viewModel()) {
                 borrador = abierta,
                 observar = vm::observar,
                 onGuardar = vm::guardar,
-                onLlamar = { Marcador.abrir(context, it) },
+                onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
                 onLlamadoHoy = { id ->
                     vm.llamadoHoy(id)
                     Toast.makeText(context, "Anotado: último contacto hoy", Toast.LENGTH_SHORT).show()

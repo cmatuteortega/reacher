@@ -5,6 +5,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
+      Solo para la forma de contacto "Llamar directamente". Se pide al elegirla
+      en la ficha; sin el, se abre el marcador. No exige tener telefonia: en una
+      tableta el resto de opciones siguen valiendo.
+    -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <!--
       No hace falta READ_CONTACTS: el selector se abre con ACTION_PICK sobre
       CommonDataKinds.Phone y el sistema concede lectura temporal SOLO de la
       fila elegida.
@@ -28,7 +36,7 @@
 
         <!--
           Trampolin de la notificacion: apunta el toque en la base de datos y
-          abre el marcador. Es una Activity (sin interfaz) porque desde Android 12
+          abre la forma de contacto preferida. Es una Activity (sin interfaz) porque desde Android 12
           un BroadcastReceiver no puede lanzar actividades al pulsar una
           notificacion.
         -->

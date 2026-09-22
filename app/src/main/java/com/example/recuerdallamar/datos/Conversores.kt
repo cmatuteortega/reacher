@@ -4,7 +4,10 @@ import androidx.room.TypeConverter
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-/** Room no sabe guardar java.time: la fecha va como dia epoch y el instante como texto ISO. */
+/**
+ * Room no sabe guardar java.time: la fecha va como dia epoch y el instante como
+ * texto ISO. El medio de contacto va por nombre.
+ */
 class Conversores {
     @TypeConverter
     fun deFecha(fecha: LocalDate): Long = fecha.toEpochDay()
@@ -17,4 +20,10 @@ class Conversores {
 
     @TypeConverter
     fun aMomento(texto: String?): LocalDateTime? = texto?.let(LocalDateTime::parse)
+
+    @TypeConverter
+    fun deMedio(medio: MedioContacto): String = medio.name
+
+    @TypeConverter
+    fun aMedio(nombre: String): MedioContacto = MedioContacto.desde(nombre)
 }

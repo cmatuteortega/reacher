@@ -36,13 +36,14 @@ object Notificaciones {
     fun mostrar(context: Context, contacto: Contacto) {
         if (!permitidas(context)) return
 
-        // El numero viaja en el intent para abrir el marcador sin esperar a la base de datos.
+        // Numero y medio viajan en el intent para no esperar a la base de datos al tocar.
         val intent = Intent(context, NotificacionPulsadaActivity::class.java).apply {
             putExtra(NotificacionPulsadaActivity.EXTRA_ID, contacto.id)
             putExtra(NotificacionPulsadaActivity.EXTRA_TELEFONO, contacto.telefono)
+            putExtra(NotificacionPulsadaActivity.EXTRA_MEDIO, contacto.medio.name)
         }
         // requestCode por contacto: con uno fijo, FLAG_UPDATE_CURRENT haria que
-        // todas las notificaciones abiertas marcaran el ultimo numero.
+        // todas las notificaciones abiertas irian al ultimo contacto.
         val pendiente = PendingIntent.getActivity(
             context,
             contacto.id.toInt(),
@@ -53,7 +54,7 @@ object Notificaciones {
         val notificacion = NotificationCompat.Builder(context, CANAL)
             .setSmallIcon(android.R.drawable.sym_action_call)
             .setContentTitle(contacto.nombre)
-            .setContentText("Toca para llamar a ${contacto.nombre}")
+            .setContentText(contacto.medio.aviso(contacto.nombre))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setContentIntent(pendiente)
             .setAutoCancel(true)

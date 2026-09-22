@@ -22,10 +22,10 @@ interface ContactoDao {
     @Insert
     suspend fun insertar(contacto: Contacto): Long
 
-    // Solo la frecuencia, y no un @Update de la fila entera: la ficha puede
-    // llevar una copia vieja y pisaria la marca de notificacion pulsada.
-    @Query("UPDATE contactos SET frecuenciaDias = :dias WHERE id = :id")
-    suspend fun actualizarFrecuencia(id: Long, dias: Int)
+    // Solo lo que se edita en la ficha, y no un @Update de la fila entera: la
+    // ficha puede llevar una copia vieja y pisaria la marca de notificacion pulsada.
+    @Query("UPDATE contactos SET frecuenciaDias = :dias, medio = :medio WHERE id = :id")
+    suspend fun actualizarFicha(id: Long, dias: Int, medio: MedioContacto)
 
     @Query("UPDATE contactos SET ultimoContacto = :fecha WHERE id = :id")
     suspend fun actualizarUltimoContacto(id: Long, fecha: LocalDate)

@@ -22,8 +22,9 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 1. **Lista** — vacía al principio. *Añadir* abre el selector de contactos del
    sistema filtrado a números de teléfono.
-2. **Ficha** — nombre y número del elegido, campo de frecuencia en días,
-   *Guardar*, *Llamar* (`ACTION_DIAL`, abre el marcador con el número puesto),
+2. **Ficha** — nombre y número del elegido, campo de frecuencia en días, la
+   **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
+   contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o *Telegram*),
    *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado) y
    un botón de **depuración** que fuerza la notificación.
 3. Al guardar se vuelve a la lista; el contacto nuevo entra fundido arriba y el
@@ -42,6 +43,32 @@ Una tabla, `contactos`:
 | `ultimoContacto`      | LocalDate       | hoy al crear el contacto                |
 | `notificacionPulsada` | Boolean         | true tras tocar la notificación         |
 | `fechaPulsacion`      | LocalDateTime?  | cuándo se tocó por última vez           |
+| `medio`               | MedioContacto   | por nombre; `MARCADOR` por defecto      |
+
+La base va por la versión 2: la migración 1→2 añade `medio` y deja los
+contactos existentes en `MARCADOR`, que es lo que hacían antes.
+
+## Forma de contacto
+
+Qué se abre al tocar la notificación (y con el botón de la ficha):
+
+| opción               | qué hace                                                     |
+|----------------------|--------------------------------------------------------------|
+| Abrir el marcador    | `ACTION_DIAL` con el número puesto; no llama solo            |
+| Llamar directamente  | `ACTION_CALL`: marca sin más. Pide `CALL_PHONE` al elegirla  |
+| WhatsApp             | `https://wa.me/<número>`                                     |
+| Mensaje (SMS)        | `ACTION_SENDTO smsto:` en la app de mensajes                 |
+| Telegram             | `https://t.me/+<número>`                                     |
+
+* Si se deniega `CALL_PHONE` la opción vuelve a *Abrir el marcador*; si el
+  permiso se retira después, el aviso abre el marcador en vez de fallar.
+* WhatsApp y Telegram necesitan el número internacional: si en la agenda está
+  sin prefijo se completa con el país de la SIM (o el del idioma del teléfono).
+  Si la app no está instalada, el enlace se abre en el navegador.
+* Telegram solo encuentra a alguien por teléfono si esa persona lo permite en
+  su privacidad; si no, el enlace no lleva al chat.
+* El texto del aviso cambia con la opción ("Toca para escribir a Ana por
+  WhatsApp"). Un aviso ya mostrado conserva la opción que había al crearse.
 
 ## Recordatorios
 
@@ -51,9 +78,9 @@ Una tabla, `contactos`:
 * El worker avisa si `hoy >= ultimoContacto + frecuenciaDias`, con el nombre
   como título y "Toca para llamar a <nombre>".
 * Tocar la notificación abre `NotificacionPulsadaActivity`, una actividad sin
-  interfaz que abre el marcador y marca en la base de datos
+  interfaz que abre la forma de contacto elegida y marca en la base de datos
   `notificacionPulsada = true` y la fecha. Tiene que ser una Activity: desde
-  Android 12 un receiver no puede lanzar el marcador desde una notificación.
+  Android 12 un receiver no puede lanzar otra app desde una notificación.
 * *Forzar notificación ahora* encola el mismo worker una vez con un indicador
   que se salta la comprobación de fecha.
 

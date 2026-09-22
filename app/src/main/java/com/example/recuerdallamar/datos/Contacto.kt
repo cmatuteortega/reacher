@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 /**
  * La unica tabla de la app: a quien hay que llamar, cada cuanto y cuando fue
- * la ultima vez. Los dos ultimos campos registran si se pulso la notificacion.
+ * la ultima vez, si se pulso la notificacion y por donde se prefiere contactar.
  */
 @Entity(tableName = "contactos")
 data class Contacto(
@@ -18,6 +18,7 @@ data class Contacto(
     val ultimoContacto: LocalDate = LocalDate.now(),
     val notificacionPulsada: Boolean = false,
     val fechaPulsacion: LocalDateTime? = null,
+    val medio: MedioContacto = MedioContacto.MARCADOR,
 ) {
     /** Dia a partir del cual toca avisar. */
     fun proximoAviso(): LocalDate = ultimoContacto.plusDays(frecuenciaDias.toLong())
