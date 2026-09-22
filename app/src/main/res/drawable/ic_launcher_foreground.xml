@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Primer plano del icono de la app.
+  Simbolo "reminder" de Material Symbols Outlined (Apache 2.0), escalado x2.4
+  y centrado en el lienzo de 108dp para que quepa en la zona segura de 66dp.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="2.4"
+        android:scaleY="2.4"
+        android:translateX="26.78"
+        android:translateY="25.2">
+        <path
+            android:fillColor="@color/icono_simbolo"
+            android:pathData="M6.5 8h1V7Q7.5 6.57 7.21 6.29T6.5 6Q6.08 6 5.79 6.29T5.5 7T5.79 7.71T6.5 8ZM11 8q0.43 0 0.71 -0.29Q12 7.43 12 7T11.71 6.29T11 6T10.29 6.29T10 7V8h1Zm1.55 7.5ZM10.48 22Q9.78 22 9.16 21.7T8.13 20.85L2.68 13.93l0.48 -0.5Q3.65 12.9 4.35 12.8t1.3 0.28L7.5 14.2V10h-1Q5.25 10 4.38 9.13T3.5 7T4.38 4.88T6.5 4Q6.78 4 7.01 4.05T7.5 4.17V3Q7.5 2.57 7.79 2.29T8.5 2Q8.93 2 9.23 2.29Q9.53 2.57 9.53 3V4.4Q9.88 4.2 10.24 4.1T11 4q1.25 0 2.13 0.88T14 7T13.13 9.13T11 10H9.53v7.8L7.1 16.3l2.6 3.32q0.15 0.18 0.35 0.27T10.48 20H16q0.82 0 1.41 -0.59T18 18V14q0 -0.43 -0.29 -0.71T17 13H11.53V11H17q1.25 0 2.13 0.88T20 14v4q0 1.65 -1.18 2.82T16 22H10.48Z" />
+    </group>
+</vector>

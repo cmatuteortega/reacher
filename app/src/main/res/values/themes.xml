@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- El tema de verdad lo pone Compose (ui/Tema.kt); este solo quita la barra. -->
-    <style name="Theme.RecuerdaLlamar" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+      El tema de verdad lo pone Compose (ui/Tema.kt); este solo quita la barra
+      y da a la ventana el fondo de la paleta, para que al abrir no destelle blanco
+      en modo oscuro.
+    -->
+    <style name="Theme.RecuerdaLlamar" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fondo_ventana</item>
+    </style>
 </resources>

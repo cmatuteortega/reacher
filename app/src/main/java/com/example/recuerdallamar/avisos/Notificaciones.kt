@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.recuerdallamar.NotificacionPulsadaActivity
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 
 object Notificaciones {
@@ -52,7 +53,8 @@ object Notificaciones {
         )
 
         val notificacion = NotificationCompat.Builder(context, CANAL)
-            .setSmallIcon(android.R.drawable.sym_action_call)
+            .setSmallIcon(R.drawable.ic_notificacion)
+            .setColor(ContextCompat.getColor(context, R.color.naranja))
             .setContentTitle(contacto.nombre)
             .setContentText(contacto.medio.aviso(contacto.nombre))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

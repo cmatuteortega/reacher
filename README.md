@@ -18,6 +18,25 @@ minSdk 26, target/compileSdk 35, JDK 17+.
 Cada push compila en GitHub Actions (`.github/workflows/android.yml`); el APK
 de depuración queda como artefacto `app-debug` de la ejecución.
 
+## Aspecto
+
+* **Icono**: el símbolo `reminder` de Material Symbols Outlined (Apache 2.0)
+  como icono adaptativo (`mipmap-anydpi-v26`), en crema sobre verde azulado.
+  Tiene capa monocroma para los iconos temáticos de Android 13+. La
+  notificación usa el mismo símbolo, con acento naranja.
+* **Paleta** (`ui/Tema.kt`, y en `res/values/colors.xml` para lo que no es
+  Compose):
+
+  | color     | hex       | uso                                           |
+  |-----------|-----------|-----------------------------------------------|
+  | tinta     | `#001524` | texto; fondo en modo oscuro                   |
+  | petróleo  | `#15616D` | color principal; fondo del icono              |
+  | crema     | `#FFECD1` | tarjetas; texto en modo oscuro; símbolo       |
+  | naranja   | `#FF7D00` | acentos: botón *Añadir*, campana de "toca"    |
+
+  Sin color dinámico: en Android 12+ taparía la paleta con los colores del
+  fondo de pantalla.
+
 ## Flujo
 
 1. **Lista** — vacía al principio. *Añadir* abre el selector de contactos del

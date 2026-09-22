@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta de la app; en Compose la misma esta en ui/Tema.kt. -->
+    <color name="tinta">#FF001524</color>
+    <color name="petroleo">#FF15616D</color>
+    <color name="crema">#FFFFECD1</color>
+    <color name="naranja">#FFFF7D00</color>
+
+    <color name="icono_fondo">@color/petroleo</color>
+    <color name="icono_simbolo">@color/crema</color>
+
+    <!-- Fondo de la ventana antes de que pinte Compose (arranque sin parpadeo). -->
+    <color name="fondo_ventana">#FFFFFBF6</color>
+</resources>

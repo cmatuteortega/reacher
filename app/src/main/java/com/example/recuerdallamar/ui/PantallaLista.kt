@@ -64,6 +64,9 @@ fun PantallaLista(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAnadir,
+                // El naranja de la paleta, reservado para lo que pide accion.
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text("Añadir") },
             )
@@ -125,7 +128,7 @@ private fun FilaContacto(contacto: Contacto, onClick: () -> Unit, modifier: Modi
                 Icon(
                     Icons.Filled.Notifications,
                     contentDescription = "Toca llamar",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.tertiary,
                 )
             }
         },
