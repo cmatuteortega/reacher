@@ -48,6 +48,7 @@ fun PantallaLista(
     fotosPermitidas: Boolean,
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val estado = rememberLazyListState()
 
@@ -61,6 +62,7 @@ fun PantallaLista(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = { TopAppBar(title = { Text("Recuerda llamar") }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(

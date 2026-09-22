@@ -1,9 +1,5 @@
 package com.example.recuerdallamar.ui
 
-import android.Manifest
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,22 +14,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -51,16 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.recuerdallamar.Contactar
 import com.example.recuerdallamar.FotoContacto
-import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.flow.Flow
@@ -92,23 +77,7 @@ fun PantallaFicha(
 
     var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
 
-    // Llamar sin pasar por el marcador pide CALL_PHONE en el momento de elegirlo;
-    // si se deniega, se vuelve al marcador en vez de dejar una opcion que no hara nada.
     val context = LocalContext.current
-    val pedirLlamadas = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { concedido ->
-        if (!concedido) {
-            medio = MedioContacto.MARCADOR
-            Toast.makeText(context, "Sin permiso de llamadas se abrirá el marcador", Toast.LENGTH_LONG).show()
-        }
-    }
-    val elegirMedio = { nuevo: MedioContacto ->
-        medio = nuevo
-        if (nuevo == MedioContacto.LLAMADA && !Contactar.puedeLlamar(context)) {
-            pedirLlamadas.launch(Manifest.permission.CALL_PHONE)
-        }
-    }
 
     // Sin permiso de contactos no hay foto: se ve la inicial y un boton para pedirlo.
     var foto by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -167,40 +136,12 @@ fun PantallaFicha(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            var desplegado by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = desplegado,
-                onExpandedChange = { desplegado = it },
-            ) {
-                OutlinedTextField(
-                    value = medio.etiqueta,
-                    onValueChange = {},
-                    readOnly = true,
-                    singleLine = true,
-                    label = { Text("Al tocar el aviso") },
-                    leadingIcon = { Icon(medio.icono(), contentDescription = null) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegado) },
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth(),
-                )
-                ExposedDropdownMenu(
-                    expanded = desplegado,
-                    onDismissRequest = { desplegado = false },
-                ) {
-                    MedioContacto.entries.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion.etiqueta) },
-                            leadingIcon = { Icon(opcion.icono(), contentDescription = null) },
-                            onClick = {
-                                desplegado = false
-                                elegirMedio(opcion)
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                        )
-                    }
-                }
-            }
+            SelectorMedio(
+                medio = medio,
+                etiqueta = "Al tocar el aviso",
+                onCambio = { medio = it },
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             if (guardado) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -279,15 +220,4 @@ fun PantallaFicha(
             )
         }
     }
-}
-
-// Material no trae logos de marcas: WhatsApp y Telegram van como vectores
-// propios en res/drawable, junto al de SMS (que solo esta en el paquete extendido).
-@Composable
-private fun MedioContacto.icono(): Painter = when (this) {
-    MedioContacto.MARCADOR -> rememberVectorPainter(Icons.Filled.Phone)
-    MedioContacto.LLAMADA -> rememberVectorPainter(Icons.Filled.Call)
-    MedioContacto.SMS -> painterResource(R.drawable.ic_sms)
-    MedioContacto.WHATSAPP -> painterResource(R.drawable.ic_whatsapp)
-    MedioContacto.TELEGRAM -> painterResource(R.drawable.ic_telegram)
 }

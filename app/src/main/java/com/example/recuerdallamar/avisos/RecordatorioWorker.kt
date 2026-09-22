@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -17,6 +18,10 @@ import java.util.concurrent.TimeUnit
  * Comprueba un contacto y avisa si toca llamarle. Hay un trabajo periodico
  * diario por contacto; la prueba de depuracion usa el mismo worker con
  * FORZAR, asi que ejercita exactamente el mismo camino que el aviso real.
+ *
+ * Los ajustes mandan sobre el aviso real (no sobre la prueba): con los avisos
+ * apagados o en pausa no se muestra, y fuera del horario elegido se aplaza a
+ * la hora de inicio con un trabajo de una vez, que vuelve a comprobarlo todo.
  */
 class RecordatorioWorker(
     context: Context,
@@ -30,9 +35,17 @@ class RecordatorioWorker(
             ?: return Result.success()
 
         val forzar = inputData.getBoolean(CLAVE_FORZAR, false)
-        if (forzar || contacto.tocaLlamar(LocalDate.now())) {
-            Notificaciones.mostrar(applicationContext, contacto)
+        if (!forzar) {
+            if (!contacto.tocaLlamar(LocalDate.now())) return Result.success()
+            val ajustes = AlmacenAjustes.de(applicationContext).ajustes.value
+            if (!ajustes.avisosEncendidos()) return Result.success()
+            val espera = ajustes.esperaHastaFranja()
+            if (!espera.isZero) {
+                aplazar(applicationContext, id, espera.toMinutes() + 1)
+                return Result.success()
+            }
         }
+        Notificaciones.mostrar(applicationContext, contacto)
         return Result.success()
     }
 
@@ -52,6 +65,22 @@ class RecordatorioWorker(
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 "recordatorio-$id",
                 ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+                peticion,
+            )
+        }
+
+        /**
+         * Reintento al empezar la franja. REPLACE: si ya habia uno pendiente,
+         * vale el calculado con los ajustes de ahora.
+         */
+        private fun aplazar(context: Context, id: Long, minutos: Long) {
+            val peticion = OneTimeWorkRequestBuilder<RecordatorioWorker>()
+                .setInputData(workDataOf(CLAVE_ID to id))
+                .setInitialDelay(minutos, TimeUnit.MINUTES)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "aplazado-$id",
+                ExistingWorkPolicy.REPLACE,
                 peticion,
             )
         }

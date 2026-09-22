@@ -39,6 +39,10 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 ## Flujo
 
+La app tiene dos secciones en una barra inferior: **Personas** (la lista y sus
+fichas) y **Ajustes**. La barra se oculta al abrir una ficha; *Atrás* desde
+Ajustes vuelve a Personas.
+
 1. **Lista** — vacía al principio. Cada fila lleva la foto de la agenda o la
    inicial. *Añadir* abre el selector de contactos del
    sistema filtrado a números de teléfono.
@@ -50,6 +54,20 @@ de depuración queda como artefacto `app-debug` de la ejecución.
    un botón de **depuración** que fuerza la notificación.
 3. Al guardar se vuelve a la lista; el contacto nuevo entra fundido arriba y el
    resto baja con un muelle (`Modifier.animateItem`).
+
+## Ajustes
+
+Se guardan en `SharedPreferences` (`datos/Ajustes.kt`) y los leen tanto la
+interfaz como el worker.
+
+| ajuste                         | qué hace                                                        |
+|--------------------------------|-----------------------------------------------------------------|
+| Recordatorios                  | Interruptor. Al apagarlo: *hasta que los vuelva a activar* o *durante N días*; pasada la pausa vuelven solos |
+| Horario de avisos              | Horas *desde* / *hasta* en que se puede avisar (por defecto 09:00–21:00). Puede cruzar la medianoche; misma hora = todo el día |
+| Forma de contacto por defecto  | La que se propone al añadir a alguien; se cambia en su ficha    |
+| Apariencia                     | Sistema, claro u oscuro                                         |
+
+El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
 
 ## Datos (Room)
 
@@ -101,6 +119,10 @@ en el paquete extendido) son vectores propios en `res/drawable`. Qué se abre al
   primera comprobación corre en cuanto se guarda.
 * El worker avisa si `hoy >= ultimoContacto + frecuenciaDias`, con el nombre
   como título y "Toca para llamar a <nombre>".
+* Con los recordatorios apagados o en pausa no avisa (el día siguiente lo
+  vuelve a comprobar). Si corre fuera del horario elegido, encola un trabajo
+  de una vez (`aplazado-<id>`) para la hora de inicio, que repite todas las
+  comprobaciones: si entretanto se pulsó *He llamado hoy*, ya no avisa.
 * Tocar la notificación abre `NotificacionPulsadaActivity`, una actividad sin
   interfaz que abre la forma de contacto elegida y marca en la base de datos
   `notificacionPulsada = true` y la fecha. Tiene que ser una Activity: desde

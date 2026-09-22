@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.example.recuerdallamar.datos.TemaElegido
 
 // Paleta de la app, la misma del icono.
 private val Tinta = Color(0xFF001524) // azul noche: texto y fondo oscuro
@@ -73,11 +74,19 @@ private val oscuro = darkColorScheme(
     outlineVariant = Color(0xFF34495A),
 )
 
+/** Si toca pintar en oscuro: lo elegido en ajustes, o lo del sistema. */
+@Composable
+fun TemaElegido.esOscuro(): Boolean = when (this) {
+    TemaElegido.SISTEMA -> isSystemInDarkTheme()
+    TemaElegido.CLARO -> false
+    TemaElegido.OSCURO -> true
+}
+
 /**
  * Material 3 con la paleta propia en claro y oscuro. Sin color dinamico: en
  * Android 12+ taparia la paleta con los colores del fondo de pantalla.
  */
 @Composable
-fun TemaApp(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) oscuro else claro, content = content)
+fun TemaApp(modoOscuro: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = if (modoOscuro) oscuro else claro, content = content)
 }
