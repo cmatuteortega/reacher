@@ -16,21 +16,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -85,9 +71,11 @@ class MainActivity : ComponentActivity() {
 private val ESTOR_CLARO = android.graphics.Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
 private val ESTOR_OSCURO = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 
-private enum class Seccion(val etiqueta: String, val icono: ImageVector) {
-    PERSONAS("Personas", Icons.Filled.Person),
-    AJUSTES("Ajustes", Icons.Filled.Settings),
+/** Lo que ocupa la pantalla: la lista es la base y las demas se abren encima. */
+private sealed interface Pantalla {
+    data object Lista : Pantalla
+    data object Ajustes : Pantalla
+    data class Ficha(val contacto: Contacto) : Pantalla
 }
 
 /** Frecuencia que se propone al elegir a alguien nuevo. */
@@ -166,69 +154,48 @@ private fun AppRecuerda(
         )
     }
 
-    var seccion by rememberSaveable { mutableStateOf(Seccion.PERSONAS) }
+    var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
 
     BackHandler(enabled = ficha != null) { vm.cerrarFicha() }
-    // Atras desde Ajustes vuelve a Personas antes de salir de la app.
-    BackHandler(enabled = ficha == null && seccion != Seccion.PERSONAS) { seccion = Seccion.PERSONAS }
+    BackHandler(enabled = ficha == null && ajustesAbiertos) { ajustesAbiertos = false }
 
-    // contentKey solo distingue lista/ficha: cambiar de ficha a ficha no anima.
+    val pantalla = ficha?.let { Pantalla.Ficha(it) }
+        ?: if (ajustesAbiertos) Pantalla.Ajustes else Pantalla.Lista
+
+    // contentKey solo distingue el tipo de pantalla: cambiar de ficha a ficha no anima.
     AnimatedContent(
-        targetState = ficha,
-        contentKey = { it == null },
+        targetState = pantalla,
+        contentKey = { it::class },
         transitionSpec = {
-            val entra = targetState != null
+            val entra = targetState != Pantalla.Lista
             slideInHorizontally { if (entra) it else -it } togetherWith
                 slideOutHorizontally { if (entra) -it else it }
         },
         label = "pantalla",
-    ) { abierta ->
-        if (abierta == null) {
-            // La barra de secciones solo esta fuera de la ficha, que ocupa la pantalla entera.
-            Scaffold(
-                contentWindowInsets = WindowInsets(0),
-                bottomBar = {
-                    NavigationBar {
-                        Seccion.entries.forEach { opcion ->
-                            NavigationBarItem(
-                                selected = seccion == opcion,
-                                onClick = { seccion = opcion },
-                                icon = { Icon(opcion.icono, contentDescription = null) },
-                                label = { Text(opcion.etiqueta) },
-                            )
-                        }
+    ) { actual ->
+        when (actual) {
+            Pantalla.Lista -> PantallaLista(
+                contactos = contactos,
+                fotosPermitidas = fotosPermitidas,
+                vista = ajustes.vista,
+                onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
+                onAnadir = {
+                    try {
+                        elegir.launch(Unit)
+                    } catch (e: android.content.ActivityNotFoundException) {
+                        Toast.makeText(context, "No hay agenda de contactos", Toast.LENGTH_SHORT).show()
                     }
                 },
-            ) { relleno ->
-                val dentro = Modifier.padding(relleno).consumeWindowInsets(relleno)
-                Crossfade(targetState = seccion, label = "seccion") { actual ->
-                    when (actual) {
-                        Seccion.PERSONAS -> PantallaLista(
-                            contactos = contactos,
-                            fotosPermitidas = fotosPermitidas,
-                            vista = ajustes.vista,
-                            onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
-                            onAnadir = {
-                                try {
-                                    elegir.launch(Unit)
-                                } catch (e: android.content.ActivityNotFoundException) {
-                                    Toast.makeText(context, "No hay agenda de contactos", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            onAbrir = vm::abrirFicha,
-                            modifier = dentro,
-                        )
-                        Seccion.AJUSTES -> PantallaAjustes(
-                            ajustes = ajustes,
-                            onCambiar = cambiarAjustes,
-                            modifier = dentro,
-                        )
-                    }
-                }
-            }
-        } else {
-            PantallaFicha(
-                borrador = abierta,
+                onAbrir = vm::abrirFicha,
+                onAjustes = { ajustesAbiertos = true },
+            )
+            Pantalla.Ajustes -> PantallaAjustes(
+                ajustes = ajustes,
+                onCambiar = cambiarAjustes,
+                onVolver = { ajustesAbiertos = false },
+            )
+            is Pantalla.Ficha -> PantallaFicha(
+                borrador = actual.contacto,
                 observar = vm::observar,
                 fotosPermitidas = fotosPermitidas,
                 onPedirFotos = pedirFotos,

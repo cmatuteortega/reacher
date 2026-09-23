@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -55,6 +56,7 @@ fun PantallaLista(
     onCambiarVista: (VistaPersonas) -> Unit,
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
+    onAjustes: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val estado = rememberLazyListState()
@@ -74,7 +76,12 @@ fun PantallaLista(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Recuerda llamar") },
+                title = {},
+                navigationIcon = {
+                    IconButton(onClick = onAjustes) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+                    }
+                },
                 actions = {
                     val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
                     IconButton(onClick = { onCambiarVista(otra) }) {

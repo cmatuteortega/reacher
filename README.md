@@ -39,9 +39,9 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 ## Flujo
 
-La app tiene dos secciones en una barra inferior: **Personas** (la lista y sus
-fichas) y **Ajustes**. La barra se oculta al abrir una ficha; *Atrás* desde
-Ajustes vuelve a Personas.
+La pantalla principal es **Personas** (la lista y sus fichas). El botón de
+engranaje de la esquina superior izquierda abre **Ajustes**; *Atrás* o la
+flecha vuelven a Personas.
 
 1. **Personas** — vacía al principio. *Añadir* abre el selector de contactos
    del sistema filtrado a números de teléfono. Se ve de dos formas, con los
