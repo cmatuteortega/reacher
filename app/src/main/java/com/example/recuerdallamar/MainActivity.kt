@@ -206,6 +206,8 @@ private fun AppRecuerda(
                         Seccion.PERSONAS -> PantallaLista(
                             contactos = contactos,
                             fotosPermitidas = fotosPermitidas,
+                            vista = ajustes.vista,
+                            onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
                             onAnadir = {
                                 try {
                                     elegir.launch(Unit)

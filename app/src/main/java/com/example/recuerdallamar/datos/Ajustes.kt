@@ -16,6 +16,12 @@ enum class TemaElegido(val etiqueta: String) {
     OSCURO("Oscuro"),
 }
 
+/** Como se ensena la gente en Personas; los mismos datos y el mismo orden en las dos. */
+enum class VistaPersonas {
+    BURBUJAS,
+    LISTA,
+}
+
 /**
  * Preferencias de la app. Los avisos se apagan del todo ([avisosActivos] false
  * y sin fecha) o durante unos dias ([avisosActivos] false hasta [pausaHasta]):
@@ -30,6 +36,7 @@ data class Ajustes(
     val horaHasta: Int = 21,
     val medioPorDefecto: MedioContacto = MedioContacto.MARCADOR,
     val tema: TemaElegido = TemaElegido.SISTEMA,
+    val vista: VistaPersonas = VistaPersonas.BURBUJAS,
 ) {
     fun avisosEncendidos(hoy: LocalDate = LocalDate.now()): Boolean =
         avisosActivos || (pausaHasta != null && !hoy.isBefore(pausaHasta))
@@ -69,6 +76,7 @@ class AlmacenAjustes private constructor(context: Context) {
             putInt(HASTA, nuevos.horaHasta)
             putString(MEDIO, nuevos.medioPorDefecto.name)
             putString(TEMA, nuevos.tema.name)
+            putString(VISTA, nuevos.vista.name)
         }
         _ajustes.value = nuevos
     }
@@ -82,6 +90,7 @@ class AlmacenAjustes private constructor(context: Context) {
             horaHasta = preferencias.getInt(HASTA, defecto.horaHasta).coerceIn(0, 23),
             medioPorDefecto = MedioContacto.desde(preferencias.getString(MEDIO, null)),
             tema = TemaElegido.entries.firstOrNull { it.name == preferencias.getString(TEMA, null) } ?: defecto.tema,
+            vista = VistaPersonas.entries.firstOrNull { it.name == preferencias.getString(VISTA, null) } ?: defecto.vista,
         )
     }
 
@@ -92,6 +101,7 @@ class AlmacenAjustes private constructor(context: Context) {
         private const val HASTA = "hora_hasta"
         private const val MEDIO = "medio_por_defecto"
         private const val TEMA = "tema"
+        private const val VISTA = "vista_personas"
 
         @Volatile
         private var instancia: AlmacenAjustes? = null

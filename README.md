@@ -43,17 +43,31 @@ La app tiene dos secciones en una barra inferior: **Personas** (la lista y sus
 fichas) y **Ajustes**. La barra se oculta al abrir una ficha; *Atrás* desde
 Ajustes vuelve a Personas.
 
-1. **Lista** — vacía al principio. Cada fila lleva la foto de la agenda o la
-   inicial. *Añadir* abre el selector de contactos del
-   sistema filtrado a números de teléfono.
+1. **Personas** — vacía al principio. *Añadir* abre el selector de contactos
+   del sistema filtrado a números de teléfono. Se ve de dos formas, con los
+   mismos datos y el mismo orden por **urgencia** (días desde el último
+   contacto ÷ frecuencia de esa persona: 0 recién hablado, 1 toca hoy); el
+   icono de la barra superior alterna entre ellas y la elección se recuerda:
+   - **Burbujas** (por defecto, `ui/VistaBurbujas.kt`) — cada persona es una
+     burbuja con su foto o inicial, más grande cuanto más cerca está de su
+     fecha; a quien ya le toca lleva anillo naranja y un halo que respira. Se
+     colocan con un empaquetado circular (las urgentes en el centro, sin
+     solaparse) y se mueven con una pequeña simulación de muelles y choques
+     (`ui/FisicaBurbujas.kt`): se pueden arrastrar y lanzar, empujan a las
+     demás y al soltarlas vuelven solas a su sitio con un rebote suave. Un
+     toque abre la ficha. Con más de 18 personas, las que van sobradas se
+     atenúan y se recogen en una burbuja «Con calma» que se abre al tocarla;
+     si aun así no caben, las grandes encogen y el lienzo se desplaza.
+   - **Lista** — cada fila lleva la foto de la agenda o la inicial.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la
    **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
    contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o *Telegram*),
    *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado) y
    un botón de **depuración** que fuerza la notificación.
-3. Al guardar se vuelve a la lista; el contacto nuevo entra fundido arriba y el
-   resto baja con un muelle (`Modifier.animateItem`).
+3. Al guardar se vuelve a Personas; el contacto nuevo, sin urgencia, entra al
+   final: en la lista aparece fundido y el resto se recoloca con un muelle
+   (`Modifier.animateItem`); en burbujas nace pequeña y sube a su sitio.
 
 ## Ajustes
 

@@ -8,11 +8,13 @@ import com.example.recuerdallamar.avisos.RecordatorioWorker
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
+import com.example.recuerdallamar.datos.porUrgencia
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -20,8 +22,12 @@ import java.time.LocalDate
 class ContactosViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = BaseDatos.de(app).contactos()
 
-    /** null mientras carga, para no ensenar "lista vacia" un instante al abrir. */
+    /**
+     * Ordenados por urgencia, no por fecha de alta. null mientras carga, para no
+     * ensenar "lista vacia" un instante al abrir.
+     */
     val contactos: StateFlow<List<Contacto>?> = dao.todos()
+        .map { it.porUrgencia() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /**
