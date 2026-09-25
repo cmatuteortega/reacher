@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.compose.animation.animateColorAsState
@@ -7,13 +8,17 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +30,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,6 +42,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
@@ -50,6 +59,13 @@ fun View.tic() {
 /** Toque algo mas marcado: para interruptores y elecciones con un toque. */
 fun View.toque() {
     performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+}
+
+/** Confirmacion firme: cuando algo que se mantenia pulsado se completa. */
+fun View.confirmar() {
+    performHapticFeedback(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM else HapticFeedbackConstants.LONG_PRESS,
+    )
 }
 
 /** Escala para que lo que se pulsa se hunda un poco y rebote al soltar. */
@@ -150,5 +166,55 @@ fun <T> Deslizador(
                 }
             }
         }
+    }
+}
+
+/**
+ * Casilla elegible que se hunde al pulsarla; la elegida se tine y crece un
+ * poco con un rebote.
+ */
+@Composable
+fun Baldosa(
+    elegida: Boolean,
+    onElegir: () -> Unit,
+    modifier: Modifier = Modifier,
+    contenido: @Composable ColumnScope.(color: Color) -> Unit,
+) {
+    val interaccion = remember { MutableInteractionSource() }
+    val pulsada = escalaAlPulsar(interaccion, hundido = 0.9f)
+    val crecida by animateFloatAsState(
+        if (elegida) 1f else 0.94f,
+        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+        label = "baldosa",
+    )
+    val colores = MaterialTheme.colorScheme
+    val fondo by animateColorAsState(if (elegida) colores.primaryContainer else colores.surfaceContainerHighest, label = "fondoBaldosa")
+    val tinta by animateColorAsState(if (elegida) colores.onPrimaryContainer else colores.onSurfaceVariant, label = "tintaBaldosa")
+    val borde by animateColorAsState(if (elegida) colores.primary else Color.Transparent, label = "bordeBaldosa")
+
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = fondo,
+        border = BorderStroke(2.dp, borde),
+        modifier = modifier
+            .graphicsLayer {
+                val escala = pulsada * crecida
+                scaleX = escala
+                scaleY = escala
+            }
+            .clip(RoundedCornerShape(20.dp))
+            .selectable(
+                selected = elegida,
+                interactionSource = interaccion,
+                indication = ripple(),
+                role = Role.RadioButton,
+                onClick = onElegir,
+            ),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 12.dp),
+        ) { contenido(tinta) }
     }
 }

@@ -2,10 +2,6 @@ package com.example.recuerdallamar.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,7 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -57,10 +51,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.datos.Ajustes
-import com.example.recuerdallamar.datos.MedioContacto
 import com.example.recuerdallamar.datos.TemaElegido
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -251,35 +243,11 @@ private fun TarjetaPosponer(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) 
 
 @Composable
 private fun TarjetaMedio(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
-    val vista = LocalView.current
-    val elegir = rememberElegirMedio { medio -> onCambiar { it.copy(medioPorDefecto = medio) } }
     Tarjeta("Contactos nuevos") {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .selectableGroup(),
-        ) {
-            MedioContacto.entries.forEach { medio ->
-                Baldosa(
-                    elegida = ajustes.medioPorDefecto == medio,
-                    onElegir = {
-                        vista.toque()
-                        elegir(medio)
-                    },
-                    modifier = Modifier.weight(1f),
-                ) { color ->
-                    Icon(medio.icono(), contentDescription = null, tint = color, modifier = Modifier.size(26.dp))
-                    Text(
-                        medio.corto(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = color,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
+        SelectorMedio(
+            medio = ajustes.medioPorDefecto,
+            onCambio = { medio -> onCambiar { it.copy(medioPorDefecto = medio) } },
+        )
         Explicacion("${ajustes.medioPorDefecto.etiqueta}. Se propone al añadir a alguien; en su ficha se puede cambiar.")
     }
 }
@@ -313,56 +281,6 @@ private fun TarjetaApariencia(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes
                 }
             }
         }
-    }
-}
-
-/**
- * Casilla elegible que se hunde al pulsarla; la elegida se tine y crece un
- * poco con un rebote.
- */
-@Composable
-private fun Baldosa(
-    elegida: Boolean,
-    onElegir: () -> Unit,
-    modifier: Modifier = Modifier,
-    contenido: @Composable ColumnScope.(color: Color) -> Unit,
-) {
-    val interaccion = remember { MutableInteractionSource() }
-    val pulsada = escalaAlPulsar(interaccion, hundido = 0.9f)
-    val crecida by animateFloatAsState(
-        if (elegida) 1f else 0.94f,
-        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
-        label = "baldosa",
-    )
-    val colores = MaterialTheme.colorScheme
-    val fondo by animateColorAsState(if (elegida) colores.primaryContainer else colores.surfaceContainerHighest, label = "fondoBaldosa")
-    val tinta by animateColorAsState(if (elegida) colores.onPrimaryContainer else colores.onSurfaceVariant, label = "tintaBaldosa")
-    val borde by animateColorAsState(if (elegida) colores.primary else Color.Transparent, label = "bordeBaldosa")
-
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = fondo,
-        border = BorderStroke(2.dp, borde),
-        modifier = modifier
-            .graphicsLayer {
-                val escala = pulsada * crecida
-                scaleX = escala
-                scaleY = escala
-            }
-            .clip(RoundedCornerShape(20.dp))
-            .selectable(
-                selected = elegida,
-                interactionSource = interaccion,
-                indication = ripple(),
-                role = Role.RadioButton,
-                onClick = onElegir,
-            ),
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 12.dp),
-        ) { contenido(tinta) }
     }
 }
 
@@ -432,15 +350,6 @@ private fun Explicacion(texto: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 4.dp),
     )
-}
-
-/** Nombre corto para que quepa bajo el icono. */
-private fun MedioContacto.corto(): String = when (this) {
-    MedioContacto.MARCADOR -> "Marcador"
-    MedioContacto.LLAMADA -> "Llamada"
-    MedioContacto.WHATSAPP -> "WhatsApp"
-    MedioContacto.SMS -> "SMS"
-    MedioContacto.TELEGRAM -> "Telegram"
 }
 
 private val HORAS_POSPONER = listOf(1, 2, 3, 4, 6, 8, 12)

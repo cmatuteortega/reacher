@@ -4,79 +4,79 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.Contactar
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.MedioContacto
 
-/** Desplegable de forma de contacto, con un icono por opcion. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Formas de contacto como fila de baldosas con su icono: se ven todas de un
+ * vistazo y se elige con un toque.
+ */
 @Composable
 fun SelectorMedio(
     medio: MedioContacto,
-    etiqueta: String,
     onCambio: (MedioContacto) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val vista = LocalView.current
     val elegir = rememberElegirMedio(onCambio)
-
-    var desplegado by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = desplegado,
-        onExpandedChange = { desplegado = it },
-        modifier = modifier,
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .selectableGroup(),
     ) {
-        OutlinedTextField(
-            value = medio.etiqueta,
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            label = { Text(etiqueta) },
-            leadingIcon = { Icon(medio.icono(), contentDescription = null) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = desplegado) },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth(),
-        )
-        ExposedDropdownMenu(
-            expanded = desplegado,
-            onDismissRequest = { desplegado = false },
-        ) {
-            MedioContacto.entries.forEach { opcion ->
-                DropdownMenuItem(
-                    text = { Text(opcion.etiqueta) },
-                    leadingIcon = { Icon(opcion.icono(), contentDescription = null) },
-                    onClick = {
-                        desplegado = false
-                        elegir(opcion)
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+        MedioContacto.entries.forEach { opcion ->
+            Baldosa(
+                elegida = medio == opcion,
+                onElegir = {
+                    vista.toque()
+                    elegir(opcion)
+                },
+                modifier = Modifier.weight(1f),
+            ) { color ->
+                Icon(opcion.icono(), contentDescription = null, tint = color, modifier = Modifier.size(26.dp))
+                Text(
+                    opcion.corto(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
     }
+}
+
+/** Nombre corto para que quepa bajo el icono. */
+private fun MedioContacto.corto(): String = when (this) {
+    MedioContacto.MARCADOR -> "Marcador"
+    MedioContacto.LLAMADA -> "Llamada"
+    MedioContacto.WHATSAPP -> "WhatsApp"
+    MedioContacto.SMS -> "SMS"
+    MedioContacto.TELEGRAM -> "Telegram"
 }
 
 /**
