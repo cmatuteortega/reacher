@@ -39,6 +39,8 @@ data class Ajustes(
     val medioPorDefecto: MedioContacto = MedioContacto.MARCADOR,
     val tema: TemaElegido = TemaElegido.SISTEMA,
     val vista: VistaPersonas = VistaPersonas.BURBUJAS,
+    /** La bienvenida ya se vio (o se salto): no se vuelve a ensenar. */
+    val bienvenidaHecha: Boolean = false,
 ) {
     fun avisosEncendidos(hoy: LocalDate = LocalDate.now()): Boolean =
         avisosActivos || (pausaHasta != null && !hoy.isBefore(pausaHasta))
@@ -80,6 +82,7 @@ class AlmacenAjustes private constructor(context: Context) {
             putString(MEDIO, nuevos.medioPorDefecto.name)
             putString(TEMA, nuevos.tema.name)
             putString(VISTA, nuevos.vista.name)
+            putBoolean(BIENVENIDA, nuevos.bienvenidaHecha)
         }
         _ajustes.value = nuevos
     }
@@ -95,6 +98,7 @@ class AlmacenAjustes private constructor(context: Context) {
             medioPorDefecto = MedioContacto.desde(preferencias.getString(MEDIO, null)),
             tema = TemaElegido.entries.firstOrNull { it.name == preferencias.getString(TEMA, null) } ?: defecto.tema,
             vista = VistaPersonas.entries.firstOrNull { it.name == preferencias.getString(VISTA, null) } ?: defecto.vista,
+            bienvenidaHecha = preferencias.getBoolean(BIENVENIDA, defecto.bienvenidaHecha),
         )
     }
 
@@ -107,6 +111,7 @@ class AlmacenAjustes private constructor(context: Context) {
         private const val MEDIO = "medio_por_defecto"
         private const val TEMA = "tema"
         private const val VISTA = "vista_personas"
+        private const val BIENVENIDA = "bienvenida_hecha"
 
         @Volatile
         private var instancia: AlmacenAjustes? = null

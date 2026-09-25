@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,7 +37,9 @@ import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.datos.Ajustes
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.VistaPersonas
 import com.example.recuerdallamar.ui.PantallaAjustes
+import com.example.recuerdallamar.ui.PantallaBienvenida
 import com.example.recuerdallamar.ui.PantallaFicha
 import com.example.recuerdallamar.ui.PantallaLista
 import com.example.recuerdallamar.ui.TemaApp
@@ -104,6 +107,7 @@ private val ESTOR_OSCURO = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 /** Lo que ocupa la pantalla: la lista es la base y las demas se abren encima. */
 private sealed interface Pantalla {
     data object Lista : Pantalla
+    data object Bienvenida : Pantalla
     data object Ajustes : Pantalla
     data class Ficha(val contacto: Contacto) : Pantalla
 }
@@ -124,6 +128,20 @@ private fun AppRecuerda(
     val ficha by vm.ficha.collectAsStateWithLifecycle()
 
     var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
+    var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
+
+    // Quien ya tenia gente guardada de antes de que hubiera bienvenida no la
+    // necesita. Solo se mira al cargar la primera vez: durante la bienvenida
+    // la lista deja de estar vacia en cuanto se anade a alguien.
+    var bienvenidaDecidida by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(contactos) {
+        val cargados = contactos ?: return@LaunchedEffect
+        if (bienvenidaDecidida) return@LaunchedEffect
+        bienvenidaDecidida = true
+        if (cargados.isNotEmpty() && !ajustes.bienvenidaHecha) {
+            cambiarAjustes { it.copy(bienvenidaHecha = true) }
+        }
+    }
 
     LaunchedEffect(fichaPedida) {
         if (fichaPedida != null) {
@@ -158,9 +176,9 @@ private fun AppRecuerda(
         }
     }
 
-    // Lo que hace falta, en un solo paso al abrir: avisos siempre que falten,
-    // fotos solo la primera vez (luego se piden desde la ficha).
-    LaunchedEffect(Unit) {
+    // Lo que hace falta, en un solo paso: avisos siempre que falten, fotos solo
+    // la primera vez (luego se piden desde la ficha).
+    val pedirLoQueFalta = {
         val faltan = buildList {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
@@ -171,6 +189,11 @@ private fun AppRecuerda(
             }
         }
         if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
+    }
+    // Al abrir, salvo en la bienvenida: alli se piden al pulsar "Empezar",
+    // cuando ya se ha explicado para que sirven.
+    LaunchedEffect(ajustes.bienvenidaHecha) {
+        if (ajustes.bienvenidaHecha) pedirLoQueFalta()
     }
 
     val pedirFotos = {
@@ -195,11 +218,23 @@ private fun AppRecuerda(
         )
     }
 
+    val anadirDeLaAgenda = {
+        try {
+            elegir.launch(Unit)
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(context, "No hay agenda de contactos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     BackHandler(enabled = ficha != null) { vm.cerrarFicha() }
     BackHandler(enabled = ficha == null && ajustesAbiertos) { ajustesAbiertos = false }
 
     val pantalla = ficha?.let { Pantalla.Ficha(it) }
-        ?: if (ajustesAbiertos) Pantalla.Ajustes else Pantalla.Lista
+        ?: when {
+            !ajustes.bienvenidaHecha -> Pantalla.Bienvenida
+            ajustesAbiertos -> Pantalla.Ajustes
+            else -> Pantalla.Lista
+        }
 
     // contentKey solo distingue el tipo de pantalla: cambiar de ficha a ficha no anima.
     AnimatedContent(
@@ -218,13 +253,7 @@ private fun AppRecuerda(
                 fotosPermitidas = fotosPermitidas,
                 vista = ajustes.vista,
                 onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
-                onAnadir = {
-                    try {
-                        elegir.launch(Unit)
-                    } catch (e: android.content.ActivityNotFoundException) {
-                        Toast.makeText(context, "No hay agenda de contactos", Toast.LENGTH_SHORT).show()
-                    }
-                },
+                onAnadir = anadirDeLaAgenda,
                 onAbrir = vm::abrirFicha,
                 onAjustes = { ajustesAbiertos = true },
             )
@@ -232,6 +261,17 @@ private fun AppRecuerda(
                 ajustes = ajustes,
                 onCambiar = cambiarAjustes,
                 onVolver = { ajustesAbiertos = false },
+            )
+            Pantalla.Bienvenida -> PantallaBienvenida(
+                paso = pasoBienvenida,
+                onPaso = { pasoBienvenida = it },
+                contactos = contactos.orEmpty(),
+                fotosPermitidas = fotosPermitidas,
+                onPedirPermisos = pedirLoQueFalta,
+                onAnadir = anadirDeLaAgenda,
+                onAbrir = vm::abrirFicha,
+                // Se acaba en la vista de burbujas, la que se acaba de ensenar.
+                onTerminar = { cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) } },
             )
             is Pantalla.Ficha -> PantallaFicha(
                 borrador = actual.contacto,

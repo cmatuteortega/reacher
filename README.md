@@ -1,4 +1,4 @@
-# Recuerda llamar
+# ConTacto
 
 Prueba de concepto Android (Kotlin + Jetpack Compose + Material 3): una lista de
 personas a las que llamar cada cierto número de días, con un recordatorio diario
@@ -38,6 +38,21 @@ de depuración queda como artefacto `app-debug` de la ejecución.
   fondo de pantalla.
 
 ## Flujo
+
+**Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en tres
+pasos con puntos de progreso:
+
+1. Qué es ConTacto. *Empezar* pide los permisos (avisos y fotos de la agenda),
+   ya explicados; fuera de la bienvenida se piden al abrir, como antes.
+2. Propone añadir al menos a una persona: *Elegir de la agenda* abre la ficha
+   de siempre y al darla de alta se vuelve aquí, con su cara en una fila.
+   *Ahora no* salta el paso.
+3. *¡Ya está!*: las burbujas de quienes se acaban de añadir (ya vivas) y el
+   recado de que se puede cerrar la app y seguir con la vida; se avisará
+   cuando toque. *Entendido* acaba en la vista de burbujas.
+
+Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
+llegar esta versión no la ve.
 
 La pantalla principal es **Personas** (la lista y sus fichas). El botón de
 engranaje de la esquina superior izquierda abre **Ajustes**; *Atrás* o la
@@ -112,7 +127,9 @@ contactos existentes en `MARCADOR`, que es lo que hacían antes; la 2→3 añade
 
 Se elige en un desplegable de la ficha, con un icono por opción. Material no
 trae logos de marcas, así que WhatsApp y Telegram (y el de SMS, que solo está
-en el paquete extendido) son vectores propios en `res/drawable`. Qué se abre al tocar la notificación
+en el paquete extendido) son vectores propios en `res/drawable`. El marcador lleva el «123» de
+Material (también del paquete extendido) para no confundirlo con *Llamar
+directamente*, que lleva el auricular. Qué se abre al tocar la notificación
 (y con el botón de la ficha):
 
 | opción               | qué hace                                                     |

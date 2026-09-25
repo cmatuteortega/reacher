@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -104,10 +103,11 @@ fun rememberElegirMedio(onCambio: (MedioContacto) -> Unit): (MedioContacto) -> U
 }
 
 // Material no trae logos de marcas: WhatsApp y Telegram van como vectores
-// propios en res/drawable, junto al de SMS (que solo esta en el paquete extendido).
+// propios en res/drawable, junto al de SMS y al "123" del marcador (que solo
+// estan en el paquete extendido).
 @Composable
 fun MedioContacto.icono(): Painter = when (this) {
-    MedioContacto.MARCADOR -> rememberVectorPainter(Icons.Filled.Phone)
+    MedioContacto.MARCADOR -> painterResource(R.drawable.ic_marcador)
     MedioContacto.LLAMADA -> rememberVectorPainter(Icons.Filled.Call)
     MedioContacto.SMS -> painterResource(R.drawable.ic_sms)
     MedioContacto.WHATSAPP -> painterResource(R.drawable.ic_whatsapp)
