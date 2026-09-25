@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Contacto::class], version = 2, exportSchema = false)
+@Database(entities = [Contacto::class], version = 3, exportSchema = false)
 @TypeConverters(Conversores::class)
 abstract class BaseDatos : RoomDatabase() {
     abstract fun contactos(): ContactoDao
@@ -22,6 +22,15 @@ abstract class BaseDatos : RoomDatabase() {
             }
         }
 
+        // v3: descartes, "mas tarde" y pausa por persona. Todos empiezan sin nada.
+        private val MIGRACION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE contactos ADD COLUMN descartes INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE contactos ADD COLUMN pospuestoHasta TEXT")
+                db.execSQL("ALTER TABLE contactos ADD COLUMN pausadoHasta TEXT")
+            }
+        }
+
         @Volatile
         private var instancia: BaseDatos? = null
 
@@ -32,7 +41,7 @@ abstract class BaseDatos : RoomDatabase() {
                     context.applicationContext,
                     BaseDatos::class.java,
                     "contactos.db",
-                ).addMigrations(MIGRACION_1_2).build().also { instancia = it }
+                ).addMigrations(MIGRACION_1_2, MIGRACION_2_3).build().also { instancia = it }
             }
     }
 }

@@ -22,6 +22,9 @@ import java.util.concurrent.TimeUnit
  * Los ajustes mandan sobre el aviso real (no sobre la prueba): con los avisos
  * apagados o en pausa no se muestra, y fuera del horario elegido se aplaza a
  * la hora de inicio con un trabajo de una vez, que vuelve a comprobarlo todo.
+ * Igual con lo elegido para esta persona: en pausa desde su ficha no se
+ * avisa, y si se pospuso con "Mas tarde" se espera al trabajo de ese
+ * aplazamiento (el diario puede caer en medio).
  */
 class RecordatorioWorker(
     context: Context,
@@ -37,6 +40,7 @@ class RecordatorioWorker(
         val forzar = inputData.getBoolean(CLAVE_FORZAR, false)
         if (!forzar) {
             if (!contacto.tocaLlamar(LocalDate.now())) return Result.success()
+            if (contacto.pausado() || contacto.pospuesto()) return Result.success()
             val ajustes = AlmacenAjustes.de(applicationContext).ajustes.value
             if (!ajustes.avisosEncendidos()) return Result.success()
             val espera = ajustes.esperaHastaFranja()
@@ -70,10 +74,10 @@ class RecordatorioWorker(
         }
 
         /**
-         * Reintento al empezar la franja. REPLACE: si ya habia uno pendiente,
-         * vale el calculado con los ajustes de ahora.
+         * Reintento al empezar la franja o pasado el "Mas tarde". REPLACE: si
+         * ya habia uno pendiente, vale el ultimo que se pidio.
          */
-        private fun aplazar(context: Context, id: Long, minutos: Long) {
+        fun aplazar(context: Context, id: Long, minutos: Long) {
             val peticion = OneTimeWorkRequestBuilder<RecordatorioWorker>()
                 .setInputData(workDataOf(CLAVE_ID to id))
                 .setInitialDelay(minutos, TimeUnit.MINUTES)
@@ -83,6 +87,14 @@ class RecordatorioWorker(
                 ExistingWorkPolicy.REPLACE,
                 peticion,
             )
+        }
+
+        /** Al eliminar un contacto: que no quede ningun trabajo suyo. */
+        fun cancelar(context: Context, id: Long) {
+            val wm = WorkManager.getInstance(context)
+            wm.cancelUniqueWork("recordatorio-$id")
+            wm.cancelUniqueWork("aplazado-$id")
+            wm.cancelUniqueWork("prueba-$id")
         }
 
         /** Boton de depuracion: dispara la notificacion ya, toque o no toque. */

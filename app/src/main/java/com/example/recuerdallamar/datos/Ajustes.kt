@@ -34,6 +34,8 @@ data class Ajustes(
     /** Franja del dia en que se puede avisar: desde la hora [horaDesde] hasta la [horaHasta] (sin incluir). */
     val horaDesde: Int = 9,
     val horaHasta: Int = 21,
+    /** Cuanto tarda en volver un aviso al pulsar "Mas tarde". */
+    val horasPosponer: Int = 2,
     val medioPorDefecto: MedioContacto = MedioContacto.MARCADOR,
     val tema: TemaElegido = TemaElegido.SISTEMA,
     val vista: VistaPersonas = VistaPersonas.BURBUJAS,
@@ -74,6 +76,7 @@ class AlmacenAjustes private constructor(context: Context) {
             putString(PAUSA, nuevos.pausaHasta?.toString())
             putInt(DESDE, nuevos.horaDesde)
             putInt(HASTA, nuevos.horaHasta)
+            putInt(POSPONER, nuevos.horasPosponer)
             putString(MEDIO, nuevos.medioPorDefecto.name)
             putString(TEMA, nuevos.tema.name)
             putString(VISTA, nuevos.vista.name)
@@ -88,6 +91,7 @@ class AlmacenAjustes private constructor(context: Context) {
             pausaHasta = preferencias.getString(PAUSA, null)?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
             horaDesde = preferencias.getInt(DESDE, defecto.horaDesde).coerceIn(0, 23),
             horaHasta = preferencias.getInt(HASTA, defecto.horaHasta).coerceIn(0, 23),
+            horasPosponer = preferencias.getInt(POSPONER, defecto.horasPosponer).coerceIn(1, 24),
             medioPorDefecto = MedioContacto.desde(preferencias.getString(MEDIO, null)),
             tema = TemaElegido.entries.firstOrNull { it.name == preferencias.getString(TEMA, null) } ?: defecto.tema,
             vista = VistaPersonas.entries.firstOrNull { it.name == preferencias.getString(VISTA, null) } ?: defecto.vista,
@@ -99,6 +103,7 @@ class AlmacenAjustes private constructor(context: Context) {
         private const val PAUSA = "pausa_hasta"
         private const val DESDE = "hora_desde"
         private const val HASTA = "hora_hasta"
+        private const val POSPONER = "horas_posponer"
         private const val MEDIO = "medio_por_defecto"
         private const val TEMA = "tema"
         private const val VISTA = "vista_personas"

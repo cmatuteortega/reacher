@@ -110,6 +110,20 @@ fun PantallaAjustes(
                 },
             )
 
+            Titulo("Botón \"Más tarde\" del aviso")
+            SelectorOpcion(
+                etiqueta = "El aviso vuelve al cabo de",
+                valor = ajustes.horasPosponer,
+                opciones = HORAS_POSPONER,
+                texto = ::horas,
+                onCambio = { h -> onCambiar { it.copy(horasPosponer = h) } },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Explicacion(
+                "Si a esa hora cae fuera del horario, espera a las ${hora(ajustes.horaDesde)}. " +
+                    "Si quitas el aviso sin más, vuelve al día siguiente.",
+            )
+
             HorizontalDivider()
 
             Titulo("Contactos nuevos")
@@ -224,11 +238,21 @@ private fun OpcionRadio(texto: String, elegida: Boolean, onElegir: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectorHora(
     etiqueta: String,
     hora: Int,
+    onCambio: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) = SelectorOpcion(etiqueta, hora, (0..23).toList(), { hora(it) }, onCambio, modifier)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectorOpcion(
+    etiqueta: String,
+    valor: Int,
+    opciones: List<Int>,
+    texto: (Int) -> String,
     onCambio: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -239,7 +263,7 @@ private fun SelectorHora(
         modifier = modifier,
     ) {
         OutlinedTextField(
-            value = hora(hora),
+            value = texto(valor),
             onValueChange = {},
             readOnly = true,
             singleLine = true,
@@ -253,12 +277,12 @@ private fun SelectorHora(
             expanded = desplegado,
             onDismissRequest = { desplegado = false },
         ) {
-            (0..23).forEach { h ->
+            opciones.forEach { v ->
                 DropdownMenuItem(
-                    text = { Text(hora(h)) },
+                    text = { Text(texto(v)) },
                     onClick = {
                         desplegado = false
-                        onCambio(h)
+                        onCambio(v)
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
@@ -278,3 +302,7 @@ private fun Explicacion(texto: String) {
 }
 
 private fun hora(h: Int): String = h.toString().padStart(2, '0') + ":00"
+
+private val HORAS_POSPONER = listOf(1, 2, 3, 4, 6, 8, 12)
+
+private fun horas(h: Int): String = if (h == 1) "1 hora" else "$h horas"

@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.recuerdallamar.MainActivity
 import com.example.recuerdallamar.NotificacionPulsadaActivity
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
@@ -60,9 +61,34 @@ object Notificaciones {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setContentIntent(pendiente)
             .setAutoCancel(true)
+            // Solo llega si el usuario lo quita de la bandeja: ni al tocarlo ni
+            // al retirarlo la app con cancel().
+            .setDeleteIntent(AccionesAviso.pendiente(context, AccionesAviso.DESCARTADO, contacto.id))
+            // Tocar el boton es lo mismo que tocar el aviso.
+            .addAction(0, "Contactar", pendiente)
+            .addAction(0, "Más tarde", AccionesAviso.pendiente(context, AccionesAviso.MAS_TARDE, contacto.id))
+            .apply {
+                // Si ya lo ha quitado alguna vez sin contactar, quiza no quiera
+                // seguir: se ofrece ir a su ficha para pausar o eliminar.
+                if (contacto.descartes > 0) addAction(0, "Cambié de idea", abrirFicha(context, contacto.id))
+            }
             .build()
 
         NotificationManagerCompat.from(context).notify(contacto.id.toInt(), notificacion)
+    }
+
+    /** Abre la app en la ficha del contacto. */
+    private fun abrirFicha(context: Context, id: Long): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra(MainActivity.EXTRA_FICHA, id)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        return PendingIntent.getActivity(
+            context,
+            id.toInt(),
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
     }
 
     /** Quita el aviso de un contacto si sigue en la bandeja. */

@@ -15,6 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -62,6 +65,9 @@ fun PantallaFicha(
     onGuardar: (Contacto, Int, MedioContacto) -> Unit,
     onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
+    onPausar: (Long, Int) -> Unit,
+    onReanudar: (Long) -> Unit,
+    onEliminar: (Long) -> Unit,
     onForzarNotificacion: (Long) -> Unit,
     onVolver: () -> Unit,
 ) {
@@ -156,6 +162,13 @@ fun PantallaFicha(
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (actual.descartes > 0) {
+                        Text(
+                            "Aviso quitado sin contactar: " +
+                                if (actual.descartes == 1) "1 vez" else "${actual.descartes} veces",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             } else {
                 Text(
@@ -195,6 +208,13 @@ fun PantallaFicha(
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                     Text(if (yaHoy) "Último contacto: hoy" else "He llamado hoy")
                 }
+
+                PausaYBorrado(
+                    contacto = actual,
+                    onPausar = { dias -> onPausar(actual.id, dias) },
+                    onReanudar = { onReanudar(actual.id) },
+                    onEliminar = { onEliminar(actual.id) },
+                )
             }
 
             HorizontalDivider()
@@ -219,5 +239,103 @@ fun PantallaFicha(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/** Dias de pausa que se proponen al pausar a alguien. */
+private const val PAUSA_INICIAL = 7
+
+/**
+ * Pausar los avisos de esta persona (sin tocar su ultimo contacto) o
+ * eliminarla. Es adonde lleva el boton "Cambie de idea" del aviso.
+ */
+@Composable
+private fun PausaYBorrado(
+    contacto: Contacto,
+    onPausar: (Int) -> Unit,
+    onReanudar: () -> Unit,
+    onEliminar: () -> Unit,
+) {
+    var pidiendoDias by rememberSaveable { mutableStateOf(false) }
+    var confirmandoBorrado by rememberSaveable { mutableStateOf(false) }
+
+    val pausa = contacto.pausadoHasta?.takeIf { contacto.pausado() }
+    if (pausa != null) {
+        Text(
+            "Avisos en pausa: vuelven el ${pausa.toLocalDate().bonita()}. " +
+                "Mientras, la burbuja sigue creciendo.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedButton(onClick = onReanudar, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text("Reanudar avisos")
+        }
+    } else {
+        OutlinedButton(onClick = { pidiendoDias = true }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text("Pausar avisos")
+        }
+    }
+
+    OutlinedButton(
+        onClick = { confirmandoBorrado = true },
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text("Eliminar contacto")
+    }
+
+    if (pidiendoDias) {
+        var texto by rememberSaveable { mutableStateOf(PAUSA_INICIAL.toString()) }
+        val dias = texto.toIntOrNull()?.takeIf { it >= 1 }
+        AlertDialog(
+            onDismissRequest = { pidiendoDias = false },
+            title = { Text("Pausar avisos") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Sin avisos de ${contacto.nombre} durante estos días. Se sigue contando el tiempo desde el último contacto.")
+                    OutlinedTextField(
+                        value = texto,
+                        onValueChange = { nuevo -> texto = nuevo.filter(Char::isDigit).take(3) },
+                        label = { Text("Días") },
+                        singleLine = true,
+                        isError = dias == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        dias?.let(onPausar)
+                        pidiendoDias = false
+                    },
+                    enabled = dias != null,
+                ) { Text("Pausar") }
+            },
+            dismissButton = { TextButton(onClick = { pidiendoDias = false }) { Text("Cancelar") } },
+        )
+    }
+
+    if (confirmandoBorrado) {
+        AlertDialog(
+            onDismissRequest = { confirmandoBorrado = false },
+            title = { Text("Eliminar a ${contacto.nombre}") },
+            text = { Text("Dejará de salir en la app y no habrá más avisos. En la agenda del teléfono no se borra nada.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmandoBorrado = false
+                        onEliminar()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text("Eliminar") }
+            },
+            dismissButton = { TextButton(onClick = { confirmandoBorrado = false }) { Text("Cancelar") } },
+        )
     }
 }

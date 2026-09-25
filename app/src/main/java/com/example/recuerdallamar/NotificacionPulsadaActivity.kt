@@ -2,15 +2,17 @@ package com.example.recuerdallamar
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.MedioContacto
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 /**
- * Destino del toque en la notificacion. Sin interfaz: abre la forma de
- * contacto preferida (marcador, llamada, WhatsApp, SMS o Telegram), apunta en
- * la base de datos que se pulso y se cierra.
+ * Destino del toque en la notificacion y de su boton "Contactar". Sin
+ * interfaz: abre la forma de contacto preferida (marcador, llamada, WhatsApp,
+ * SMS o Telegram), apunta en la base de datos que se pulso (cuenta como
+ * contacto de hoy: deja de avisar a diario) y se cierra.
  *
  * Una notificacion solo puede lanzar una cosa, y aqui hacen falta dos; desde
  * Android 12 el trampolin tiene que ser una Activity (un receiver o un
@@ -27,9 +29,12 @@ class NotificacionPulsadaActivity : ComponentActivity() {
         intent.getStringExtra(EXTRA_TELEFONO)?.let { Contactar.abrir(this, it, medio) }
 
         if (id >= 0) {
+            // El boton no retira el aviso solo, como si hace el toque.
+            Notificaciones.quitar(this, id)
             val app = application as App
             app.ambito.launch {
-                BaseDatos.de(app).contactos().marcarPulsada(id, LocalDateTime.now())
+                val ahora = LocalDateTime.now()
+                BaseDatos.de(app).contactos().marcarPulsada(id, ahora, ahora.toLocalDate())
             }
         }
         finish()

@@ -41,6 +41,13 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
         _ficha.value = contacto
     }
 
+    /** Desde el aviso: solo llega el id. Si ya no existe, se queda en la lista. */
+    fun abrirFichaDe(id: Long) {
+        viewModelScope.launch {
+            dao.buscar(id)?.let { _ficha.value = it }
+        }
+    }
+
     fun cerrarFicha() {
         _ficha.value = null
     }
@@ -70,6 +77,34 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
             dao.actualizarUltimoContacto(id, LocalDate.now())
             Notificaciones.quitar(getApplication(), id)
             RecordatorioWorker.programar(getApplication(), id)
+        }
+    }
+
+    /**
+     * Sin avisos de esta persona durante [dias]. El ultimo contacto no se toca:
+     * la burbuja sigue creciendo mientras tanto.
+     */
+    fun pausar(id: Long, dias: Int) {
+        viewModelScope.launch {
+            dao.pausar(id, LocalDate.now().plusDays(dias.toLong()).atStartOfDay())
+            Notificaciones.quitar(getApplication(), id)
+        }
+    }
+
+    /** Quita la pausa; si ya tocaba, el trabajo diario lo comprueba al momento. */
+    fun reanudar(id: Long) {
+        viewModelScope.launch {
+            dao.pausar(id, null)
+            RecordatorioWorker.programar(getApplication(), id)
+        }
+    }
+
+    fun eliminar(id: Long) {
+        cerrarFicha()
+        viewModelScope.launch {
+            RecordatorioWorker.cancelar(getApplication(), id)
+            Notificaciones.quitar(getApplication(), id)
+            dao.borrar(id)
         }
     }
 

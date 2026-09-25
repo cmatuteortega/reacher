@@ -63,8 +63,10 @@ flecha vuelven a Personas.
    elegido, campo de frecuencia en días, la
    **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
    contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o *Telegram*),
-   *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado) y
-   un botón de **depuración** que fuerza la notificación.
+   *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado),
+   *Pausar avisos* (N días sin avisos de esa persona; el último contacto no
+   cambia, así que la burbuja sigue creciendo), *Eliminar contacto* (con
+   confirmación) y un botón de **depuración** que fuerza la notificación.
 3. Al guardar se vuelve a Personas; el contacto nuevo, sin urgencia, entra al
    final: en la lista aparece fundido y el resto se recoloca con un muelle
    (`Modifier.animateItem`); en burbujas nace pequeña y sube a su sitio.
@@ -78,6 +80,7 @@ interfaz como el worker.
 |--------------------------------|-----------------------------------------------------------------|
 | Recordatorios                  | Interruptor. Al apagarlo: *hasta que los vuelva a activar* o *durante N días*; pasada la pausa vuelven solos |
 | Horario de avisos              | Horas *desde* / *hasta* en que se puede avisar (por defecto 09:00–21:00). Puede cruzar la medianoche; misma hora = todo el día |
+| Botón «Más tarde» del aviso    | Cuántas horas tarda en volver el aviso pospuesto (por defecto 2) |
 | Forma de contacto por defecto  | La que se propone al añadir a alguien; se cambia en su ficha    |
 | Apariencia                     | Sistema, claro u oscuro                                         |
 
@@ -97,9 +100,13 @@ Una tabla, `contactos`:
 | `notificacionPulsada` | Boolean         | true tras tocar la notificación         |
 | `fechaPulsacion`      | LocalDateTime?  | cuándo se tocó por última vez           |
 | `medio`               | MedioContacto   | por nombre; `MARCADOR` por defecto      |
+| `descartes`           | Int             | veces que se quitó el aviso sin contactar; 0 al contactar |
+| `pospuestoHasta`      | LocalDateTime?  | hasta cuándo se pospuso con *Más tarde* |
+| `pausadoHasta`        | LocalDateTime?  | avisos de esta persona en pausa hasta   |
 
-La base va por la versión 2: la migración 1→2 añade `medio` y deja los
-contactos existentes en `MARCADOR`, que es lo que hacían antes.
+La base va por la versión 3: la migración 1→2 añade `medio` y deja los
+contactos existentes en `MARCADOR`, que es lo que hacían antes; la 2→3 añade
+`descartes`, `pospuestoHasta` y `pausadoHasta`, vacíos.
 
 ## Forma de contacto
 
@@ -141,6 +148,20 @@ en el paquete extendido) son vectores propios en `res/drawable`. Qué se abre al
   interfaz que abre la forma de contacto elegida y marca en la base de datos
   `notificacionPulsada = true` y la fecha. Tiene que ser una Activity: desde
   Android 12 un receiver no puede lanzar otra app desde una notificación.
+* El aviso trae botones:
+  - **Contactar** — lo mismo que tocarlo.
+  - **Más tarde** — lo retira y encola `aplazado-<id>` para dentro de las
+    horas elegidas en Ajustes; guarda `pospuestoHasta` para que el trabajo
+    diario no lo saque antes. Si al volver cae fuera del horario, espera a la
+    hora de inicio.
+  - **Cambié de idea** — solo si ya se quitó alguna vez sin contactar
+    (`descartes > 0`). Abre la app en la ficha de esa persona, donde se puede
+    pausar sus avisos o eliminarla.
+* Quitar el aviso de la bandeja (deslizar o *borrar todo*) suma un descarte
+  (`AccionesAviso`, por `setDeleteIntent`). No pospone nada: el trabajo diario
+  lo vuelve a sacar al día siguiente mientras siga tocando.
+* Con la persona en pausa (`pausadoHasta`) no se avisa, pero la urgencia se
+  sigue calculando desde `ultimoContacto`.
 * *Forzar notificación ahora* encola el mismo worker una vez con un indicador
   que se salta la comprobación de fecha.
 
@@ -160,7 +181,9 @@ Las fotos no se copian: se buscan por número (`PhoneLookup`), la miniatura en
 la lista y la grande en la ficha, así que valen para los contactos ya guardados.
 Se guardan en una caché en memoria mientras la app está abierta.
 
-Tocar la notificación **no** cambia `ultimoContacto`: el aviso se repite cada
-día hasta que en la ficha se pulse **He llamado hoy**. Ese botón pone
-`ultimoContacto` a hoy, retira la notificación pendiente y reprograma el
-trabajo diario desde ese momento. Se desactiva si la fecha ya es hoy.
+Tocar la notificación (o *Contactar*) cuenta como contacto: pone
+`ultimoContacto` a hoy y deja a cero descartes y aplazamiento. Si solo se
+quita, el aviso se repite cada día hasta que se toque o en la ficha se pulse
+**He llamado hoy**. Ese botón hace lo mismo, retira la notificación pendiente
+y reprograma el trabajo diario desde ese momento. Se desactiva si la fecha ya
+es hoy.

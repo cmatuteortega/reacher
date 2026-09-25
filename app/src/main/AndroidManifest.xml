@@ -28,9 +28,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RecuerdaLlamar">
 
+        <!-- singleTop: "Cambie de idea" en el aviso reusa la app abierta (onNewIntent). -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -50,5 +52,10 @@
             android:noHistory="true"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Botón "Más tarde" y aviso quitado de la bandeja. Solo lo llama la propia app. -->
+        <receiver
+            android:name=".avisos.AccionesAviso"
+            android:exported="false" />
     </application>
 </manifest>

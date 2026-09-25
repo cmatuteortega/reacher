@@ -41,11 +41,17 @@ import com.example.recuerdallamar.ui.PantallaFicha
 import com.example.recuerdallamar.ui.PantallaLista
 import com.example.recuerdallamar.ui.TemaApp
 import com.example.recuerdallamar.ui.esOscuro
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
+    /** Contacto cuya ficha pide abrir el boton "Cambie de idea" del aviso. */
+    private val fichaPedida = MutableStateFlow<Long?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Al recrear (p. ej. al girar) el intent sigue ahi, pero ya se atendio.
+        if (savedInstanceState == null) atender(intent)
         val almacen = AlmacenAjustes.de(this)
         setContent {
             val ajustes by almacen.ajustes.collectAsStateWithLifecycle()
@@ -62,8 +68,29 @@ class MainActivity : ComponentActivity() {
                 )
                 onDispose { }
             }
-            TemaApp(modoOscuro = oscuro) { AppRecuerda(ajustes, almacen::cambiar) }
+            TemaApp(modoOscuro = oscuro) {
+                AppRecuerda(ajustes, almacen::cambiar, fichaPedida.collectAsStateWithLifecycle().value) {
+                    fichaPedida.value = null
+                }
+            }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        atender(intent)
+    }
+
+    private fun atender(intent: Intent?) {
+        val id = intent?.getLongExtra(EXTRA_FICHA, -1) ?: -1
+        if (id < 0) return
+        // Los botones de un aviso no lo retiran solos.
+        Notificaciones.quitar(this, id)
+        fichaPedida.value = id
+    }
+
+    companion object {
+        const val EXTRA_FICHA = "abrir_ficha"
     }
 }
 
@@ -85,11 +112,22 @@ private const val FRECUENCIA_INICIAL = 7
 private fun AppRecuerda(
     ajustes: Ajustes,
     cambiarAjustes: ((Ajustes) -> Ajustes) -> Unit,
+    fichaPedida: Long?,
+    onFichaAtendida: () -> Unit,
     vm: ContactosViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val contactos by vm.contactos.collectAsStateWithLifecycle()
     val ficha by vm.ficha.collectAsStateWithLifecycle()
+
+    var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(fichaPedida) {
+        if (fichaPedida != null) {
+            vm.abrirFichaDe(fichaPedida)
+            onFichaAtendida()
+        }
+    }
 
     // Fotos de la agenda: se relee al volver a la app, por si se concedio el
     // permiso desde los ajustes del sistema.
@@ -154,8 +192,6 @@ private fun AppRecuerda(
         )
     }
 
-    var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
-
     BackHandler(enabled = ficha != null) { vm.cerrarFicha() }
     BackHandler(enabled = ficha == null && ajustesAbiertos) { ajustesAbiertos = false }
 
@@ -204,6 +240,15 @@ private fun AppRecuerda(
                 onLlamadoHoy = { id ->
                     vm.llamadoHoy(id)
                     Toast.makeText(context, "Anotado: último contacto hoy", Toast.LENGTH_SHORT).show()
+                },
+                onPausar = { id, dias ->
+                    vm.pausar(id, dias)
+                    Toast.makeText(context, "Avisos en pausa $dias días", Toast.LENGTH_SHORT).show()
+                },
+                onReanudar = vm::reanudar,
+                onEliminar = { id ->
+                    vm.eliminar(id)
+                    Toast.makeText(context, "Contacto eliminado", Toast.LENGTH_SHORT).show()
                 },
                 onForzarNotificacion = { id ->
                     if (!Notificaciones.permitidas(context)) {
