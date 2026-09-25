@@ -238,7 +238,8 @@ private fun AppRecuerda(
                 observar = vm::observar,
                 fotosPermitidas = fotosPermitidas,
                 onPedirFotos = pedirFotos,
-                onGuardar = vm::guardar,
+                onAnadir = vm::anadir,
+                onActualizar = vm::actualizar,
                 onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
                 onLlamadoHoy = { id ->
                     vm.llamadoHoy(id)

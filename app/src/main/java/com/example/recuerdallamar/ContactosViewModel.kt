@@ -9,6 +9,8 @@ import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import com.example.recuerdallamar.datos.porUrgencia
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +20,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+
+/** Pausa sin cambios en la ficha tras la que se reprograma el aviso. */
+private const val REPROGRAMAR_TRAS_MS = 800L
 
 class ContactosViewModel(app: Application) : AndroidViewModel(app) {
     private val dao = BaseDatos.de(app).contactos()
@@ -54,17 +59,30 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
 
     fun observar(id: Long): Flow<Contacto?> = dao.observar(id)
 
-    fun guardar(borrador: Contacto, dias: Int, medio: MedioContacto) {
+    /** Da de alta a alguien nuevo y vuelve a la lista. */
+    fun anadir(borrador: Contacto, dias: Int, medio: MedioContacto) {
         viewModelScope.launch {
-            val id = if (borrador.id == 0L) {
-                dao.insertar(borrador.copy(frecuenciaDias = dias, medio = medio, ultimoContacto = LocalDate.now()))
-            } else {
-                dao.actualizarFicha(borrador.id, dias, medio)
-                borrador.id
-            }
+            val id = dao.insertar(borrador.copy(frecuenciaDias = dias, medio = medio, ultimoContacto = LocalDate.now()))
             RecordatorioWorker.programar(getApplication(), id)
         }
         cerrarFicha()
+    }
+
+    private val reprogramaciones = mutableMapOf<Long, Job>()
+
+    /**
+     * Guardado automatico de la ficha de alguien que ya existe. La fila se
+     * escribe al momento; el trabajo se reprograma cuando se deja de tocar,
+     * para no reencolarlo en cada dia que pasa al arrastrar la frecuencia.
+     */
+    fun actualizar(id: Long, dias: Int, medio: MedioContacto) {
+        viewModelScope.launch { dao.actualizarFicha(id, dias, medio) }
+        reprogramaciones.remove(id)?.cancel()
+        reprogramaciones[id] = viewModelScope.launch {
+            delay(REPROGRAMAR_TRAS_MS)
+            RecordatorioWorker.programar(getApplication(), id)
+            reprogramaciones.remove(id)
+        }
     }
 
     /**

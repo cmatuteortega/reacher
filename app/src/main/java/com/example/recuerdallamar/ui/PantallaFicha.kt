@@ -1,6 +1,7 @@
 package com.example.recuerdallamar.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -10,6 +11,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -42,6 +44,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -50,7 +53,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -84,9 +86,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -96,14 +100,14 @@ import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 
 /** Tope de dias de frecuencia: el mismo de antes con el campo de texto. */
 private const val FRECUENCIA_MAXIMA = 9999
@@ -118,7 +122,8 @@ fun PantallaFicha(
     observar: (Long) -> Flow<Contacto?>,
     fotosPermitidas: Boolean,
     onPedirFotos: () -> Unit,
-    onGuardar: (Contacto, Int, MedioContacto) -> Unit,
+    onAnadir: (Contacto, Int, MedioContacto) -> Unit,
+    onActualizar: (Long, Int, MedioContacto) -> Unit,
     onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
     onPausar: (Long, Int) -> Unit,
@@ -137,8 +142,18 @@ fun PantallaFicha(
     var frecuencia by rememberSaveable(borrador.id) { mutableIntStateOf(borrador.frecuenciaDias.coerceIn(1, FRECUENCIA_MAXIMA)) }
     var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
 
-    // Lo que se esta editando, para que el anillo y las fechas respondan antes de guardar.
+    // Lo que se esta editando, para que el anillo y las fechas respondan al momento.
     val vistaPrevia = actual.copy(frecuenciaDias = frecuencia)
+
+    // Alguien que ya existe se guarda solo al cambiar algo; el aviso de
+    // "Guardado" aparece un momento arriba para que se note.
+    var guardadoHace by remember { mutableIntStateOf(0) }
+    LaunchedEffect(frecuencia, medio) {
+        if (guardado && (frecuencia != actual.frecuenciaDias || medio != actual.medio)) {
+            onActualizar(actual.id, frecuencia, medio)
+            guardadoHace++
+        }
+    }
 
     val context = LocalContext.current
 
@@ -157,13 +172,15 @@ fun PantallaFicha(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 },
+                actions = { if (guardado) AvisoGuardado(guardadoHace) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
         bottomBar = {
             BarraAcciones(
                 medio = medio,
-                onGuardar = { onGuardar(actual, frecuencia, medio) },
+                // Solo al dar de alta: lo que ya existe se guarda solo.
+                onAnadir = if (guardado) null else ({ onAnadir(actual, frecuencia, medio) }),
                 // Prueba lo elegido aunque aun no se haya guardado.
                 onContactar = { onContactar(actual.telefono, medio) },
             )
@@ -245,7 +262,7 @@ fun PantallaFicha(
 /**
  * Foto grande dentro de un anillo que se va llenando segun pasa el tiempo
  * desde el ultimo contacto: lleno toca llamar, y en naranja si ya se paso.
- * Sigue a la frecuencia mientras se cambia, antes de guardar.
+ * Sigue a la frecuencia mientras se cambia.
  */
 @Composable
 private fun Cabecera(
@@ -574,9 +591,39 @@ private fun BotonRepetir(simbolo: String, descripcion: String, habilitado: Boole
     }
 }
 
-/** Guardar y contactar siempre a mano, pegados abajo. */
+/**
+ * "Guardado" con una marca, que entra al guardarse un cambio y se va solo.
+ * [cambios] cuenta los guardados: cada uno nuevo lo vuelve a ensenar.
+ */
 @Composable
-private fun BarraAcciones(medio: MedioContacto, onGuardar: () -> Unit, onContactar: () -> Unit) {
+private fun AvisoGuardado(cambios: Int) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(cambios) {
+        if (cambios == 0) return@LaunchedEffect
+        visible = true
+        delay(1500)
+        visible = false
+    }
+    AnimatedVisibility(visible = visible, enter = fadeIn() + scaleIn(), exit = fadeOut()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .padding(end = 16.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite },
+        ) {
+            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Text("Guardado", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+/**
+ * Contactar siempre a mano, pegado abajo. Al dar de alta, al lado va "Añadir";
+ * con [onAnadir] null (alguien que ya existe) Contactar ocupa toda la barra.
+ */
+@Composable
+private fun BarraAcciones(medio: MedioContacto, onAnadir: (() -> Unit)?, onContactar: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -585,8 +632,11 @@ private fun BarraAcciones(medio: MedioContacto, onGuardar: () -> Unit, onContact
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            FilledTonalButton(
+            // Sin nada que anadir, Contactar es la accion principal y va en el color fuerte.
+            val colores = if (onAnadir == null) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
+            Button(
                 onClick = onContactar,
+                colors = colores,
                 modifier = Modifier
                     .weight(1f)
                     .height(52.dp),
@@ -595,12 +645,18 @@ private fun BarraAcciones(medio: MedioContacto, onGuardar: () -> Unit, onContact
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(medio.boton)
             }
-            Button(
-                onClick = onGuardar,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp),
-            ) { Text("Guardar") }
+            if (onAnadir != null) {
+                Button(
+                    onClick = onAnadir,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text("Añadir")
+                }
+            }
         }
     }
 }
