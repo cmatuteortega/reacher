@@ -18,7 +18,7 @@ private val Naranja = Color(0xFFFF7D00) // naranja: acentos (anadir, toca llamar
  * Los tonos intermedios salen de mezclar la paleta entre si. Sobre el naranja
  * el texto va en Tinta y no en blanco: el blanco no llega al contraste minimo.
  */
-private val claro = lightColorScheme(
+internal val claro = lightColorScheme(
     primary = Petroleo,
     onPrimary = Color.White,
     primaryContainer = Color(0xFFC4E7EC),
@@ -46,7 +46,7 @@ private val claro = lightColorScheme(
     outlineVariant = Color(0xFFD9CBB8),
 )
 
-private val oscuro = darkColorScheme(
+internal val oscuro = darkColorScheme(
     primary = Color(0xFF86D0DB),
     onPrimary = Tinta,
     primaryContainer = Petroleo,

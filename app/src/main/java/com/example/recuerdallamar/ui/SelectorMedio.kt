@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -30,12 +31,7 @@ import com.example.recuerdallamar.Contactar
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.MedioContacto
 
-/**
- * Desplegable de forma de contacto, con un icono por opcion.
- *
- * Llamar sin pasar por el marcador pide CALL_PHONE en el momento de elegirlo;
- * si se deniega, se vuelve al marcador en vez de dejar una opcion que no hara nada.
- */
+/** Desplegable de forma de contacto, con un icono por opcion. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectorMedio(
@@ -44,15 +40,7 @@ fun SelectorMedio(
     onCambio: (MedioContacto) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val pedirLlamadas = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { concedido ->
-        if (!concedido) {
-            onCambio(MedioContacto.MARCADOR)
-            Toast.makeText(context, "Sin permiso de llamadas se abrirá el marcador", Toast.LENGTH_LONG).show()
-        }
-    }
+    val elegir = rememberElegirMedio(onCambio)
 
     var desplegado by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -82,14 +70,35 @@ fun SelectorMedio(
                     leadingIcon = { Icon(opcion.icono(), contentDescription = null) },
                     onClick = {
                         desplegado = false
-                        onCambio(opcion)
-                        if (opcion == MedioContacto.LLAMADA && !Contactar.puedeLlamar(context)) {
-                            pedirLlamadas.launch(Manifest.permission.CALL_PHONE)
-                        }
+                        elegir(opcion)
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
             }
+        }
+    }
+}
+
+/**
+ * Elegir una forma de contacto. Llamar sin pasar por el marcador pide
+ * CALL_PHONE en el momento; si se deniega, se vuelve al marcador.
+ */
+@Composable
+fun rememberElegirMedio(onCambio: (MedioContacto) -> Unit): (MedioContacto) -> Unit {
+    val context = LocalContext.current
+    val cambio by rememberUpdatedState(onCambio)
+    val pedirLlamadas = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { concedido ->
+        if (!concedido) {
+            cambio(MedioContacto.MARCADOR)
+            Toast.makeText(context, "Sin permiso de llamadas se abrirá el marcador", Toast.LENGTH_LONG).show()
+        }
+    }
+    return { opcion ->
+        cambio(opcion)
+        if (opcion == MedioContacto.LLAMADA && !Contactar.puedeLlamar(context)) {
+            pedirLlamadas.launch(Manifest.permission.CALL_PHONE)
         }
     }
 }
