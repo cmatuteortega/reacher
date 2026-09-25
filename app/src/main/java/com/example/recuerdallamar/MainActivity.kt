@@ -69,9 +69,12 @@ class MainActivity : ComponentActivity() {
                 onDispose { }
             }
             TemaApp(modoOscuro = oscuro) {
-                AppRecuerda(ajustes, almacen::cambiar, fichaPedida.collectAsStateWithLifecycle().value) {
-                    fichaPedida.value = null
-                }
+                AppRecuerda(
+                    ajustes = ajustes,
+                    cambiarAjustes = almacen::cambiar,
+                    fichaPedida = fichaPedida.collectAsStateWithLifecycle().value,
+                    onFichaAtendida = { fichaPedida.value = null },
+                )
             }
         }
     }
