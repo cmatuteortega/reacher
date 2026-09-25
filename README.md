@@ -154,9 +154,10 @@ en el paquete extendido) son vectores propios en `res/drawable`. Qué se abre al
     horas elegidas en Ajustes; guarda `pospuestoHasta` para que el trabajo
     diario no lo saque antes. Si al volver cae fuera del horario, espera a la
     hora de inicio.
-  - **Cambié de idea** — solo si ya se quitó alguna vez sin contactar
-    (`descartes > 0`). Abre la app en la ficha de esa persona, donde se puede
-    pausar sus avisos o eliminarla.
+  - **Más opciones** — abre la app en la ficha de esa persona: ahí está
+    *He llamado hoy* (si ya se habló por otro lado), *Pausar avisos* y
+    *Eliminar contacto*. Android solo deja tres botones por aviso, así que
+    este reúne el resto.
 * Quitar el aviso de la bandeja (deslizar o *borrar todo*) suma un descarte
   (`AccionesAviso`, por `setDeleteIntent`). No pospone nada: el trabajo diario
   lo vuelve a sacar al día siguiente mientras siga tocando.

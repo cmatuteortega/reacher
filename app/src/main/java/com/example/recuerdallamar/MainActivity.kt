@@ -44,7 +44,7 @@ import com.example.recuerdallamar.ui.esOscuro
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
-    /** Contacto cuya ficha pide abrir el boton "Cambie de idea" del aviso. */
+    /** Contacto cuya ficha pide abrir el boton "Mas opciones" del aviso. */
     private val fichaPedida = MutableStateFlow<Long?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {

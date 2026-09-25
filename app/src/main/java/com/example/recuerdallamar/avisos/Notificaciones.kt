@@ -67,11 +67,9 @@ object Notificaciones {
             // Tocar el boton es lo mismo que tocar el aviso.
             .addAction(0, "Contactar", pendiente)
             .addAction(0, "Más tarde", AccionesAviso.pendiente(context, AccionesAviso.MAS_TARDE, contacto.id))
-            .apply {
-                // Si ya lo ha quitado alguna vez sin contactar, quiza no quiera
-                // seguir: se ofrece ir a su ficha para pausar o eliminar.
-                if (contacto.descartes > 0) addAction(0, "Cambié de idea", abrirFicha(context, contacto.id))
-            }
+            // Android deja tres botones; el tercero lleva a la ficha, donde estan
+            // "He llamado hoy" (si ya se hablo por otro lado), pausar y eliminar.
+            .addAction(0, "Más opciones", abrirFicha(context, contacto.id))
             .build()
 
         NotificationManagerCompat.from(context).notify(contacto.id.toInt(), notificacion)

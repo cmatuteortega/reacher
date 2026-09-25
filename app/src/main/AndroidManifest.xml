@@ -28,7 +28,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RecuerdaLlamar">
 
-        <!-- singleTop: "Cambie de idea" en el aviso reusa la app abierta (onNewIntent). -->
+        <!-- singleTop: "Mas opciones" en el aviso reusa la app abierta (onNewIntent). -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -247,7 +247,7 @@ private const val PAUSA_INICIAL = 7
 
 /**
  * Pausar los avisos de esta persona (sin tocar su ultimo contacto) o
- * eliminarla. Es adonde lleva el boton "Cambie de idea" del aviso.
+ * eliminarla. Junto a "He llamado hoy", es adonde lleva "Mas opciones" del aviso.
  */
 @Composable
 private fun PausaYBorrado(
