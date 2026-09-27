@@ -16,6 +16,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,6 +70,8 @@ import com.example.recuerdallamar.datos.Contacto
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -96,6 +99,14 @@ private val BORDE = 8.dp
 private val HUECO_FAB = 88.dp // que el boton de anadir no tape ninguna
 private val ANCHO_EXTRA_ETIQUETA = 24.dp
 private val ALTO_ETIQUETA = 22.dp
+
+/** Cuanto se estira una burbuja lanzada, y a que velocidad (dp/s) llega a ello. */
+private const val ESTIRON = 0.14f
+private const val VELOCIDAD_ESTIRON = 1400f
+
+/** Velocidad (dp/s) a la que la cara ya mira del todo hacia donde va, y cuantos grados gira. */
+private const val MIRA_A_VELOCIDAD = 600f
+private const val GIRO_AL_CORRER = 40f
 
 /** Parte del lienzo visible que se deja ocupar antes de encoger las grandes. */
 private const val OCUPACION = 0.5f
@@ -272,6 +283,13 @@ private fun BurbujaPersona(
     val inicial = MaterialTheme.typography.headlineMedium.copy(
         fontSize = with(LocalDensity.current) { (radio * 0.8f).toSp() },
     )
+    val animo = when {
+        urgencia >= URGENCIA_TOPE -> Animo.IMPACIENTE
+        toca -> Animo.ILUSIONADA
+        atenuada -> Animo.DORMIDA
+        urgencia >= CERCA -> Animo.ATENTA
+        else -> Animo.TRANQUILA
+    }
     Burbuja(
         cuerpo = cuerpo,
         sim = sim,
@@ -284,9 +302,67 @@ private fun BurbujaPersona(
         anillo = anillo,
         latido = toca,
         onToque = onToque,
-    ) {
-        Avatar(contacto.nombre, foto, radio * 2, inicial)
+    ) { pulsada, agarrada ->
+        CaraBurbuja(animo, pulsada, agarrada, cuerpo, fotograma)
+        // La foto va en una chapita abajo a la derecha: la cara es la burbuja.
+        foto?.let {
+            Avatar(
+                contacto.nombre,
+                it,
+                radio * 0.7f,
+                inicial,
+                Modifier.align(Alignment.BottomEnd).offset(-radio * 0.12f, -radio * 0.12f),
+            )
+        }
     }
+}
+
+/** Como esta cada burbuja segun su plazo. */
+private enum class Animo(val animacion: Animacion) {
+    DORMIDA(Animaciones.durmiendo),
+    TRANQUILA(Animaciones.mirarAlrededor),
+    ATENTA(Animaciones.atenta),
+    ILUSIONADA(Animaciones.ilusionada),
+    IMPACIENTE(Animaciones.impaciente),
+}
+
+/**
+ * Una esfera con ojos: su animo segun el plazo, cierra los ojos de gusto al
+ * apretarla, se asusta al cogerla y gira la cabeza hacia donde la lanzas.
+ */
+@Composable
+private fun CaraBurbuja(
+    animo: Animo,
+    pulsada: Boolean,
+    agarrada: Boolean,
+    cuerpo: Cuerpo,
+    fotograma: MutableLongState,
+) {
+    val cara = rememberEstadoCara(animo.animacion.pasos.first().expresion, semilla = cuerpo.clave.toInt())
+    LaunchedEffect(animo, pulsada, agarrada) {
+        when {
+            agarrada -> cara.poner(Expresiones.sorpresa, 140, Transicion.SECA)
+            pulsada -> cara.poner(Expresiones.apretada, 100, Transicion.SECA)
+            // Cada una empieza por un paso distinto para que no vayan al unisono.
+            else -> cara.reproducir(animo.animacion, empezarEn = (cuerpo.clave % animo.animacion.pasos.size).toInt())
+        }
+    }
+    val esquema = MaterialTheme.colorScheme
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(esquema.primaryContainer)
+            .cara(cara, esquema.onPrimaryContainer) {
+                fotograma.longValue
+                val v = hypot(cuerpo.vx, cuerpo.vy)
+                if (v < 1f) {
+                    Offset.Zero
+                } else {
+                    val f = min(v / (MIRA_A_VELOCIDAD * density), 1f) * GIRO_AL_CORRER
+                    Offset(cuerpo.vx / v * f, cuerpo.vy / v * f)
+                }
+            },
+    )
 }
 
 @Composable
@@ -316,7 +392,7 @@ private fun BurbujaGrupo(
         anillo = MaterialTheme.colorScheme.outlineVariant,
         latido = false,
         onToque = onToque,
-    ) {
+    ) { _, _ ->
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -347,7 +423,7 @@ private fun Burbuja(
     anillo: Color,
     latido: Boolean,
     onToque: () -> Unit,
-    contenido: @Composable () -> Unit,
+    contenido: @Composable BoxScope.(pulsada: Boolean, agarrada: Boolean) -> Unit,
 ) {
     val alToque by rememberUpdatedState(onToque)
     val anchoCaja = radio * 2 + ANCHO_EXTRA_ETIQUETA
@@ -419,6 +495,17 @@ private fun Burbuja(
             Modifier
                 .align(Alignment.TopCenter)
                 .size(radio * 2)
+                .graphicsLayer {
+                    // Se estira en la direccion en que corre y se aplasta en la otra.
+                    // Cogida no: el arrastre tiene que seguir al dedo exacto.
+                    fotograma.longValue
+                    if (!agarrada) {
+                        val referencia = VELOCIDAD_ESTIRON * density
+                        val d = ESTIRON * (min(abs(cuerpo.vx) / referencia, 1f) - min(abs(cuerpo.vy) / referencia, 1f))
+                        scaleX = 1f + d
+                        scaleY = 1f - d
+                    }
+                }
                 .shadow(sombra, CircleShape)
                 .border(if (latido) 3.dp else 2.dp, anillo, CircleShape)
                 .clip(CircleShape)
@@ -469,7 +556,7 @@ private fun Burbuja(
                     )
                 },
         ) {
-            contenido()
+            contenido(pulsada, agarrada)
         }
         Text(
             etiqueta,

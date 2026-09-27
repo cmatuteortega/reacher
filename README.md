@@ -64,7 +64,7 @@ flecha vuelven a Personas.
    contacto ÷ frecuencia de esa persona: 0 recién hablado, 1 toca hoy); el
    icono de la barra superior alterna entre ellas y la elección se recuerda:
    - **Burbujas** (por defecto, `ui/VistaBurbujas.kt`) — cada persona es una
-     burbuja con su foto o inicial, más grande cuanto más cerca está de su
+     burbuja con cara, más grande cuanto más cerca está de su
      fecha; a quien ya le toca lleva anillo naranja y un halo que respira. Se
      colocan con un empaquetado circular (las urgentes en el centro, sin
      solaparse) y se mueven con una pequeña simulación de muelles y choques
@@ -73,6 +73,20 @@ flecha vuelven a Personas.
      toque abre la ficha. Con más de 18 personas, las que van sobradas se
      atenúan y se recogen en una burbuja «Con calma» que se abre al tocarla;
      si aun así no caben, las grandes encogen y el lienzo se desplaza.
+     Al lanzarlas se estiran en la dirección en que corren.
+     Cada burbuja es una esfera con ojos (`ui/Cara.kt`): los ojos son elipses
+     pegadas a la superficie, así que al girar la cabeza se deslizan, se
+     estrechan hacia el borde y se esconden detrás, lo que da el aire de 3D.
+     Una *expresión* es la postura de la cabeza y la forma de cada ojo; una
+     *animación*, pasos de transición y espera entre expresiones (en bucle, una
+     vez o de ida y vuelta) con su parpadeo; `EstadoCara` las reproduce
+     (`reproducir`, `pausar`, `poner`, `parar`) y añade microsacadas, deriva y
+     temblor. Duermen si van sobradas, miran alrededor en reposo, se ponen
+     atentas al acercarse la fecha, asienten contentas cuando toca y niegan
+     impacientes si se pasa mucho; al apretarlas cierran los ojos de gusto, al
+     cogerlas se asustan y al lanzarlas giran la cabeza hacia donde van. La
+     foto de la agenda, si la hay, va en una chapita. La misma esfera, en
+     petróleo, es la **mascota** que saluda en la lista vacía.
    - **Lista** — cada fila lleva la foto de la agenda o la inicial.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la

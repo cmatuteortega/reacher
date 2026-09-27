@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -116,13 +117,21 @@ fun PantallaLista(
                 exit = fadeOut(),
                 modifier = Modifier.align(Alignment.Center),
             ) {
-                Text(
-                    "Aún no hay nadie.\nPulsa Añadir y elige un contacto de tu agenda.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(32.dp),
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // La mascota saluda al llegar y luego se queda mirando alrededor.
+                    val mascota = rememberEstadoCara()
+                    LaunchedEffect(mascota) {
+                        mascota.reproducir(Animaciones.saludo) { mascota.reproducir(Animaciones.mirarAlrededor) }
+                    }
+                    Mascota(mascota)
+                    Text(
+                        "Aún no hay nadie.\nPulsa Añadir y elige un contacto de tu agenda.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(32.dp),
+                    )
+                }
             }
 
             // Las dos vistas, con los mismos datos y el mismo orden por urgencia.
