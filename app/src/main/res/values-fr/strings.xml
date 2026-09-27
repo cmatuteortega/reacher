@@ -241,4 +241,15 @@
         <item quantity="many">dans %d jours</item>
         <item quantity="other">dans %d jours</item>
     </plurals>
+
+    <!-- Cumpleanos a mano -->
+    <string name="cumpleanos_titulo">Anniversaire</string>
+    <string name="cumpleanos_sin">Pas d\'anniversaire</string>
+    <string name="cumpleanos_de_agenda">Depuis vos contacts</string>
+    <string name="cumpleanos_poner">Ajouter l\'anniversaire</string>
+    <string name="cumpleanos_cambiar">Modifier</string>
+    <string name="cumpleanos_quitar">Retirer</string>
+    <string name="dia">Jour</string>
+    <string name="mes">Mois</string>
+    <string name="guardar">Enregistrer</string>
 </resources>

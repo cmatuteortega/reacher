@@ -19,7 +19,8 @@ import java.time.temporal.ChronoUnit
  *
  * Y lo que se sabe de la persona: unas [notas] libres, su [cumpleanos] (dia y
  * mes, leido de la agenda) y el [circulo] al que pertenece (familia, amigos...),
- * uno como mucho, para filtrar Personas.
+ * uno como mucho, para filtrar Personas. Si el cumpleanos se puso (o se
+ * quito) a mano, [cumpleanosManual]: la agenda ya no lo toca.
  */
 @Entity(tableName = "contactos")
 data class Contacto(
@@ -37,6 +38,7 @@ data class Contacto(
     val notas: String = "",
     val cumpleanos: MonthDay? = null,
     val circulo: String? = null,
+    val cumpleanosManual: Boolean = false,
 ) {
     /** Hoy es su cumpleanos. El 29 de febrero se celebra el 28 los anos que no es bisiesto. */
     fun esCumpleanos(hoy: LocalDate = LocalDate.now()): Boolean {

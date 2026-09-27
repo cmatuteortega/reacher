@@ -54,6 +54,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Button
@@ -112,6 +116,10 @@ import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import java.time.LocalDate
+import java.time.Month
+import java.time.MonthDay
+import java.time.format.TextStyle
+import java.util.Locale
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -139,6 +147,8 @@ fun PantallaFicha(
     onActualizar: (Long, Int, MedioContacto) -> Unit,
     onNotas: (Long, String) -> Unit,
     onCirculo: (Long, String?) -> Unit,
+    /** Cumpleanos puesto a mano (null lo quita); desde entonces la agenda no lo toca. */
+    onCumpleanos: (Long, MonthDay?) -> Unit,
     onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
     onPausar: (Long, Int) -> Unit,
@@ -160,9 +170,25 @@ fun PantallaFicha(
     var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
     var notas by rememberSaveable(borrador.id) { mutableStateOf(borrador.notas) }
     var circulo by rememberSaveable(borrador.id) { mutableStateOf(borrador.circulo) }
+    // Al dar de alta, el cumpleanos puesto a mano espera aqui hasta guardar (como
+    // texto "--MM-DD" para sobrevivir a girar la pantalla). Uno ya guardado se
+    // escribe al momento y se lee de la base de datos.
+    var cumpleAlta by rememberSaveable(borrador.id) { mutableStateOf(borrador.cumpleanos?.toString()) }
+    var cumpleAltaManual by rememberSaveable(borrador.id) { mutableStateOf(borrador.cumpleanosManual) }
+
+    val cumpleanos = if (guardado) actual.cumpleanos else cumpleAlta?.let(MonthDay::parse)
+    val cumpleanosManual = if (guardado) actual.cumpleanosManual else cumpleAltaManual
+    val ponerCumpleanos = { dia: MonthDay? ->
+        if (guardado) {
+            onCumpleanos(actual.id, dia)
+        } else {
+            cumpleAlta = dia?.toString()
+            cumpleAltaManual = true
+        }
+    }
 
     // Lo que se esta editando, para que el anillo y las fechas respondan al momento.
-    val vistaPrevia = actual.copy(frecuenciaDias = frecuencia)
+    val vistaPrevia = actual.copy(frecuenciaDias = frecuencia, cumpleanos = cumpleanos)
 
     // Alguien que ya existe se guarda solo al cambiar algo; el aviso de
     // "Guardado" aparece un momento arriba para que se note.
@@ -216,7 +242,18 @@ fun PantallaFicha(
                 onAnadir = if (guardado) {
                     null
                 } else {
-                    { onAnadir(actual.copy(frecuenciaDias = frecuencia, medio = medio, notas = notas.trim(), circulo = circulo)) }
+                    {
+                        onAnadir(
+                            actual.copy(
+                                frecuenciaDias = frecuencia,
+                                medio = medio,
+                                notas = notas.trim(),
+                                circulo = circulo,
+                                cumpleanos = cumpleanos,
+                                cumpleanosManual = cumpleanosManual,
+                            ),
+                        )
+                    }
                 },
                 // Prueba lo elegido aunque aun no se haya guardado.
                 onContactar = { onContactar(actual.telefono, medio) },
@@ -257,6 +294,9 @@ fun PantallaFicha(
                 }
                 TarjetaFicha(stringResource(R.string.circulo)) {
                     SelectorCirculo(circulo, circulos, onCambio = { circulo = it })
+                }
+                TarjetaFicha(stringResource(R.string.cumpleanos_titulo)) {
+                    Cumpleanos(cumpleanos, cumpleanosManual, onPoner = ponerCumpleanos)
                 }
                 TarjetaFicha(stringResource(R.string.notas)) {
                     OutlinedTextField(
@@ -918,5 +958,127 @@ private fun SelectorCirculo(circulo: String?, circulos: List<String>, onCambio: 
             },
             dismissButton = { TextButton(onClick = { creando = false }) { Text(stringResource(R.string.cancelar)) } },
         )
+    }
+}
+
+/**
+ * El cumpleanos en la ficha: el dia (y si viene de la agenda) y botones para
+ * ponerlo, cambiarlo o quitarlo a mano. Lo que se hace aqui manda: la agenda
+ * ya no lo vuelve a poner ni a cambiar.
+ */
+@Composable
+private fun Cumpleanos(dia: MonthDay?, manual: Boolean, onPoner: (MonthDay?) -> Unit) {
+    var eligiendo by rememberSaveable { mutableStateOf(false) }
+    val colores = MaterialTheme.colorScheme
+    Text(
+        dia?.let { "🎂 " + it.bonito() } ?: stringResource(R.string.cumpleanos_sin),
+        style = MaterialTheme.typography.bodyLarge,
+        color = if (dia == null) colores.onSurfaceVariant else colores.onSurface,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
+    if (dia != null && !manual) {
+        Text(
+            stringResource(R.string.cumpleanos_de_agenda),
+            style = MaterialTheme.typography.bodySmall,
+            color = colores.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(onClick = { eligiendo = true }, modifier = Modifier.weight(1f)) {
+            Text(stringResource(if (dia == null) R.string.cumpleanos_poner else R.string.cumpleanos_cambiar))
+        }
+        if (dia != null) {
+            TextButton(onClick = { onPoner(null) }, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.cumpleanos_quitar))
+            }
+        }
+    }
+    if (eligiendo) {
+        DialogoCumpleanos(
+            inicial = dia,
+            onAceptar = {
+                eligiendo = false
+                onPoner(it)
+            },
+            onCancelar = { eligiendo = false },
+        )
+    }
+}
+
+/** Dia y mes, sin ano: dos desplegables. Febrero llega al 29 (se celebra el 28 los anos no bisiestos). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DialogoCumpleanos(inicial: MonthDay?, onAceptar: (MonthDay) -> Unit, onCancelar: () -> Unit) {
+    var mes by rememberSaveable { mutableIntStateOf(inicial?.monthValue ?: LocalDate.now().monthValue) }
+    var dia by rememberSaveable { mutableIntStateOf(inicial?.dayOfMonth ?: LocalDate.now().dayOfMonth) }
+    val diasDelMes = Month.of(mes).maxLength()
+    val locale = Locale.getDefault()
+    val nombreMes = { m: Int -> Month.of(m).getDisplayName(TextStyle.FULL_STANDALONE, locale).replaceFirstChar { it.titlecase(locale) } }
+
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text(stringResource(R.string.cumpleanos_titulo)) },
+        text = {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Desplegable(
+                    etiqueta = stringResource(R.string.dia),
+                    valor = dia.toString(),
+                    opciones = (1..diasDelMes).toList(),
+                    texto = { it.toString() },
+                    onElegir = { dia = it },
+                    modifier = Modifier.weight(0.4f),
+                )
+                Desplegable(
+                    etiqueta = stringResource(R.string.mes),
+                    valor = nombreMes(mes),
+                    opciones = (1..12).toList(),
+                    texto = nombreMes,
+                    onElegir = {
+                        mes = it
+                        // Del 31 de enero a febrero: el ultimo dia que tenga.
+                        dia = dia.coerceAtMost(Month.of(it).maxLength())
+                    },
+                    modifier = Modifier.weight(0.6f),
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { onAceptar(MonthDay.of(mes, dia)) }) { Text(stringResource(R.string.guardar)) } },
+        dismissButton = { TextButton(onClick = onCancelar) { Text(stringResource(R.string.cancelar)) } },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> Desplegable(
+    etiqueta: String,
+    valor: String,
+    opciones: List<T>,
+    texto: (T) -> String,
+    onElegir: (T) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var abierto by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = abierto, onExpandedChange = { abierto = it }, modifier = modifier) {
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(etiqueta) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = abierto) },
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
+            opciones.forEach { opcion ->
+                DropdownMenuItem(
+                    text = { Text(texto(opcion)) },
+                    onClick = {
+                        abierto = false
+                        onElegir(opcion)
+                    },
+                )
+            }
+        }
     }
 }

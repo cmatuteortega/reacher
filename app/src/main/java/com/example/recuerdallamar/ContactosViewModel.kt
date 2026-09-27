@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.MonthDay
 
 /** Pausa sin cambios en la ficha tras la que se reprograma el aviso. */
 private const val REPROGRAMAR_TRAS_MS = 800L
@@ -111,11 +112,18 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
 
     fun observar(id: Long): Flow<Contacto?> = dao.observar(id)
 
-    /** Da de alta a alguien nuevo, con el cumpleanos de la agenda si se puede leer. */
+    /**
+     * Da de alta a alguien nuevo. El cumpleanos, el puesto a mano en la ficha;
+     * si no, el de la agenda si se puede leer.
+     */
     fun anadir(contacto: Contacto) {
         descartarAlta()
         viewModelScope.launch {
-            val cumpleanos = withContext(Dispatchers.IO) { CumpleanosAgenda.leer(getApplication(), contacto.telefono) }
+            val cumpleanos = if (contacto.cumpleanosManual) {
+                contacto.cumpleanos
+            } else {
+                withContext(Dispatchers.IO) { CumpleanosAgenda.leer(getApplication(), contacto.telefono) }
+            }
             val id = dao.insertar(contacto.copy(ultimoContacto = LocalDate.now(), cumpleanos = cumpleanos))
             RecordatorioWorker.programar(getApplication(), id)
         }
@@ -126,7 +134,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
      * cumpleanos, se apunta. Sin permiso no se toca lo que hubiera.
      */
     fun refrescarCumpleanos(contacto: Contacto) {
-        if (contacto.id == 0L) return
+        if (contacto.id == 0L || contacto.cumpleanosManual) return
         viewModelScope.launch {
             val leido = withContext(Dispatchers.IO) { CumpleanosAgenda.leer(getApplication(), contacto.telefono) }
             if (leido != null && leido != contacto.cumpleanos) dao.actualizarCumpleanos(contacto.id, leido)
@@ -160,6 +168,11 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
             dao.actualizarNotas(id, notas.trim())
             escrituraNotas.remove(id)
         }
+    }
+
+    /** Cumpleanos puesto (o quitado, con null) a mano: desde ahora manda sobre la agenda. */
+    fun ponerCumpleanos(id: Long, dia: MonthDay?) {
+        viewModelScope.launch { dao.ponerCumpleanos(id, dia) }
     }
 
     fun cambiarCirculo(id: Long, circulo: String?) {

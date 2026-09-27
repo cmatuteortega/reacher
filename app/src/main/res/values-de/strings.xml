@@ -229,4 +229,15 @@
         <item quantity="one">in %d Tag</item>
         <item quantity="other">in %d Tagen</item>
     </plurals>
+
+    <!-- Cumpleanos a mano -->
+    <string name="cumpleanos_titulo">Geburtstag</string>
+    <string name="cumpleanos_sin">Kein Geburtstag</string>
+    <string name="cumpleanos_de_agenda">Aus deinen Kontakten</string>
+    <string name="cumpleanos_poner">Geburtstag hinzufügen</string>
+    <string name="cumpleanos_cambiar">Ändern</string>
+    <string name="cumpleanos_quitar">Entfernen</string>
+    <string name="dia">Tag</string>
+    <string name="mes">Monat</string>
+    <string name="guardar">Speichern</string>
 </resources>

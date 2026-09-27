@@ -233,9 +233,11 @@ Una tabla, `contactos`:
 | `notas`               | String          | texto libre; vacío por defecto          |
 | `cumpleanos`          | MonthDay?       | día y mes, leído de la agenda («--MM-DD») |
 | `circulo`             | String?         | familia, amigos...; uno como mucho      |
+| `cumpleanosManual`    | Boolean         | puesto o quitado a mano: la agenda ya no lo toca |
 
-La base va por la versión 4 (la 3→4 añade `notas`, `cumpleanos` y
-`circulo`, vacíos). Los esquemas se exportan a `app/schemas` para ver cada
+La base va por la versión 5 (la 3→4 añade `notas`, `cumpleanos` y
+`circulo`, vacíos; la 4→5, `cumpleanosManual`, a falso: los que había vienen
+de la agenda). Los esquemas se exportan a `app/schemas` para ver cada
 cambio y probar migraciones. Antes, en la versión 3: la migración 1→2 añade `medio` y deja los
 contactos existentes en `MARCADOR`, que es lo que hacían antes; la 2→3 añade
 `descartes`, `pospuestoHasta` y `pausadoHasta`, vacíos.
@@ -282,6 +284,11 @@ hoy (el 29 de febrero, el 28 los años que no son bisiestos), con los mismos
 ajustes que el resto: apagados o en pausa no avisa y fuera del horario espera
 a la hora de inicio. Tocarlo abre la forma de contacto de esa persona y cuenta
 como contacto.
+
+En la ficha también se pone a mano (día y mes, sin año), se cambia o se
+quita, incluso sin permiso de contactos. Lo hecho a mano manda: desde
+entonces la agenda ya no lo rellena ni lo cambia, y quitarlo lo quita del
+todo. Si viene de la agenda, la ficha lo dice.
 
 * Al guardar o actualizar un contacto se programa un trabajo periódico único
   por contacto (`recordatorio-<id>`, cada 24 h, `CANCEL_AND_REENQUEUE`). La

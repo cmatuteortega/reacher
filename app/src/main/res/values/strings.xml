@@ -235,4 +235,15 @@
         <item quantity="one">in %d day</item>
         <item quantity="other">in %d days</item>
     </plurals>
+
+    <!-- Cumpleanos a mano -->
+    <string name="cumpleanos_titulo">Birthday</string>
+    <string name="cumpleanos_sin">No birthday</string>
+    <string name="cumpleanos_de_agenda">From your contacts</string>
+    <string name="cumpleanos_poner">Add birthday</string>
+    <string name="cumpleanos_cambiar">Change</string>
+    <string name="cumpleanos_quitar">Remove</string>
+    <string name="dia">Day</string>
+    <string name="mes">Month</string>
+    <string name="guardar">Save</string>
 </resources>

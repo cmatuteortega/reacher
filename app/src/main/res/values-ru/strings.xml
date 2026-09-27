@@ -253,4 +253,15 @@
         <item quantity="many">через %d дней</item>
         <item quantity="other">через %d дня</item>
     </plurals>
+
+    <!-- Cumpleanos a mano -->
+    <string name="cumpleanos_titulo">День рождения</string>
+    <string name="cumpleanos_sin">Не указан</string>
+    <string name="cumpleanos_de_agenda">Из контактов</string>
+    <string name="cumpleanos_poner">Указать день рождения</string>
+    <string name="cumpleanos_cambiar">Изменить</string>
+    <string name="cumpleanos_quitar">Убрать</string>
+    <string name="dia">День</string>
+    <string name="mes">Месяц</string>
+    <string name="guardar">Сохранить</string>
 </resources>

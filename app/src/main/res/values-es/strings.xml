@@ -241,4 +241,15 @@
         <item quantity="many">dentro de %d días</item>
         <item quantity="other">dentro de %d días</item>
     </plurals>
+
+    <!-- Cumpleanos a mano -->
+    <string name="cumpleanos_titulo">Cumpleaños</string>
+    <string name="cumpleanos_sin">Sin cumpleaños</string>
+    <string name="cumpleanos_de_agenda">De la agenda</string>
+    <string name="cumpleanos_poner">Poner cumpleaños</string>
+    <string name="cumpleanos_cambiar">Cambiar</string>
+    <string name="cumpleanos_quitar">Quitar</string>
+    <string name="dia">Día</string>
+    <string name="mes">Mes</string>
+    <string name="guardar">Guardar</string>
 </resources>

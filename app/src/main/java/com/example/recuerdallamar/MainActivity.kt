@@ -401,6 +401,7 @@ private fun AppRecuerda(
             onActualizar = vm::actualizar,
             onNotas = vm::cambiarNotas,
             onCirculo = vm::cambiarCirculo,
+            onCumpleanos = vm::ponerCumpleanos,
             onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
             onLlamadoHoy = { id ->
                 vm.llamadoHoy(id)
@@ -584,6 +585,7 @@ private fun AppRecuerda(
                     onActualizar = { _, _, _ -> },
                     onNotas = { _, _ -> },
                     onCirculo = { _, _ -> },
+                    onCumpleanos = { _, _ -> },
                     onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
                     onLlamadoHoy = {},
                     onPausar = { _, _ -> },

@@ -57,8 +57,13 @@ interface ContactoDao {
     @Query("UPDATE contactos SET circulo = :circulo WHERE id = :id")
     suspend fun actualizarCirculo(id: Long, circulo: String?)
 
-    @Query("UPDATE contactos SET cumpleanos = :dia WHERE id = :id")
+    /** El leido de la agenda: nunca pisa uno puesto o quitado a mano. */
+    @Query("UPDATE contactos SET cumpleanos = :dia WHERE id = :id AND cumpleanosManual = 0")
     suspend fun actualizarCumpleanos(id: Long, dia: MonthDay?)
+
+    /** Puesto a mano en la ficha; null lo quita y tampoco deja que vuelva de la agenda. */
+    @Query("UPDATE contactos SET cumpleanos = :dia, cumpleanosManual = 1 WHERE id = :id")
+    suspend fun ponerCumpleanos(id: Long, dia: MonthDay?)
 
     /** Para el trabajo diario de cumpleanos y el widget, sin flujo. */
     @Query("SELECT * FROM contactos")

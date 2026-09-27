@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Una vez al dia, para toda la gente: relee los cumpleanos de la agenda (si
- * hay permiso; alguien pudo apuntarlo despues de darlo de alta) y felicita a
+ * hay permiso; alguien pudo apuntarlo despues de darlo de alta), salvo los
+ * puestos o quitados a mano en la ficha, y felicita a
  * quien cumple hoy. Sigue los mismos ajustes que el aviso normal: apagados o
  * en pausa no avisa, y fuera del horario espera a la hora de inicio. Solo
  * avisa una vez por dia aunque corra varias.
@@ -33,7 +34,8 @@ class CumpleanosWorker(
         val hoy = LocalDate.now()
 
         val gente = dao.lista().map { contacto ->
-            val leido = CumpleanosAgenda.leer(contexto, contacto.telefono)
+            // Los puestos o quitados a mano no se tocan.
+            val leido = if (contacto.cumpleanosManual) null else CumpleanosAgenda.leer(contexto, contacto.telefono)
             if (leido != null && leido != contacto.cumpleanos) {
                 dao.actualizarCumpleanos(contacto.id, leido)
                 contacto.copy(cumpleanos = leido)

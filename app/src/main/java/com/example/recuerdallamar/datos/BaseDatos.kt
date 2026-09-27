@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Contacto::class], version = 4, exportSchema = true)
+@Database(entities = [Contacto::class], version = 5, exportSchema = true)
 @TypeConverters(Conversores::class)
 abstract class BaseDatos : RoomDatabase() {
     abstract fun contactos(): ContactoDao
@@ -41,6 +41,13 @@ abstract class BaseDatos : RoomDatabase() {
             }
         }
 
+        // v5: si el cumpleanos se puso a mano. Los que ya habia vienen de la agenda.
+        val MIGRACION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE contactos ADD COLUMN cumpleanosManual INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var instancia: BaseDatos? = null
 
@@ -51,7 +58,7 @@ abstract class BaseDatos : RoomDatabase() {
                     context.applicationContext,
                     BaseDatos::class.java,
                     "contactos.db",
-                ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4).build().also { instancia = it }
+                ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5).build().also { instancia = it }
             }
     }
 }
