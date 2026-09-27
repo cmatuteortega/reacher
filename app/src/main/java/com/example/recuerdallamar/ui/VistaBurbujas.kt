@@ -125,7 +125,9 @@ private const val OCUPACION = 0.5f
  * soltarlas vuelven solas a su sitio. Un toque abre la ficha.
  *
  * [contactos] llega ya ordenado por urgencia: es el orden en que se colocan.
- * Abajo se dejan libres [huecoInferior], donde asoma el sol. Si [relevo]
+ * Abajo se dejan libres [huecoInferior], para el +, y arriba a la izquierda
+ * el sol: un circulo de [solRadio] con centro [solArriba] por encima del
+ * lienzo, en su borde izquierdo. Si [relevo]
  * trae los planetas de la bienvenida, cada uno sale de su orbita, desde
  * donde estaba, y cae a su sitio.
  */
@@ -135,6 +137,8 @@ fun VistaBurbujas(
     fotosPermitidas: Boolean,
     onAbrir: (Contacto) -> Unit,
     huecoInferior: Dp,
+    solArriba: Dp,
+    solRadio: Dp,
     modifier: Modifier = Modifier,
     relevo: Relevo? = null,
 ) {
@@ -157,9 +161,10 @@ fun VistaBurbujas(
         }
         val agrupar = tranquilos.size >= MIN_AGRUPAR
 
-        val plano = remember(contactos, urgencias, agrupar, grupoAbierto, ancho, alto, huecoInferior, densidad) {
+        val sol = with(densidad) { Sitio(GRUPO, 0f, -solArriba.toPx(), solRadio.toPx()) }
+        val plano = remember(contactos, urgencias, agrupar, grupoAbierto, ancho, alto, huecoInferior, sol.y, sol.radio, densidad) {
             val visibles = contactos.filter { !agrupar || grupoAbierto || it.id !in tranquilos }
-            disponer(visibles.map { it.id to urgencias.getValue(it.id) }, agrupar, ancho, alto, huecoInferior, densidad).also {
+            disponer(visibles.map { it.id to urgencias.getValue(it.id) }, agrupar, ancho, alto, huecoInferior, sol, densidad).also {
                 sim.densidad = densidad.density
                 sim.ancho = ancho
                 sim.alto = it.altoMundo
@@ -167,6 +172,7 @@ fun VistaBurbujas(
                     sim.margen = MARGEN.toPx()
                     sim.borde = BORDE.toPx()
                     sim.bordeInferior = huecoInferior.toPx()
+                    sim.obstaculos = listOf(sol)
                 }
                 // Al abrir el grupo, los tranquilos salen de el.
                 sim.colocar(it.sitios, if (agrupar) tranquilos.associateWith { GRUPO } else emptyMap())
@@ -261,6 +267,7 @@ private fun disponer(
     ancho: Float,
     alto: Float,
     huecoInferior: Dp,
+    sol: Sitio,
     densidad: Density,
 ): Disposicion = with(densidad) {
     val margen = MARGEN.toPx()
@@ -277,7 +284,7 @@ private fun disponer(
     val ocupado = huecos(maximo).sumOf { val r = it.radio + margen; PI * r * r }.toFloat()
     if (ocupado > disponible) maximo = max(minimo * 1.4f, maximo * sqrt(disponible / ocupado))
 
-    val sitios = empaquetar(huecos(maximo), ancho, margen, BORDE.toPx(), ancho / 2, libre * 0.46f)
+    val sitios = empaquetar(huecos(maximo), ancho, margen, BORDE.toPx(), ancho / 2, libre * 0.46f, fijos = listOf(sol))
     val fondo = sitios.maxOfOrNull { it.y + it.radio + margen } ?: 0f
     Disposicion(sitios, max(alto, fondo + huecoInferior.toPx()))
 }

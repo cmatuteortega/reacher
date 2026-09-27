@@ -11,6 +11,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -72,18 +75,16 @@ fun PantallaLista(
         if (nuevo >= 0 && vista == VistaPersonas.LISTA) estado.animateScrollToItem(nuevo)
     }
 
-    // El sol asoma abajo por encima de todo; el contenido deja sitio para que no lo tape.
+    // El sol de la esquina y el + van por encima de todo; el contenido les deja sitio.
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val hueco = asomaSol(maxHeight) + PUNTA_HORIZONTE + 8.dp
+        val estadoArriba = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        val radioSol = radioSolEsquina(maxWidth) + estadoArriba + PUNTA_ESQUINA
+        val hueco = HUECO_MAS
         Scaffold(
             topBar = {
                 TopAppBar(
+                    // La esquina de la izquierda es del sol.
                     title = {},
-                    navigationIcon = {
-                        IconButton(onClick = onAjustes) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
-                        }
-                    },
                     actions = {
                         val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
                         IconButton(onClick = { onCambiarVista(otra) }) {
@@ -97,10 +98,16 @@ fun PantallaLista(
                                 }
                             }
                         }
+                        IconButton(onClick = onAjustes) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+                        }
                     },
                 )
             },
         ) { relleno ->
+            // Lo que baja el sol por debajo de la barra de arriba.
+            val arriba = relleno.calculateTopPadding()
+            val bajoLaBarra = (radioSol - arriba).coerceAtLeast(0.dp)
             Box(Modifier.fillMaxSize().padding(relleno)) {
                 AnimatedVisibility(
                     visible = contactos?.isEmpty() == true,
@@ -127,12 +134,15 @@ fun PantallaLista(
                                 fotosPermitidas = fotosPermitidas,
                                 onAbrir = onAbrir,
                                 huecoInferior = hueco,
+                                solArriba = arriba,
+                                solRadio = radioSol,
                                 relevo = relevo,
                             )
                         }
                         VistaPersonas.LISTA -> LazyColumn(
                             state = estado,
-                            contentPadding = PaddingValues(bottom = hueco), // que el sol no tape la ultima fila
+                            // Que ni el sol tape la primera fila ni el + la ultima.
+                            contentPadding = PaddingValues(top = bajoLaBarra, bottom = hueco),
                             modifier = Modifier.fillMaxSize(),
                         ) {
                             items(contactos.orEmpty(), key = { it.id }) { contacto ->
@@ -155,7 +165,7 @@ fun PantallaLista(
                 }
             }
         }
-        SolHorizonte(relevo = relevo, cuantos = contactos?.size ?: 0, onAnadir = onAnadir)
+        SolEsquina(relevo = relevo, cuantos = contactos?.size ?: 0, onAnadir = onAnadir)
     }
 }
 

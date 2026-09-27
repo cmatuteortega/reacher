@@ -443,15 +443,16 @@ internal fun DrawScope.dibujarSol(centro: Offset, radio: Float, hondura: Float, 
 /**
  * Silueta del sol: un circulo de [radio] con [puntas] ondas que sobresalen
  * hasta [hondura] radios. Las ondas son redondeadas, con valles anchos, y
- * [fase] las hace girar. Se recorre desde abajo: si [puntas] no es entero,
- * el corte queda ahi, donde el sol del horizonte cae fuera de la pantalla.
+ * [fase] las hace girar. Se recorre desde arriba a la izquierda: si
+ * [puntas] no es entero, el corte queda ahi, donde el sol de la esquina cae
+ * fuera de la pantalla.
  */
 private fun ondas(centro: Offset, radio: Float, hondura: Float, puntas: Float, fase: Float): Path {
     val trazo = Path()
     val muestras = max(180, (puntas * 14).roundToInt())
     for (i in 0..muestras) {
         val giro = 2f * PI.toFloat() * i / muestras
-        val th = giro + PI.toFloat() / 2
+        val th = giro + PI.toFloat() * 1.25f
         val onda = (0.5f + 0.5f * cos(puntas * giro - fase)).pow(1.8f)
         val r = radio * (1f + hondura * onda)
         val x = centro.x + r * cos(th)

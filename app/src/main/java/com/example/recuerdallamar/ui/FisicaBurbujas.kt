@@ -37,6 +37,8 @@ internal class Sitio(val clave: Long, val x: Float, val y: Float, val radio: Flo
  * tangentes a lo ya colocado y a las paredes laterales.
  *
  * [margen] se suma al radio de cada uno: aire para el nombre y para el dedo.
+ * [fijos] son circulos que ya ocupan sitio (el sol de la esquina): nadie se
+ * coloca encima, pero se puede arrimar a ellos.
  * No hay pared de abajo: si no caben, el lienzo crece y se desplaza.
  */
 internal fun empaquetar(
@@ -46,6 +48,7 @@ internal fun empaquetar(
     borde: Float,
     focoX: Float,
     focoY: Float,
+    fijos: List<Sitio> = emptyList(),
 ): List<Sitio> {
     val puestos = ArrayList<Sitio>(huecos.size)
     for (hueco in huecos) {
@@ -63,7 +66,13 @@ internal fun empaquetar(
 
         fun libre(x: Float, y: Float): Boolean {
             if (x < minX - 0.5f || x > maxX + 0.5f || y < minY - 0.5f) return false
-            return puestos.all { p ->
+            val fuera = fijos.all { f ->
+                val minima = f.radio + alcance - 0.5f
+                val dx = f.x - x
+                val dy = f.y - y
+                dx * dx + dy * dy >= minima * minima
+            }
+            return fuera && puestos.all { p ->
                 val minima = p.radio + margen + alcance - 0.5f
                 val dx = p.x - x
                 val dy = p.y - y
@@ -84,6 +93,13 @@ internal fun empaquetar(
             }
         }
 
+        for (f in fijos) {
+            val distancia = f.radio + alcance
+            for (k in 0 until ANGULOS) {
+                val angulo = (2 * PI * k / ANGULOS).toFloat()
+                probar(f.x + distancia * cos(angulo), f.y + distancia * sin(angulo))
+            }
+        }
         for (p in puestos) {
             val distancia = p.radio + margen + alcance
             for (k in 0 until ANGULOS) {
@@ -144,6 +160,9 @@ internal class Simulacion {
     var margen = 0f
     var borde = 0f
     var bordeInferior = 0f
+
+    /** Circulos fijos que las burbujas no pueden pisar (el sol de la esquina). */
+    var obstaculos: List<Sitio> = emptyList()
     var tiempo = 0f
         private set
 
@@ -232,7 +251,10 @@ internal class Simulacion {
             c.y += c.vy * dt
         }
         repeat(2) { separar() }
-        for (c in orden) contenerEnParedes(c)
+        for (c in orden) {
+            apartarDeObstaculos(c)
+            contenerEnParedes(c)
+        }
     }
 
     private fun separar() {
@@ -276,6 +298,28 @@ internal class Simulacion {
                     b.vx += impulso * nx * pb
                     b.vy += impulso * ny * pb
                 }
+            }
+        }
+    }
+
+    /** Si pisa un obstaculo, sale hacia fuera y pierde la velocidad con que entraba. */
+    private fun apartarDeObstaculos(c: Cuerpo) {
+        if (c.agarrado) return
+        for (o in obstaculos) {
+            val minima = o.radio + c.radio
+            val dx = c.x - o.x
+            val dy = c.y - o.y
+            val d2 = dx * dx + dy * dy
+            if (d2 >= minima * minima) continue
+            val d = sqrt(d2).coerceAtLeast(0.01f)
+            val nx = dx / d
+            val ny = dy / d
+            c.x = o.x + nx * minima
+            c.y = o.y + ny * minima
+            val entrando = c.vx * nx + c.vy * ny
+            if (entrando < 0f) {
+                c.vx -= (1f + REBOTE_PARED) * entrando * nx
+                c.vy -= (1f + REBOTE_PARED) * entrando * ny
             }
         }
     }

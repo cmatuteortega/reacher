@@ -61,7 +61,7 @@ mirando hacia donde va. Solo cambia el texto de debajo:
 3. *¡Ya está!*: tu sistema y el recado de que se puede cerrar la app y
    seguir con la vida; se avisará cuando toque. Un toque en un planeta abre
    su ficha. *Entendido* acaba en la vista de burbujas, sin cortar: el sol
-   baja y crece hasta el horizonte de la pantalla principal y cada planeta se
+   sube y crece hasta la esquina de la pantalla principal y cada planeta se
    sale de su órbita con su impulso y cae a su sitio entre las burbujas
    (`ui/Relevo.kt` guarda dónde estaba cada cosa al pulsar).
 
@@ -69,16 +69,16 @@ Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
 
 La pantalla principal es **Personas** (la lista y sus fichas). El botón de
-engranaje de la esquina superior izquierda abre **Ajustes**; *Atrás* o la
+engranaje, arriba a la derecha junto al de la vista, abre **Ajustes**; *Atrás* o la
 flecha vuelven a Personas.
 
-1. **Personas** — vacía al principio. Abajo asoma **el sol**
-   (`ui/SolHorizonte.kt`), tan grande que solo se ve un arco de esquina a
-   esquina, con sus puntas girando y los ojos mirando alrededor, siempre
-   dentro del arco; se queda en las dos vistas y el contenido le deja sitio.
-   El **+** de encima, en el centro, abre el selector de contactos del
-   sistema filtrado a números de teléfono: el sol se hunde al apretarlo, se
-   ríe y saluda a quien llega. Se ve de dos formas, con los
+1. **Personas** — vacía al principio. En la esquina de arriba a la
+   izquierda asoma **el sol** (`ui/SolEsquina.kt`), como el de los dibujos,
+   con sus rayos girando y los ojos mirando hacia su gente; se queda en las
+   dos vistas y ni las burbujas ni la lista se le meten debajo. El **+** de
+   abajo, en el centro, abre el selector de contactos del sistema filtrado a
+   números de teléfono: al apretarlo el sol lo mira, se encoge y se ríe, y
+   luego saluda a quien llega. Se ve de dos formas, con los
    mismos datos y el mismo orden por **urgencia** (días desde el último
    contacto ÷ frecuencia de esa persona: 0 recién hablado, 1 toca hoy); el
    icono de la barra superior alterna entre ellas y la elección se recuerda:
