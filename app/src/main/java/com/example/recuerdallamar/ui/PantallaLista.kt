@@ -9,7 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,11 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -59,6 +57,7 @@ fun PantallaLista(
     onAbrir: (Contacto) -> Unit,
     onAjustes: () -> Unit,
     modifier: Modifier = Modifier,
+    relevo: Relevo? = null,
 ) {
     val estado = rememberLazyListState()
 
@@ -73,101 +72,90 @@ fun PantallaLista(
         if (nuevo >= 0 && vista == VistaPersonas.LISTA) estado.animateScrollToItem(nuevo)
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onAjustes) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
-                    }
-                },
-                actions = {
-                    val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
-                    IconButton(onClick = { onCambiarVista(otra) }) {
-                        // El icono ensena a donde se va, no donde se esta.
-                        Crossfade(targetState = otra, label = "icono vista") { destino ->
-                            when (destino) {
-                                VistaPersonas.LISTA ->
-                                    Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Ver como lista")
-                                VistaPersonas.BURBUJAS ->
-                                    Icon(painterResource(R.drawable.ic_burbujas), contentDescription = "Ver como burbujas")
+    // El sol asoma abajo por encima de todo; el contenido deja sitio para que no lo tape.
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val hueco = asomaSol(maxHeight) + PUNTA_HORIZONTE + 8.dp
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = onAjustes) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+                        }
+                    },
+                    actions = {
+                        val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
+                        IconButton(onClick = { onCambiarVista(otra) }) {
+                            // El icono ensena a donde se va, no donde se esta.
+                            Crossfade(targetState = otra, label = "icono vista") { destino ->
+                                when (destino) {
+                                    VistaPersonas.LISTA ->
+                                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Ver como lista")
+                                    VistaPersonas.BURBUJAS ->
+                                        Icon(painterResource(R.drawable.ic_burbujas), contentDescription = "Ver como burbujas")
+                                }
                             }
                         }
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAnadir,
-                // El acento de la paleta, reservado para lo que pide accion.
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary,
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("Añadir") },
-            )
-        },
-    ) { relleno ->
-        Box(Modifier.fillMaxSize().padding(relleno)) {
-            AnimatedVisibility(
-                visible = contactos?.isEmpty() == true,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.Center),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // La mascota saluda al llegar y luego se queda mirando alrededor.
-                    val mascota = rememberEstadoCara()
-                    LaunchedEffect(mascota) {
-                        mascota.reproducir(Animaciones.saludo) { mascota.reproducir(Animaciones.mirarAlrededor) }
-                    }
-                    Mascota(mascota)
+                    },
+                )
+            },
+        ) { relleno ->
+            Box(Modifier.fillMaxSize().padding(relleno)) {
+                AnimatedVisibility(
+                    visible = contactos?.isEmpty() == true,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier.align(Alignment.Center).padding(bottom = hueco),
+                ) {
+                    // Sin mascota: el sol de abajo ya mira y saluda.
                     Text(
-                        "Aún no hay nadie.\nPulsa Añadir y elige un contacto de tu agenda.",
+                        "Aún no hay nadie en tu órbita.\nPulsa + y elige un contacto de tu agenda.",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(32.dp),
                     )
                 }
-            }
 
-            // Las dos vistas, con los mismos datos y el mismo orden por urgencia.
-            Crossfade(targetState = vista, label = "vista") { actual ->
-                when (actual) {
-                    VistaPersonas.BURBUJAS -> if (!contactos.isNullOrEmpty()) {
-                        VistaBurbujas(
-                            contactos = contactos,
-                            fotosPermitidas = fotosPermitidas,
-                            onAbrir = onAbrir,
-                        )
-                    }
-                    VistaPersonas.LISTA -> LazyColumn(
-                        state = estado,
-                        contentPadding = PaddingValues(bottom = 96.dp), // que el FAB no tape la ultima fila
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        items(contactos.orEmpty(), key = { it.id }) { contacto ->
-                            FilaContacto(
-                                contacto = contacto,
+                // Las dos vistas, con los mismos datos y el mismo orden por urgencia.
+                Crossfade(targetState = vista, label = "vista") { actual ->
+                    when (actual) {
+                        VistaPersonas.BURBUJAS -> if (!contactos.isNullOrEmpty()) {
+                            VistaBurbujas(
+                                contactos = contactos,
                                 fotosPermitidas = fotosPermitidas,
-                                onClick = { onAbrir(contacto) },
-                                // Al entrar un contacto, aparece fundido y el resto se recoloca con muelle.
-                                modifier = Modifier.animateItem(
-                                    fadeInSpec = spring(stiffness = Spring.StiffnessLow),
-                                    placementSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow,
-                                    ),
-                                ),
+                                onAbrir = onAbrir,
+                                huecoInferior = hueco,
+                                relevo = relevo,
                             )
+                        }
+                        VistaPersonas.LISTA -> LazyColumn(
+                            state = estado,
+                            contentPadding = PaddingValues(bottom = hueco), // que el sol no tape la ultima fila
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            items(contactos.orEmpty(), key = { it.id }) { contacto ->
+                                FilaContacto(
+                                    contacto = contacto,
+                                    fotosPermitidas = fotosPermitidas,
+                                    onClick = { onAbrir(contacto) },
+                                    // Al entrar un contacto, aparece fundido y el resto se recoloca con muelle.
+                                    modifier = Modifier.animateItem(
+                                        fadeInSpec = spring(stiffness = Spring.StiffnessLow),
+                                        placementSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessLow,
+                                        ),
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+        SolHorizonte(relevo = relevo, cuantos = contactos?.size ?: 0, onAnadir = onAnadir)
     }
 }
 

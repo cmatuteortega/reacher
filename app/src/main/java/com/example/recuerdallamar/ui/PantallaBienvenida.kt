@@ -66,6 +66,7 @@ fun PantallaBienvenida(
     onAbrir: (Contacto) -> Unit,
     onTerminar: () -> Unit,
     modifier: Modifier = Modifier,
+    relevo: Relevo? = null,
 ) {
     BackHandler(enabled = paso > 0) { onPaso(paso - 1) }
 
@@ -88,6 +89,7 @@ fun PantallaBienvenida(
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
+                relevo = relevo,
             )
             AnimatedContent(
                 targetState = paso,

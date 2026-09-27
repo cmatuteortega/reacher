@@ -33,7 +33,7 @@ de depuración queda como artefacto `app-debug` de la ejecución.
   | marino    | `#203C56` | color principal; fondo del icono                 |
   | ciruela   | `#544E68` | secundario; burbujas en modo oscuro              |
   | malva     | `#8D697A` | bordes                                           |
-  | teja      | `#D08159` | acentos en claro: botón *Añadir*, "toca"         |
+  | teja      | `#D08159` | acentos en claro: el sol, "toca"                 |
   | naranja   | `#FFAA5E` | acentos en modo oscuro                           |
   | melocotón | `#FFD4A3` | burbujas en claro; principal en modo oscuro      |
   | crema     | `#FFECD6` | tarjetas; texto en modo oscuro; símbolo          |
@@ -60,7 +60,10 @@ mirando hacia donde va. Solo cambia el texto de debajo:
    salta el paso.
 3. *¡Ya está!*: tu sistema y el recado de que se puede cerrar la app y
    seguir con la vida; se avisará cuando toque. Un toque en un planeta abre
-   su ficha. *Entendido* acaba en la vista de burbujas.
+   su ficha. *Entendido* acaba en la vista de burbujas, sin cortar: el sol
+   baja y crece hasta el horizonte de la pantalla principal y cada planeta se
+   sale de su órbita con su impulso y cae a su sitio entre las burbujas
+   (`ui/Relevo.kt` guarda dónde estaba cada cosa al pulsar).
 
 Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
@@ -69,8 +72,13 @@ La pantalla principal es **Personas** (la lista y sus fichas). El botón de
 engranaje de la esquina superior izquierda abre **Ajustes**; *Atrás* o la
 flecha vuelven a Personas.
 
-1. **Personas** — vacía al principio. *Añadir* abre el selector de contactos
-   del sistema filtrado a números de teléfono. Se ve de dos formas, con los
+1. **Personas** — vacía al principio. Abajo asoma **el sol**
+   (`ui/SolHorizonte.kt`), tan grande que solo se ve un arco de esquina a
+   esquina, con sus puntas girando y los ojos mirando alrededor, siempre
+   dentro del arco; se queda en las dos vistas y el contenido le deja sitio.
+   El **+** de encima, en el centro, abre el selector de contactos del
+   sistema filtrado a números de teléfono: el sol se hunde al apretarlo, se
+   ríe y saluda a quien llega. Se ve de dos formas, con los
    mismos datos y el mismo orden por **urgencia** (días desde el último
    contacto ÷ frecuencia de esa persona: 0 recién hablado, 1 toca hoy); el
    icono de la barra superior alterna entre ellas y la elección se recuerda:
@@ -96,8 +104,7 @@ flecha vuelven a Personas.
      atentas al acercarse la fecha, asienten contentas cuando toca y niegan
      impacientes si se pasa mucho; al apretarlas cierran los ojos de gusto, al
      cogerlas se asustan y al lanzarlas giran la cabeza hacia donde van. La
-     foto de la agenda, si la hay, va en una chapita. La misma esfera, en
-     azul marino, es la **mascota** que saluda en la lista vacía.
+     foto de la agenda, si la hay, va en una chapita.
    - **Lista** — cada fila lleva la foto de la agenda o la inicial.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la

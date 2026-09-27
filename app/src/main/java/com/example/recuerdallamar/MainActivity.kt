@@ -16,6 +16,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -42,6 +45,7 @@ import com.example.recuerdallamar.ui.PantallaAjustes
 import com.example.recuerdallamar.ui.PantallaBienvenida
 import com.example.recuerdallamar.ui.PantallaFicha
 import com.example.recuerdallamar.ui.PantallaLista
+import com.example.recuerdallamar.ui.Relevo
 import com.example.recuerdallamar.ui.TemaApp
 import com.example.recuerdallamar.ui.esOscuro
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,6 +133,8 @@ private fun AppRecuerda(
 
     var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
     var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
+    // Para que el sol y la gente de la bienvenida sigan en la lista al acabarla.
+    val relevo = remember { Relevo() }
 
     // Quien ya tenia gente guardada de antes de que hubiera bienvenida no la
     // necesita. Solo se mira al cargar la primera vez: durante la bienvenida
@@ -241,9 +247,15 @@ private fun AppRecuerda(
         targetState = pantalla,
         contentKey = { it::class },
         transitionSpec = {
-            val entra = targetState != Pantalla.Lista
-            slideInHorizontally { if (entra) it else -it } togetherWith
-                slideOutHorizontally { if (entra) -it else it }
+            if (initialState == Pantalla.Bienvenida) {
+                // Sin deslizar: el sol y los planetas siguen en su sitio y desde ahi
+                // se van al horizonte y a sus burbujas. Solo se funde lo demas.
+                fadeIn(tween(300)) togetherWith fadeOut(tween(200))
+            } else {
+                val entra = targetState != Pantalla.Lista
+                slideInHorizontally { if (entra) it else -it } togetherWith
+                    slideOutHorizontally { if (entra) -it else it }
+            }
         },
         label = "pantalla",
     ) { actual ->
@@ -256,6 +268,7 @@ private fun AppRecuerda(
                 onAnadir = anadirDeLaAgenda,
                 onAbrir = vm::abrirFicha,
                 onAjustes = { ajustesAbiertos = true },
+                relevo = relevo,
             )
             Pantalla.Ajustes -> PantallaAjustes(
                 ajustes = ajustes,
@@ -271,7 +284,11 @@ private fun AppRecuerda(
                 onAnadir = anadirDeLaAgenda,
                 onAbrir = vm::abrirFicha,
                 // Se acaba en la vista de burbujas, la que se acaba de ensenar.
-                onTerminar = { cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) } },
+                onTerminar = {
+                    relevo.sacarFoto()
+                    cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) }
+                },
+                relevo = relevo,
             )
             is Pantalla.Ficha -> PantallaFicha(
                 borrador = actual.contacto,

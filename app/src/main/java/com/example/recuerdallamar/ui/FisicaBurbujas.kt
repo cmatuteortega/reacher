@@ -173,6 +173,18 @@ internal class Simulacion {
         orden = nuevos.values.toTypedArray()
     }
 
+    /**
+     * Llega de fuera (un planeta de la bienvenida): aparece en [x],[y] con su
+     * tamano de antes y su impulso, como recien lanzada, asi que primero sigue
+     * de largo y luego el muelle la lleva a casa.
+     */
+    fun recibir(cuerpo: Cuerpo, x: Float, y: Float, vx: Float, vy: Float, radio: Float) {
+        cuerpo.x = x
+        cuerpo.y = y
+        if (radio > 0f) cuerpo.radio = radio
+        soltar(cuerpo, vx, vy)
+    }
+
     fun agarrar(cuerpo: Cuerpo) {
         cuerpo.agarrado = true
         cuerpo.vx = 0f

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.getValue
@@ -34,13 +35,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -75,8 +80,8 @@ import kotlin.math.sin
  */
 
 /** Ondas del borde del sol, y cuanto sobresalen (en radios del cuerpo). */
-private const val PUNTAS = 9
-private const val HONDURA = 0.2f
+internal const val PUNTAS = 9
+internal const val HONDURA = 0.2f
 
 /** Giro de las puntas y del halo, en radianes por segundo. */
 private const val GIRO_PUNTAS = 0.35f
@@ -222,6 +227,7 @@ fun SistemaSolar(
     solGrande: Boolean,
     onAbrir: (Contacto) -> Unit,
     modifier: Modifier = Modifier,
+    relevo: Relevo? = null,
 ) {
     val densidad = LocalDensity.current
     val orbitas = remember { Orbitas() }
@@ -238,7 +244,13 @@ fun SistemaSolar(
         }
     }
 
-    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    var centroEnVentana by remember { mutableStateOf(Offset.Zero) }
+    BoxWithConstraints(
+        modifier
+            .fillMaxSize()
+            .onGloballyPositioned { centroEnVentana = it.positionInWindow() + Offset(it.size.width / 2f, it.size.height / 2f) },
+        contentAlignment = Alignment.Center,
+    ) {
         val lado = min(constraints.maxWidth, constraints.maxHeight).toFloat()
         val cuantos = contactos.size
         val planetaDp = radioPlaneta(cuantos)
@@ -264,6 +276,22 @@ fun SistemaSolar(
                 val (radiosAnillo, reparto) = repartir(cuantos, interior, exterior, planeta * 2 + if (conNombre) 26.dp.toPx() else 10.dp.toPx())
                 radiosAnillo.also { orbitas.colocar(ids, it, reparto, cuerpoSol * 0.6f) }
             }
+        }
+
+        // Lo que la pantalla principal necesita para seguir desde aqui: donde
+        // esta el sol y donde y hacia donde va cada planeta en este instante.
+        DisposableEffect(relevo, lado, planetaDp) {
+            relevo?.fuente = {
+                val centro = centroEnVentana
+                val planeta = with(densidad) { planetaDp.toPx() }
+                Relevo.Foto(
+                    sol = Relevo.Sol(centro, lado * fraccionVista),
+                    planetas = orbitas.planetas.mapValues { (_, p) ->
+                        Relevo.Planeta(centro + Offset(p.x, p.y), Offset(p.vx, p.vy), planeta * p.escala)
+                    },
+                )
+            }
+            onDispose { relevo?.fuente = null }
         }
 
         val esquema = MaterialTheme.colorScheme
@@ -377,17 +405,7 @@ private fun Sol(radio: Dp, orbitas: Orbitas, cuantos: Int) {
     ) {
         val t = cara.ahora / 1000f
         val r = radio.toPx()
-        // Respira: las puntas crecen y menguan un poco.
-        val hondura = HONDURA * (1f + 0.12f * sin(t * 1.7f))
-        // El halo brilla hacia fuera: mas vivo junto al cuerpo y se apaga en las puntas.
-        val halo = Brush.radialGradient(
-            0.7f to esquema.tertiary.copy(alpha = 0.55f),
-            1f to esquema.tertiary.copy(alpha = 0.08f),
-            center = center,
-            radius = r * 1.06f * (1f + hondura * 1.35f),
-        )
-        drawPath(ondas(center, r * 1.06f, hondura * 1.35f, PUNTAS, t * GIRO_HALO + 0.35f), halo)
-        drawPath(ondas(center, r, hondura, PUNTAS, t * GIRO_PUNTAS), esquema.tertiary)
+        dibujarSol(center, r, respirar(HONDURA, t), PUNTAS.toFloat(), t, esquema.tertiary)
 
         // Mira un rato hacia quien acaba de llegar.
         val nuevo = orbitas.ultimo?.let { orbitas.planetas[it] }
@@ -402,17 +420,39 @@ private fun Sol(radio: Dp, orbitas: Orbitas, cuantos: Int) {
     }
 }
 
+/** Las puntas crecen y menguan un poco, como si respirara. [t] en segundos. */
+internal fun respirar(hondura: Float, t: Float) = hondura * (1f + 0.12f * sin(t * 1.7f))
+
+/**
+ * El cuerpo del sol con su halo, que brilla hacia fuera: mas vivo junto al
+ * cuerpo y se apaga en las puntas. Puntas y halo giran al reves con [t], en
+ * segundos.
+ */
+internal fun DrawScope.dibujarSol(centro: Offset, radio: Float, hondura: Float, puntas: Float, t: Float, color: Color) {
+    val radioHalo = radio * 1.06f * (1f + hondura * 1.35f)
+    val halo = Brush.radialGradient(
+        min(radio / radioHalo, 0.9f) to color.copy(alpha = 0.55f),
+        1f to color.copy(alpha = 0.08f),
+        center = centro,
+        radius = radioHalo,
+    )
+    drawPath(ondas(centro, radio * 1.06f, hondura * 1.35f, puntas, t * GIRO_HALO + 0.35f), halo)
+    drawPath(ondas(centro, radio, hondura, puntas, t * GIRO_PUNTAS), color)
+}
+
 /**
  * Silueta del sol: un circulo de [radio] con [puntas] ondas que sobresalen
  * hasta [hondura] radios. Las ondas son redondeadas, con valles anchos, y
- * [fase] las hace girar.
+ * [fase] las hace girar. Se recorre desde abajo: si [puntas] no es entero,
+ * el corte queda ahi, donde el sol del horizonte cae fuera de la pantalla.
  */
-private fun ondas(centro: Offset, radio: Float, hondura: Float, puntas: Int, fase: Float): Path {
+private fun ondas(centro: Offset, radio: Float, hondura: Float, puntas: Float, fase: Float): Path {
     val trazo = Path()
-    val muestras = 180
+    val muestras = max(180, (puntas * 14).roundToInt())
     for (i in 0..muestras) {
-        val th = 2f * PI.toFloat() * i / muestras
-        val onda = (0.5f + 0.5f * cos(puntas * th - fase)).pow(1.8f)
+        val giro = 2f * PI.toFloat() * i / muestras
+        val th = giro + PI.toFloat() / 2
+        val onda = (0.5f + 0.5f * cos(puntas * giro - fase)).pow(1.8f)
         val r = radio * (1f + hondura * onda)
         val x = centro.x + r * cos(th)
         val y = centro.y + r * sin(th)

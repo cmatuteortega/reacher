@@ -51,6 +51,8 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -96,7 +98,6 @@ private val RADIO_MIN = 26.dp // 52dp de diametro: sigue siendo facil de pulsar
 private val RADIO_MAX = 84.dp
 private val MARGEN = 12.dp // aire alrededor de cada una, para el nombre y el dedo
 private val BORDE = 8.dp
-private val HUECO_FAB = 88.dp // que el boton de anadir no tape ninguna
 private val ANCHO_EXTRA_ETIQUETA = 24.dp
 private val ALTO_ETIQUETA = 22.dp
 
@@ -108,6 +109,13 @@ private const val VELOCIDAD_ESTIRON = 1400f
 private const val MIRA_A_VELOCIDAD = 600f
 private const val GIRO_AL_CORRER = 40f
 
+/**
+ * Al llegar de la bienvenida, cuanto se aviva el impulso de la orbita al
+ * soltarse de ella, y cuanto caen de mas (dp/s).
+ */
+private const val ESCAPE = 2.2f
+private const val CAIDA = 160f
+
 /** Parte del lienzo visible que se deja ocupar antes de encoger las grandes. */
 private const val OCUPACION = 0.5f
 
@@ -117,18 +125,25 @@ private const val OCUPACION = 0.5f
  * soltarlas vuelven solas a su sitio. Un toque abre la ficha.
  *
  * [contactos] llega ya ordenado por urgencia: es el orden en que se colocan.
+ * Abajo se dejan libres [huecoInferior], donde asoma el sol. Si [relevo]
+ * trae los planetas de la bienvenida, cada uno sale de su orbita, desde
+ * donde estaba, y cae a su sitio.
  */
 @Composable
 fun VistaBurbujas(
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
     onAbrir: (Contacto) -> Unit,
+    huecoInferior: Dp,
     modifier: Modifier = Modifier,
+    relevo: Relevo? = null,
 ) {
     val densidad = LocalDensity.current
     var grupoAbierto by rememberSaveable { mutableStateOf(false) }
     val scroll = rememberScrollState()
     val sim = remember { Simulacion() }
+    val llegadas = remember { relevo?.tomarPlanetas()?.toMutableMap() }
+    val llegan = remember { llegadas?.keys?.toSet().orEmpty() }
 
     BoxWithConstraints(modifier.fillMaxSize()) {
         val ancho = constraints.maxWidth.toFloat()
@@ -142,16 +157,16 @@ fun VistaBurbujas(
         }
         val agrupar = tranquilos.size >= MIN_AGRUPAR
 
-        val plano = remember(contactos, urgencias, agrupar, grupoAbierto, ancho, alto, densidad) {
+        val plano = remember(contactos, urgencias, agrupar, grupoAbierto, ancho, alto, huecoInferior, densidad) {
             val visibles = contactos.filter { !agrupar || grupoAbierto || it.id !in tranquilos }
-            disponer(visibles.map { it.id to urgencias.getValue(it.id) }, agrupar, ancho, alto, densidad).also {
+            disponer(visibles.map { it.id to urgencias.getValue(it.id) }, agrupar, ancho, alto, huecoInferior, densidad).also {
                 sim.densidad = densidad.density
                 sim.ancho = ancho
                 sim.alto = it.altoMundo
                 with(densidad) {
                     sim.margen = MARGEN.toPx()
                     sim.borde = BORDE.toPx()
-                    sim.bordeInferior = HUECO_FAB.toPx()
+                    sim.bordeInferior = huecoInferior.toPx()
                 }
                 // Al abrir el grupo, los tranquilos salen de el.
                 sim.colocar(it.sitios, if (agrupar) tranquilos.associateWith { GRUPO } else emptyMap())
@@ -176,7 +191,23 @@ fun VistaBurbujas(
         // Si hay mas de las que caben, el lienzo crece hacia abajo y se desplaza
         // arrastrando el fondo; arrastrar una burbuja la mueve a ella.
         Box(Modifier.fillMaxSize().verticalScroll(scroll)) {
-            Box(Modifier.fillMaxWidth().height(with(densidad) { plano.altoMundo.toDp() })) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(with(densidad) { plano.altoMundo.toDp() })
+                    .onGloballyPositioned { mundo ->
+                        // Los planetas de la bienvenida, con su impulso, en coordenadas del lienzo.
+                        if (llegadas.isNullOrEmpty()) return@onGloballyPositioned
+                        val origen = mundo.positionInWindow()
+                        val caida = CAIDA * densidad.density
+                        llegadas.forEach { (id, p) ->
+                            val cuerpo = sim.cuerpos[id] ?: return@forEach
+                            val en = p.centro - origen
+                            sim.recibir(cuerpo, en.x, en.y, p.velocidad.x * ESCAPE, p.velocidad.y * ESCAPE + caida, p.radio)
+                        }
+                        llegadas.clear()
+                    },
+            ) {
                 plano.sitios.forEachIndexed { orden, sitio ->
                     val cuerpo = sim.cuerpos[sitio.clave]
                     val contacto = porId[sitio.clave]
@@ -206,6 +237,7 @@ fun VistaBurbujas(
                                 sim = sim,
                                 fotograma = fotograma,
                                 orden = orden,
+                                llegando = contacto.id in llegan,
                                 onToque = { onAbrir(contacto) },
                             )
                         }
@@ -228,6 +260,7 @@ private fun disponer(
     conGrupo: Boolean,
     ancho: Float,
     alto: Float,
+    huecoInferior: Dp,
     densidad: Density,
 ): Disposicion = with(densidad) {
     val margen = MARGEN.toPx()
@@ -239,13 +272,14 @@ private fun disponer(
         if (conGrupo) add(Hueco(GRUPO, minimo * 1.3f))
     }
 
-    val disponible = ancho * (alto - HUECO_FAB.toPx()) * OCUPACION
+    val libre = alto - huecoInferior.toPx()
+    val disponible = ancho * libre * OCUPACION
     val ocupado = huecos(maximo).sumOf { val r = it.radio + margen; PI * r * r }.toFloat()
     if (ocupado > disponible) maximo = max(minimo * 1.4f, maximo * sqrt(disponible / ocupado))
 
-    val sitios = empaquetar(huecos(maximo), ancho, margen, BORDE.toPx(), ancho / 2, alto * 0.42f)
+    val sitios = empaquetar(huecos(maximo), ancho, margen, BORDE.toPx(), ancho / 2, libre * 0.46f)
     val fondo = sitios.maxOfOrNull { it.y + it.radio + margen } ?: 0f
-    Disposicion(sitios, max(alto, fondo + HUECO_FAB.toPx()))
+    Disposicion(sitios, max(alto, fondo + huecoInferior.toPx()))
 }
 
 @Composable
@@ -259,6 +293,7 @@ private fun BurbujaPersona(
     sim: Simulacion,
     fotograma: MutableLongState,
     orden: Int,
+    llegando: Boolean,
     onToque: () -> Unit,
 ) {
     val toca = urgencia >= 1f
@@ -296,6 +331,7 @@ private fun BurbujaPersona(
         fotograma = fotograma,
         radio = radio,
         orden = orden,
+        llegando = llegando,
         etiqueta = contacto.nombre,
         descripcion = descripcion,
         atenuada = atenuada,
@@ -418,6 +454,7 @@ private fun Burbuja(
     radio: Dp,
     orden: Int,
     etiqueta: String,
+    llegando: Boolean = false,
     descripcion: String,
     atenuada: Boolean,
     anillo: Color,
@@ -429,8 +466,9 @@ private fun Burbuja(
     val anchoCaja = radio * 2 + ANCHO_EXTRA_ETIQUETA
     val altoCaja = radio * 2 + ALTO_ETIQUETA
 
-    // Entran una tras otra, creciendo desde nada con un rebote.
-    val aparicion = remember { Animatable(0f) }
+    // Entran una tras otra, creciendo desde nada con un rebote. Las que vienen
+    // de la orbita de la bienvenida ya estan a la vista.
+    val aparicion = remember { Animatable(if (llegando) 1f else 0f) }
     LaunchedEffect(Unit) {
         delay((orden * 30L).coerceAtMost(600L))
         aparicion.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow))
