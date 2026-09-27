@@ -70,7 +70,7 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 - [ ] **Touch targets and labels**: audit the 12 `contentDescription = null`
       icons and make sure every interactive element is at least 48dp.
 
-## Phase 5 — Platform polish and product depth
+## Phase 5 — Platform polish and product depth ✅
 
 - [x] **Splash screen** via the SplashScreen API.
 - [x] **Large screens**: tablet/foldable layouts using window size classes.
@@ -81,9 +81,14 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 - [x] **Notifications**: grouping when several people are due, channels per
       importance.
 - [x] **Richer haptics** for grabbing, throwing and colliding bubbles.
-- [ ] **Product features**: history and streaks/stats, ~~notes per person~~,
-      ~~birthdays from contacts~~, ~~groups/circles~~ (done; history and
-      streaks/stats still to do).
+- [x] **Product features**: notes per person, birthdays from contacts,
+      groups/circles.
 - [x] **In-app feedback** and rating prompt.
+
+## Later
+
+Moved out of phase 5 so it could be closed; not scheduled yet.
+
+- [ ] **History and streaks/stats** per person.
 - [ ] **Optional sync** across devices (keeping local-only as the default and
       privacy selling point).
