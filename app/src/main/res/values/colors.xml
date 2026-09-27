@@ -5,9 +5,14 @@
     <color name="marino">#FF203C56</color>
     <color name="crema">#FFFFECD6</color>
     <color name="teja">#FFD08159</color>
+    <color name="naranja">#FFFFAA5E</color>
 
     <color name="icono_fondo">@color/marino</color>
-    <color name="icono_simbolo">@color/crema</color>
+    <!-- El sol con ojos: naranja con ojos azul noche, como en la app en oscuro. -->
+    <color name="icono_simbolo">@color/naranja</color>
+    <color name="icono_ojos">@color/noche</color>
+    <color name="icono_halo_dentro">#8CFFAA5E</color>
+    <color name="icono_halo_fuera">#14FFAA5E</color>
 
     <!-- Fondo de la ventana antes de que pinte Compose (arranque sin parpadeo). -->
     <color name="fondo_ventana">#FFFFF6EC</color>
