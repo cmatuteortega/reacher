@@ -2,6 +2,10 @@
 
 Lo que hay en el repositorio y lo que hay que hacer a mano, una vez.
 
+Mientras se sigue probando no hace falta nada de esto: la versión de
+depuración se compila igual que antes (en local y en CI, artefacto
+`app-debug`). Todo lo de abajo es para cuando toque publicar.
+
 ## Identificador
 
 `applicationId = "com.cmatuteortega.contacto"` (`app/build.gradle.kts`). **No
@@ -104,3 +108,48 @@ Falta, a mano, en cada `images/`:
   burbujas, órbitas, ficha, aviso, widget, tema oscuro.
 - `featureGraphic.png`: 1024×500, el sol sobre marino.
 - `icon.png`: 512×512 (el icono de la app).
+
+## Play Console, paso a paso
+
+1. **Cuenta de desarrollador** en <https://play.google.com/console/signup>:
+   pago único de 25 USD y verificación de identidad (puede tardar unos días).
+   Las cuentas personales nuevas tienen que pasar una **prueba cerrada con al
+   menos 12 personas durante 14 días seguidos** antes de poder publicar en
+   producción; conviene empezarla cuanto antes.
+2. **Crear la app**: *Crear aplicación* › nombre «Contacto», idioma
+   predeterminado, *Aplicación*, *Gratuita* (no se puede pasar de gratuita a
+   de pago después).
+3. **Contenido de la aplicación** (*Política › Contenido de la aplicación*),
+   todo obligatorio antes de la primera versión:
+   - *Política de privacidad*: la URL de GitHub Pages de arriba.
+   - *Anuncios*: no contiene anuncios.
+   - *Acceso a la aplicación*: todas las funciones sin restricciones (no hay
+     inicio de sesión).
+   - *Clasificación de contenido*: el cuestionario; categoría «Utilidades /
+     productividad», sin contenido sensible.
+   - *Público objetivo*: mayores de 18 (o 13+); no dirigida a niños.
+   - *Seguridad de los datos*: las respuestas de la sección de arriba.
+   - *Aplicación gubernamental*, *funciones financieras*, *salud*,
+     *noticias*: no.
+4. **Ficha de la tienda** (*Crecimiento › Ficha de Play Store*): copiar
+   título y descripciones de `fastlane/metadata/android/es-ES/`, añadir las
+   traducciones (*Gestionar traducciones*) con las de los demás idiomas,
+   icono de 512×512, gráfico destacado y capturas. Categoría:
+   *Productividad* (o *Estilo de vida*).
+5. **Primera subida** (*Probar y publicar › Pruebas › Pruebas internas*):
+   crear versión, aceptar *Firma de aplicaciones de Play* (Google guarda la
+   clave definitiva; la nuestra queda como clave de subida), subir el `.aab`
+   del artefacto `app-release-<versión>` de CI, notas de la versión y
+   publicar. Añadir testers por correo y abrir el enlace de invitación desde
+   el teléfono.
+6. **Prueba cerrada** (*Pruebas cerradas*): la misma versión (o una nueva),
+   con la lista de los 12+ testers. Pasados los 14 días, *Solicitar acceso a
+   producción* desde el panel.
+7. **Producción**: crear versión en *Producción*, subir el `.aab`, enviar a
+   revisión (de horas a varios días la primera vez). Mejor un lanzamiento
+   escalonado (p. ej. 20 %) y subirlo si no llegan errores.
+
+Cada versión nueva: etiquetar (`git tag v1.1.0 && git push --tags`), esperar
+a CI, descargar el `.aab` y el `mapping.txt` del artefacto y subirlos en la
+pista que toque. El `versionCode` sube solo. Los artefactos de GitHub caducan
+a los 90 días: guardar el `.aab` de lo que se publique.
