@@ -22,10 +22,10 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 
 ## Aspecto
 
-* **Icono**: el símbolo `reminder` de Material Symbols Outlined (Apache 2.0)
-  como icono adaptativo (`mipmap-anydpi-v26`), en crema sobre azul marino.
-  Tiene capa monocroma para los iconos temáticos de Android 13+. La
-  notificación usa el mismo símbolo, con acento teja.
+* **Icono**: el sol con ojos de la pantalla principal, en naranja sobre marino,
+  como icono adaptativo (`mipmap-anydpi-v26`). Tiene capa monocroma para los
+  iconos temáticos de Android 13+. La notificación usa la misma silueta
+  (`drawable/ic_notificacion.xml`), con acento teja.
 * **Paleta** (`ui/Tema.kt`, y en `res/values/colors.xml` para lo que no es
   Compose):
 
