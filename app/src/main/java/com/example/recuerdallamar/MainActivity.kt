@@ -181,50 +181,6 @@ private fun AppRecuerda(
     // la ficha lleva a los ajustes de la app, que es el unico sitio donde darlo.
     var fotosBloqueadas by rememberSaveable { mutableStateOf(false) }
 
-    val pedirPermisos = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { resultado ->
-        if (resultado[Manifest.permission.POST_NOTIFICATIONS] == false) {
-            Toast.makeText(context, context.getString(R.string.sin_permiso_avisos), Toast.LENGTH_LONG).show()
-        }
-        resultado[Manifest.permission.READ_CONTACTS]?.let { concedido ->
-            fotosPermitidas = concedido
-            val puedeVolverAPreguntar = (context as? Activity)?.let {
-                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.READ_CONTACTS)
-            } ?: true
-            fotosBloqueadas = !concedido && !puedeVolverAPreguntar
-        }
-    }
-
-    // Lo que hace falta, en un solo paso: avisos siempre que falten, fotos solo
-    // la primera vez (luego se piden desde la ficha).
-    val pedirLoQueFalta = {
-        val faltan = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
-                add(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            if (FotoContacto.preguntarAlArrancar(context)) {
-                add(Manifest.permission.READ_CONTACTS)
-                FotoContacto.marcarPreguntado(context)
-            }
-        }
-        if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
-    }
-    // Al abrir, salvo en la bienvenida: alli se piden al pulsar "Empezar",
-    // cuando ya se ha explicado para que sirven.
-    LaunchedEffect(ajustes.bienvenidaHecha) {
-        if (ajustes.bienvenidaHecha) pedirLoQueFalta()
-    }
-
-    val pedirFotos = {
-        if (fotosBloqueadas) {
-            val ficheroApp = Uri.fromParts("package", context.packageName, null)
-            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ficheroApp))
-        } else {
-            pedirPermisos.launch(arrayOf(Manifest.permission.READ_CONTACTS))
-        }
-    }
-
     val elegir = rememberLauncherForActivityResult(ElegirTelefono()) { uri ->
         val elegido = uri?.let { leerTelefono(context, it) } ?: return@rememberLauncherForActivityResult
         val (nombre, telefono) = elegido
@@ -243,6 +199,70 @@ private fun AppRecuerda(
             elegir.launch(Unit)
         } catch (e: android.content.ActivityNotFoundException) {
             Toast.makeText(context, context.getString(R.string.sin_agenda), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // En la bienvenida los permisos se piden al ir a la agenda por primera
+    // vez; al contestar se sigue hasta la agenda.
+    var permisosPedidos by rememberSaveable { mutableStateOf(false) }
+    var elegirTrasPermisos by rememberSaveable { mutableStateOf(false) }
+
+    val pedirPermisos = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { resultado ->
+        if (resultado[Manifest.permission.POST_NOTIFICATIONS] == false) {
+            Toast.makeText(context, context.getString(R.string.sin_permiso_avisos), Toast.LENGTH_LONG).show()
+        }
+        resultado[Manifest.permission.READ_CONTACTS]?.let { concedido ->
+            fotosPermitidas = concedido
+            val puedeVolverAPreguntar = (context as? Activity)?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.READ_CONTACTS)
+            } ?: true
+            fotosBloqueadas = !concedido && !puedeVolverAPreguntar
+        }
+        if (elegirTrasPermisos) {
+            elegirTrasPermisos = false
+            anadirDeLaAgenda()
+        }
+    }
+
+    // Lo que hace falta, en un solo paso: avisos siempre que falten, fotos solo
+    // la primera vez (luego se piden desde la ficha). Dice si ha preguntado.
+    val pedirLoQueFalta: () -> Boolean = {
+        val faltan = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            if (FotoContacto.preguntarAlArrancar(context)) {
+                add(Manifest.permission.READ_CONTACTS)
+                FotoContacto.marcarPreguntado(context)
+            }
+        }
+        if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
+        faltan.isNotEmpty()
+    }
+    // Al abrir, salvo en la bienvenida: alli se piden al ir a la agenda. Si ya
+    // se pidieron alli, no se vuelve a preguntar nada mas acabarla.
+    LaunchedEffect(ajustes.bienvenidaHecha) {
+        if (ajustes.bienvenidaHecha && !permisosPedidos) pedirLoQueFalta()
+    }
+
+    val anadirEnBienvenida: () -> Unit = {
+        if (permisosPedidos) {
+            anadirDeLaAgenda()
+        } else {
+            permisosPedidos = true
+            elegirTrasPermisos = pedirLoQueFalta()
+            if (!elegirTrasPermisos) anadirDeLaAgenda()
+        }
+    }
+
+    val pedirFotos = {
+        if (fotosBloqueadas) {
+            val ficheroApp = Uri.fromParts("package", context.packageName, null)
+            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ficheroApp))
+        } else {
+            pedirPermisos.launch(arrayOf(Manifest.permission.READ_CONTACTS))
         }
     }
 
@@ -294,8 +314,7 @@ private fun AppRecuerda(
                 onPaso = { pasoBienvenida = it },
                 contactos = contactos.orEmpty(),
                 fotosPermitidas = fotosPermitidas,
-                onPedirPermisos = pedirLoQueFalta,
-                onAnadir = anadirDeLaAgenda,
+                onAnadir = anadirEnBienvenida,
                 onAbrir = vm::abrirFicha,
                 // Se acaba en la vista de burbujas, la que se acaba de ensenar.
                 onTerminar = {

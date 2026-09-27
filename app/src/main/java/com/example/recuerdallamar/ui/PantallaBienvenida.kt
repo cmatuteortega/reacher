@@ -29,7 +29,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,8 +50,8 @@ const val PASOS_BIENVENIDA = 3
  * Primera vez que se abre la app. Todo pasa sobre tu sistema: arriba el sol
  * (tu), que se queda quieto entre paso y paso, y las personas que anades
  * entran en su orbita. Debajo cambia el texto de cada paso: que el sol eres
- * tu y la gente tu sistema (y de paso se piden los permisos), anadir al
- * menos a una persona, y el final con el recado de que ya se puede cerrar.
+ * tu y la gente tu sistema, anadir al menos a una persona (los permisos se
+ * piden al ir a la agenda), y el final con el recado de que ya se puede cerrar.
  *
  * Anadir abre la ficha de siempre; al darla de alta se vuelve aqui, al
  * mismo paso, con la persona ya girando alrededor del sol.
@@ -63,7 +62,6 @@ fun PantallaBienvenida(
     onPaso: (Int) -> Unit,
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
-    onPedirPermisos: () -> Unit,
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
     onTerminar: () -> Unit,
@@ -108,12 +106,7 @@ fun PantallaBienvenida(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     when (actual) {
-                        0 -> PasoSol(
-                            onEmpezar = {
-                                onPedirPermisos()
-                                onPaso(1)
-                            },
-                        )
+                        0 -> PasoSol(onEmpezar = { onPaso(1) })
                         1 -> PasoAnadir(
                             cuantos = contactos.size,
                             onAnadir = onAnadir,
@@ -186,12 +179,9 @@ private fun PasoAnadir(cuantos: Int, onAnadir: () -> Unit, onSeguir: () -> Unit)
     Explicacion(stringResource(if (hayAlguien) R.string.anade_mas_texto else R.string.elige_agenda_texto))
     Spacer(Modifier.height(24.dp))
     if (hayAlguien) {
-        BotonPrincipal(stringResource(R.string.continuar), onSeguir)
-        OutlinedButton(onClick = onAnadir, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.anadir_otra_persona))
-        }
+        // Lo que se invita a hacer es seguir anadiendo; continuar queda debajo, discreto.
+        BotonPrincipal(stringResource(R.string.anadir_otra_persona), onAnadir, icono = true)
+        TextButton(onClick = onSeguir, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.continuar)) }
     } else {
         BotonPrincipal(stringResource(R.string.elegir_de_la_agenda), onAnadir, icono = true)
         TextButton(onClick = onSeguir, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.ahora_no)) }
