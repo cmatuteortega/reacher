@@ -378,9 +378,17 @@ private fun AppRecuerda(
         )
     }
 
+    // La pantalla de inicio se fija una vez: si siguiera a bienvenidaHecha,
+    // al acabar la bienvenida Navigation veria otro grafo y reharia la pila de
+    // golpe, sin transicion, y la lista gastaria el relevo (el sol que sube a
+    // la esquina y los planetas que caen) antes de verse. Acabarla es una
+    // navegacion normal (irAPersonas).
+    val inicio: Any = rememberSaveable { ajustes.bienvenidaHecha }.let { hecha ->
+        if (hecha) Ruta.Personas else Ruta.Bienvenida
+    }
     NavHost(
         navController = navegador,
-        startDestination = if (ajustes.bienvenidaHecha) Ruta.Personas else Ruta.Bienvenida,
+        startDestination = inicio,
         // Lo que se abre entra por la derecha y al volver sale por donde vino;
         // el gesto atras predictivo arrastra esta misma animacion.
         enterTransition = { slideInHorizontally { it } },
