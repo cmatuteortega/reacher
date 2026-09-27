@@ -34,7 +34,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -88,21 +87,19 @@ fun PantallaLista(
                     // La esquina de la izquierda es del sol.
                     title = {},
                     actions = {
-                        // Un boton por cada una de las otras vistas: el icono ensena a
-                        // donde se va, no donde se esta.
-                        VistaPersonas.entries.filter { it != vista }.forEachIndexed { hueco, otra ->
-                            key(hueco) {
-                                IconButton(onClick = { onCambiarVista(otra) }) {
-                                    Crossfade(targetState = otra, label = "icono vista") { destino ->
-                                        when (destino) {
-                                            VistaPersonas.LISTA ->
-                                                Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
-                                            VistaPersonas.BURBUJAS ->
-                                                Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
-                                            VistaPersonas.ORBITAS ->
-                                                Icon(painterResource(R.drawable.ic_orbitas), contentDescription = stringResource(R.string.ver_como_orbitas))
-                                        }
-                                    }
+                        // Un solo boton que va pasando por las tres: burbujas, orbitas, lista.
+                        val entradas = VistaPersonas.entries
+                        val otra = entradas[(vista.ordinal + 1) % entradas.size]
+                        IconButton(onClick = { onCambiarVista(otra) }) {
+                            // El icono ensena a donde se va, no donde se esta.
+                            Crossfade(targetState = otra, label = "icono vista") { destino ->
+                                when (destino) {
+                                    VistaPersonas.LISTA ->
+                                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
+                                    VistaPersonas.BURBUJAS ->
+                                        Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
+                                    VistaPersonas.ORBITAS ->
+                                        Icon(painterResource(R.drawable.ic_orbitas), contentDescription = stringResource(R.string.ver_como_orbitas))
                                 }
                             }
                         }
