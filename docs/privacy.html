@@ -13,9 +13,10 @@
 <p class="fecha">Last updated: 27 September 2026</p>
 
 <p>Contacto is an app that reminds you to call the people you care about. It is
-built so your data stays on your phone: there are no accounts, no server, no
-ads and no analytics. The app does not even have permission to access the
-Internet.</p>
+built so your data stays on your phone: there are no accounts and no ads, and
+the people you add, their numbers and your notes never leave it. The only
+things the app sends are anonymous crash reports, which you can turn off, and
+anonymous usage statistics, only if you agree to them.</p>
 
 <h2>What data it keeps</h2>
 <p>Only on your phone, in the app's private database:</p>
@@ -26,6 +27,32 @@ Internet.</p>
   <li>Your settings: reminder hours, theme, view and other preferences.</li>
 </ul>
 <p>None of this is sent to us or to anyone else.</p>
+
+<h2>Crash reports and usage statistics</h2>
+<p>These are the only things that leave your phone, and neither of them includes
+the names, numbers, notes, birthdays or circles you keep in the app.</p>
+<ul>
+  <li><strong>Crash reports</strong> (on by default; turn them off in
+      <em>Settings › Privacy</em>). If the app crashes or freezes, it sends a
+      technical report to <a href="https://sentry.io/privacy/">Sentry</a> so the
+      problem can be fixed: what failed in the code, the app version, the
+      phone model, the Android version, a random installation identifier and
+      the app's recent steps (such as which screen was open). Screenshots and
+      the content of the screen are never included.</li>
+  <li><strong>Usage statistics</strong> (off unless you agree, when the app
+      asks or in <em>Settings › Privacy</em>). Anonymous counts of what gets
+      used, sent to <a href="https://posthog.com/privacy">PostHog</a> on
+      servers in the European Union: for example that a person was added (with
+      how often you want to talk to them, not who), that a reminder was
+      snoozed, or which screen was opened, along with the app version, phone
+      model, Android version, language and a random identifier. No user
+      profile is created. If you turn statistics off, the random identifier is
+      discarded.</li>
+</ul>
+<p>Both services receive the data over an encrypted connection and are set not
+to store IP addresses. Sentry deletes crash reports after 90 days at most, and
+PostHog keeps statistics for up to one year. We do not sell this data or share
+it with anyone else.</p>
 
 <h2>Permissions</h2>
 <ul>
@@ -39,6 +66,8 @@ Internet.</p>
   <li><strong>Vibration</strong>, <strong>run at startup</strong> and
       <strong>background work</strong>: for haptics and so reminders keep
       working after the phone restarts.</li>
+  <li><strong>Internet</strong>: only for the crash reports and, if you agree,
+      the usage statistics described above.</li>
 </ul>
 
 <h2>Other apps and services</h2>
@@ -62,8 +91,8 @@ clearing its data in system settings deletes everything. Your phone's contacts
 are never modified.</p>
 
 <h2>Children</h2>
-<p>The app is not directed at children under 13 and collects no data from
-anyone.</p>
+<p>The app is not directed at children under 13 and collects no personal data
+from anyone.</p>
 
 <h2>Changes and contact</h2>
 <p>If this policy changes, it will be updated here with a new date. For any

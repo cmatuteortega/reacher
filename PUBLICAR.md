@@ -81,16 +81,68 @@ será `https://cmatuteortega.github.io/reacher/privacy.html`. **Antes de
 publicar**, cambiar `CORREO_DE_CONTACTO` en las dos páginas por un correo de
 contacto real.
 
+## Informes de fallos y estadísticas (Sentry y PostHog)
+
+La app manda informes de fallos anónimos (Sentry, activados por defecto) y
+estadísticas de uso anónimas (PostHog, solo si el usuario acepta). Sin claves
+no arranca ninguno de los dos: las compilaciones locales, los PR y el APK de
+depuración no envían nada. Solo la versión publicada que compila CI las lleva.
+
+1. **Sentry** (<https://sentry.io>): crear la organización en la **región UE**
+   (*Data Storage Location: EU*) y un proyecto *Android*.
+   - *Project Settings › Client Keys (DSN)*: copiar el DSN.
+   - *Project Settings › Security & Privacy*: activar **Prevent Storing of IP
+     Addresses** y dejar activado *Data Scrubber*. La política de privacidad
+     dice que no se guardan IP.
+   - Para que las trazas lleguen legibles (R8 ofusca el código): *Settings ›
+     Auth Tokens* › crear un **Organization Token**.
+2. **PostHog** (<https://eu.posthog.com>, la nube de la **UE**): crear un
+   proyecto.
+   - *Project settings › Project API key* (empieza por `phc_`): copiarla.
+   - *Project settings › IP data capture*: activar **Discard client IP
+     data**. Lo dice también la política.
+3. **GitHub** (*Settings › Secrets and variables › Actions*):
+   - *Secrets*: `SENTRY_DSN`, `POSTHOG_API_KEY` y `SENTRY_AUTH_TOKEN`.
+   - *Variables*: `SENTRY_ORG` (el *slug* de la organización) y
+     `SENTRY_PROJECT` (el del proyecto).
+
+Sin `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` y `SENTRY_PROJECT` la versión se compila
+igual, pero el mapping no se sube a Sentry y las trazas llegan ofuscadas (el
+`mapping.txt` sigue yendo con el AAB para Play Console).
+
+Para probarlo en local: `-Pcontacto.sentryDsn=...` y
+`-Pcontacto.posthogKey=...` (o en `gradle.properties`, sin subirlo).
+
+Qué se manda exactamente está en `Telemetria.kt` (la lista de eventos) y en la
+política de privacidad. Nunca nombres, números, notas ni nada que escriba el
+usuario.
+
 ## Seguridad de los datos (Play Console)
 
-Respuestas para el formulario *Data safety*, según lo que hace la app (sin
-permiso de Internet; todo en el teléfono):
+Respuestas para el formulario *Data safety*. Lo que la app guarda de la gente
+se queda en el teléfono y no cuenta; lo que sale son los informes de fallos y
+las estadísticas de uso:
 
-- **¿Recoge o comparte datos de usuario?** No. Los datos que solo se procesan
-  en el dispositivo y no salen de él no cuentan como recogidos.
-- **Cifrado en tránsito**: no aplica (no se transmite nada).
-- **¿Se pueden pedir borrar los datos?** Sí: se borran desde la app o al
-  desinstalarla.
+- **¿Recoge o comparte datos de usuario?** Recoge: sí. Comparte: no (Sentry y
+  PostHog son proveedores que trabajan para la app, y eso no cuenta como
+  compartir).
+- **Tipos de datos recogidos**:
+  - *Información y rendimiento de la app › Registros de fallos* y
+    *Diagnósticos*: recogidos, no compartidos, **opcionales** (se desactivan
+    en Ajustes), para *Análisis*.
+  - *Actividad en la app › Interacciones con la app*: recogidos, no
+    compartidos, **opcionales** (solo si se aceptan), para *Análisis*.
+  - *Identificadores de dispositivo u otros*: recogidos (el identificador
+    aleatorio de la instalación), no compartidos, opcionales, para
+    *Análisis*.
+  - Nada de *Información personal*, *Contactos*, *Ubicación* ni *Mensajes*:
+    no salen del teléfono.
+- **¿Se procesan de forma efímera?** No.
+- **Cifrado en tránsito**: sí (HTTPS).
+- **¿Se pueden pedir borrar los datos?** Sí: lo de la app se borra desde ella o
+  al desinstalarla; los informes y estadísticas son anónimos y caducan solos
+  (Sentry 90 días como mucho, PostHog un año). Apagar las estadísticas
+  descarta el identificador aleatorio.
 - **Permisos sensibles**: `READ_CONTACTS` (foto y cumpleaños de las personas
   añadidas, en el dispositivo) y `CALL_PHONE` (solo con «Llamar
   directamente»). Explicarlo igual en la declaración de permisos si Play la

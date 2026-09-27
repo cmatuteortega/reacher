@@ -31,20 +31,30 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 
 ## Phase 2 — Quality safety net
 
-- [ ] **Unit tests** (`src/test`): urgency formula, quiet hours crossing
+Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTest`.
+
+- [x] **Unit tests** (`src/test`): urgency formula, quiet hours crossing
       midnight, snooze/pause logic, contact-method URL building.
-- [ ] **Room schema export** (`exportSchema = true`) and **migration tests**
-      for 1→2 and 2→3.
-- [ ] **Worker tests** with `work-testing`.
-- [ ] **UI tests** (`src/androidTest`) for the main flows: onboarding, add
-      contact, open contact screen, settings.
-- [ ] **CI**: run tests and lint *before* publishing artifacts; fail the build
+- [x] **Room schema export** (`exportSchema = true`) and **migration tests**
+      for every step, 1→5, against the real schemas of each version.
+- [x] **Worker tests** with `work-testing`: when a reminder shows and when it
+      stays silent, quiet hours, "Later" and dismissals.
+- [x] **UI tests** for the main flows: onboarding, open a contact and log a
+      call, settings, the statistics prompt; adding someone at ViewModel
+      level (the contact picker is system UI). Robolectric instead of
+      `src/androidTest`, so CI needs no emulator.
+- [x] **CI**: run tests and lint *before* publishing artifacts; fail the build
       on errors.
-- [ ] **Crash reporting** (Crashlytics or Sentry) and basic structured
-      logging; handle errors beyond `ActivityNotFoundException`.
-- [ ] **Performance**: Baseline Profiles, startup and jank benchmarks
-      (Macrobenchmark); pause the infinite animations when off-screen or idle
-      to save battery.
+- [x] **Crash reporting** (Sentry, on by default with an opt-out) and basic
+      structured logging (`Registro`); errors beyond `ActivityNotFoundException`
+      (backup, worker, `SecurityException` when calling) are reported.
+- [x] **Product analytics** (PostHog EU, opt-in, anonymous events).
+- [ ] **Performance**: Baseline Profile and startup/frame benchmarks are set
+      up in `:baselineprofile` (manual *Rendimiento* workflow); **still to
+      run it once and commit the generated profile**. Infinite animations use
+      `withInfiniteAnimationFrameNanos` and already stop in the background
+      (Compose pauses the frame clock on `ON_STOP`); pausing the bubbles when
+      they are at rest is still to do.
 
 ## Phase 3 — Reminder reliability and user data
 

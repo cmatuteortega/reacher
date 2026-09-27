@@ -1,6 +1,6 @@
 Tu es le soleil, et les gens qui comptent pour toi sont ton système.
 
-Contacto te rappelle d'appeler, d'écrire ou de souhaiter un bon anniversaire à chaque personne, aussi souvent que tu le choisis. Pas de compte, pas de serveur, pas de publicité : tout reste sur ton téléphone.
+Contacto te rappelle d'appeler, d'écrire ou de souhaiter un bon anniversaire à chaque personne, aussi souvent que tu le choisis. Pas de compte, pas de publicité : tes proches restent sur ton téléphone.
 
 • Choisis quelqu'un dans tes contacts et indique tous les combien tu veux lui parler : chaque semaine, chaque mois, comme tu veux.
 • Un rappel par jour, dans tes horaires, avec ceux dont c'est le tour. Un appui ouvre l'appel, le SMS, WhatsApp ou Telegram, selon ce que tu préfères pour cette personne.
@@ -11,4 +11,4 @@ Contacto te rappelle d'appeler, d'écrire ou de souhaiter un bon anniversaire à
 • Widget « Aujourd'hui » et raccourci pour ajouter quelqu'un.
 • Thème clair et sombre, tablettes et pliables.
 
-Vraiment privé : l'app n'a pas l'autorisation d'accès à Internet. Tes contacts ne sont jamais modifiés.
+Vraiment privé : les noms, numéros et notes ne quittent jamais ton téléphone. L'app envoie seulement des rapports de plantage anonymes (désactivables) et, si tu es d'accord, des statistiques d'utilisation anonymes. Tes contacts ne sont jamais modifiés.

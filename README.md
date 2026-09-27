@@ -4,7 +4,9 @@
 
 Prueba de concepto Android (Kotlin + Jetpack Compose + Material 3): una lista de
 personas a las que llamar cada cierto número de días, con un recordatorio diario
-por WorkManager. Todo es local; no hay cuentas ni servidor.
+por WorkManager. La gente y lo que se apunta de ella se quedan en el teléfono;
+no hay cuentas ni servidor propio. Solo salen informes de fallos anónimos y, si
+el usuario acepta, estadísticas de uso anónimas (ver *Privacidad* abajo).
 
 ## Abrir y ejecutar
 
@@ -17,10 +19,23 @@ el SDK de Android instalado:
 
 minSdk 26, target/compileSdk 35, JDK 17+.
 
+Pruebas (en la JVM con Robolectric, sin emulador): lógica de avisos y
+franjas, enlaces de contacto, migraciones de Room contra los esquemas de
+`app/schemas`, el worker de avisos y los flujos principales de la interfaz.
+
+```sh
+./gradlew testDebugUnitTest lintDebug
+```
+
 Cada push compila en GitHub Actions (`.github/workflows/android.yml`); el APK
 de depuración queda como artefacto `app-debug` de la ejecución y, con los
 secretos de la firma, el `.aab` firmado para Google Play como
-`app-release-<versión>`. Cómo publicar: [PUBLICAR.md](PUBLICAR.md).
+`app-release-<versión>`. Antes de compilar pasan las pruebas y lint: si
+fallan, no se sube nada. Cómo publicar: [PUBLICAR.md](PUBLICAR.md).
+
+El perfil de referencia (arranque más rápido) y las mediciones de arranque
+están en el módulo `baselineprofile` y se lanzan a mano con el flujo
+*Rendimiento* (`.github/workflows/rendimiento.yml`), que usa un emulador.
 
 ## Aspecto
 
@@ -188,6 +203,7 @@ interfaz como el worker.
 | Apariencia                     | Sistema, claro u oscuro                                         |
 | Avisos en segundo plano        | Solo si hace falta (ver *Batería* abajo): quitar la restricción de batería, inicio automático del fabricante y su guía |
 | Copia de seguridad             | *Exportar* / *Importar* un archivo JSON (ver *Copia de seguridad* abajo) |
+| Privacidad                     | *Enviar informes de fallos* (sí por defecto) y *Compartir estadísticas de uso* (no hasta que se acepte), y enlace a la política |
 | Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones (solo en depuración) |
 
 El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
@@ -199,6 +215,27 @@ Google Play* abre la ficha de la tienda. Además, tras cinco contactos hechos
 (aviso tocado o *He llamado hoy*) la app pide la valoración de Play dentro de
 la propia app, como mucho una vez cada 120 días (`Valoracion.kt`); Google
 decide si llega a enseñar el diálogo.
+
+## Privacidad
+
+`Telemetria.kt` es lo único que manda algo fuera del teléfono, y nunca
+nombres, números, notas ni nada escrito por el usuario:
+
+- **Informes de fallos** con Sentry: cierres, ANR y los errores que se apuntan
+  con `Registro.fallo`. Activados por defecto; se apagan en *Ajustes ›
+  Privacidad* y dejan de enviarse al momento.
+- **Estadísticas de uso** con PostHog (nube de la UE), sin perfiles de
+  persona. Apagadas hasta que se aceptan: la app lo pregunta una vez (en una
+  sesión distinta de la bienvenida) y se cambia en *Ajustes › Privacidad*. Los
+  eventos están en `Telemetria.Evento` (`person_added`, `contact_made`,
+  `reminder_shown`, `reminder_snoozed`...), más las pantallas visitadas.
+
+Las claves (`contacto.sentryDsn`, `contacto.posthogKey`) solo las pone CI en
+la versión publicada; sin ellas no arranca ningún SDK. Cómo crearlas:
+[PUBLICAR.md](PUBLICAR.md).
+
+`Registro` es el registro estructurado de la app (área y datos clave=valor):
+va a Logcat y, como migas de pan, a Sentry.
 
 ## Idiomas
 
