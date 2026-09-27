@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -53,6 +54,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.splashscreen.SplashScreenViewProvider
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -80,6 +83,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class MainActivity : ComponentActivity() {
     private val vm: ContactosViewModel by viewModels()
 
+    /** El sol que pasa de la bienvenida, o del icono de arranque, a la esquina de Personas. */
+    private val relevo = Relevo()
+
     /** Enlace llegado con la app ya abierta (aviso, widget, atajo), a la espera de la navegacion. */
     private val enlacePedido = MutableStateFlow<Intent?>(null)
 
@@ -94,14 +100,25 @@ class MainActivity : ComponentActivity() {
         // El sol del arranque se queda hasta que la lista ha cargado: asi no se
         // ve un instante la pantalla vacia antes de que lleguen las burbujas.
         arranque.setKeepOnScreenCondition { vm.contactos.value == null }
+        // Al abrir la app desde el icono, con la bienvenida ya hecha, el sol del
+        // arranque no se va: el de la esquina sale de donde esta y sube hasta
+        // su sitio. Personas se monta debajo mientras tanto, esperandolo.
+        val subirSol = savedInstanceState == null &&
+            AlmacenAjustes.de(this).ajustes.value.bienvenidaHecha &&
+            intent?.action == Intent.ACTION_MAIN &&
+            ValueAnimator.areAnimatorsEnabled()
+        if (subirSol) relevo.esperarArranque(solDelArranqueEstimado())
         arranque.setOnExitAnimationListener { salida ->
             if (!ValueAnimator.areAnimatorsEnabled()) {
                 salida.remove()
                 return@setOnExitAnimationListener
             }
+            if (subirSol) relevo.arranqueTerminado(solDelIcono(salida.iconViewOrNull()))
+            // Fundido corto: el sol de la app ya esta debajo en el mismo sitio y
+            // empieza a subir despacio, asi que solo se nota que se va el fondo.
             salida.view.animate()
                 .alpha(0f)
-                .setDuration(250)
+                .setDuration(if (subirSol) 180 else 250)
                 .withEndAction { salida.remove() }
                 .start()
         }
@@ -142,6 +159,7 @@ class MainActivity : ComponentActivity() {
             TemaApp(modoOscuro = oscuro) {
                 AppRecuerda(
                     vm = vm,
+                    relevo = relevo,
                     ajustes = ajustes,
                     cambiarAjustes = almacen::cambiar,
                     anchoAmplio = ventana.widthSizeClass == WindowWidthSizeClass.Expanded,
@@ -159,6 +177,31 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
+     * Donde deberia estar el sol del icono de arranque: centrado en la ventana,
+     * en un icono de [ICONO_ARRANQUE_DP] dp. Solo para colocar el de la esquina
+     * mientras el arranque lo tapa; al irse se corrige con [solDelIcono].
+     */
+    private fun solDelArranqueEstimado(): Relevo.Sol {
+        val metricas = resources.displayMetrics
+        val (ancho, alto) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowManager.currentWindowMetrics.bounds.let { it.width() to it.height() }
+        } else {
+            metricas.widthPixels to metricas.heightPixels
+        }
+        val lado = ICONO_ARRANQUE_DP * metricas.density
+        return Relevo.Sol(Offset(ancho / 2f, alto / 2f), lado * RADIO_SOL_ICONO)
+    }
+
+    /** El sol del icono de arranque tal como se ve, en coordenadas de la ventana. */
+    private fun solDelIcono(icono: View?): Relevo.Sol? {
+        if (icono == null || icono.width == 0) return null
+        val donde = IntArray(2)
+        icono.getLocationInWindow(donde)
+        val centro = Offset(donde[0] + icono.width / 2f, donde[1] + icono.height / 2f)
+        return Relevo.Sol(centro, icono.width * icono.scaleX * RADIO_SOL_ICONO)
+    }
+
+    /**
      * Quita NEW_TASK a los enlaces propios (ver onCreate) y retira el aviso de
      * esa persona: los botones de un aviso no lo retiran solos.
      */
@@ -168,6 +211,15 @@ class MainActivity : ComponentActivity() {
         return Intent(intent).apply { flags = flags and Intent.FLAG_ACTIVITY_NEW_TASK.inv() }
     }
 }
+
+/** Tamano del icono en la pantalla de arranque sin fondo de icono (el de Android 12+ y core-splashscreen). */
+private const val ICONO_ARRANQUE_DP = 288f
+
+/** Radio del cuerpo del sol en ic_launcher_foreground: 25 de los 108 del lienzo. */
+private const val RADIO_SOL_ICONO = 25f / 108f
+
+/** En Android 12+ el icono puede no existir (arranque sin icono); ahi se usa lo estimado. */
+private fun SplashScreenViewProvider.iconViewOrNull(): View? = runCatching { iconView }.getOrNull()
 
 // Los mismos velos que pone enableEdgeToEdge() por defecto tras los botones de navegacion.
 private val ESTOR_CLARO = android.graphics.Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
@@ -182,6 +234,7 @@ private val ANCHO_PANEL = 520.dp
 @Composable
 private fun AppRecuerda(
     vm: ContactosViewModel,
+    relevo: Relevo,
     ajustes: Ajustes,
     cambiarAjustes: ((Ajustes) -> Ajustes) -> Unit,
     anchoAmplio: Boolean,
@@ -197,8 +250,6 @@ private fun AppRecuerda(
     val altaPedida by vm.altaPedida.collectAsStateWithLifecycle()
 
     var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
-    // Para que el sol y la gente de la bienvenida sigan en la lista al acabarla.
-    val relevo = remember { Relevo() }
 
     // Quien ya tenia gente guardada de antes de que hubiera bienvenida no la
     // necesita. Solo se mira al cargar la primera vez: durante la bienvenida

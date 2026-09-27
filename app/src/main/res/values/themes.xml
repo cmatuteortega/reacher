@@ -11,13 +11,13 @@
 
     <!--
       Pantalla de arranque (API SplashScreen, tambien en Android 8-11 con
-      core-splashscreen): el sol del icono sobre el fondo de la app. Se queda
-      hasta que la lista ha cargado; luego pasa a Theme.RecuerdaLlamar.
+      core-splashscreen): el sol del icono, sin disco de fondo, sobre el fondo
+      de la app. Se queda hasta que la lista ha cargado; al irse, el sol de la
+      esquina de Personas sale de ahi mismo y sube (MainActivity, Relevo).
     -->
-    <style name="Theme.RecuerdaLlamar.Arranque" parent="Theme.SplashScreen.IconBackground">
+    <style name="Theme.RecuerdaLlamar.Arranque" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/fondo_ventana</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="windowSplashScreenIconBackgroundColor">@color/marino</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_arranque</item>
         <item name="postSplashScreenTheme">@style/Theme.RecuerdaLlamar</item>
     </style>
 </resources>

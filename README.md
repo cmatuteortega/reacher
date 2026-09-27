@@ -71,8 +71,13 @@ Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
 
 **Arranque**: la API SplashScreen (`core-splashscreen`, también en Android
-8–11) enseña el sol del icono sobre el fondo de la app hasta que la lista ha
-cargado, y se funde (sin animación si el sistema las tiene quitadas).
+8–11) enseña el sol del icono en el centro, sobre el fondo de la app y con
+los colores de su sol en cada tema (`drawable/ic_arranque.xml`), hasta que la
+lista ha cargado. Cada vez que se abre la app desde el icono, con la
+bienvenida ya hecha, ese sol no desaparece: el de la esquina de Personas sale
+de donde estaba y sube y crece hasta su sitio, como al acabar la bienvenida
+(`ui/Relevo.kt`). Sin animaciones en el sistema, o si se abre desde un aviso,
+el widget o el atajo, aparece ya en la esquina.
 
 **Navegación** (`Navegacion.kt`, Navigation Compose con rutas con tipo):
 Bienvenida, Personas, Ajustes, Ficha(id) y Nueva (el alta a medias). La pila

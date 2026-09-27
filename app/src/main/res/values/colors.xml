@@ -14,6 +14,11 @@
     <color name="icono_halo_dentro">#8CFFAA5E</color>
     <color name="icono_halo_fuera">#14FFAA5E</color>
 
+    <!-- Sol de la pantalla de arranque: el color del sol de la app (tertiary), con su halo. -->
+    <color name="arranque_sol">@color/teja</color>
+    <color name="arranque_halo_dentro">#8CD08159</color>
+    <color name="arranque_halo_fuera">#14D08159</color>
+
     <!-- Fondo de la ventana antes de que pinte Compose (arranque sin parpadeo). -->
     <color name="fondo_ventana">#FFFFF6EC</color>
 </resources>

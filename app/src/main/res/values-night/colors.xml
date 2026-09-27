@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="fondo_ventana">@color/noche</color>
+    <color name="arranque_sol">@color/naranja</color>
+    <color name="arranque_halo_dentro">#8CFFAA5E</color>
+    <color name="arranque_halo_fuera">#14FFAA5E</color>
 </resources>

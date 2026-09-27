@@ -51,6 +51,7 @@ import androidx.compose.ui.util.lerp
 import com.example.recuerdallamar.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.PI
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -63,7 +64,8 @@ import kotlin.math.roundToInt
  * se estrechan hacia el borde como en las burbujas.
  * Abajo, en el centro, el + para anadir a alguien: al pulsarlo el sol lo
  * mira, se encoge y se rie. Al acabar la bienvenida llega desde donde estaba
- * alli: sube y crece hasta la esquina.
+ * alli, y al abrir la app desde el icono de la pantalla de arranque, en el
+ * centro: en los dos casos sube y crece hasta la esquina.
  */
 
 /** Largo de cada onda del borde en la esquina, y cuanto sobresale. */
@@ -93,6 +95,12 @@ internal val HUECO_MAS = 88.dp
 
 private const val LLEGADA_MS = 1100
 
+/**
+ * Lo mas que se espera a que se vaya la pantalla de arranque. Si no llega a
+ * avisar (no se llego a ensenar, por ejemplo), el sol sube igual.
+ */
+private const val ESPERA_ARRANQUE_MS = 2500L
+
 /** Radio del sol de la esquina, sin contar la barra de estado, segun el ancho de la pantalla. */
 internal fun radioSolEsquina(anchoPantalla: Dp): Dp = (anchoPantalla * 0.3f).coerceIn(100.dp, 140.dp)
 
@@ -109,9 +117,16 @@ fun SolEsquina(
     modifier: Modifier = Modifier,
 ) {
     val alAnadir by rememberUpdatedState(onAnadir)
-    val desde = remember { relevo?.tomarSol() }
+    // De donde sube: el sol de la bienvenida o el icono del arranque. Mientras
+    // el arranque sigue tapandolo todo, se queda quieto donde se cree que esta
+    // el icono; al irse, se corrige al sitio exacto y empieza a subir.
+    val arranque = remember { relevo?.tomarArranque() }
+    var desde by remember { mutableStateOf(relevo?.tomarSol() ?: arranque?.estimado) }
     val llegada = remember { Animatable(if (desde == null) 1f else 0f) }
-    LaunchedEffect(llegada) { llegada.animateTo(1f, tween(LLEGADA_MS, easing = FastOutSlowInEasing)) }
+    LaunchedEffect(llegada) {
+        if (arranque != null) withTimeoutOrNull(ESPERA_ARRANQUE_MS) { arranque.listo.await() }?.let { desde = it }
+        llegada.animateTo(1f, tween(LLEGADA_MS, easing = FastOutSlowInEasing))
+    }
 
     val cara = rememberEstadoCara(Expresiones.contenta)
     val volverA = Animaciones.mirarAlrededor
@@ -167,10 +182,11 @@ fun SolEsquina(
             var radio = radioFin
             var hondura = honduraFin
             var puntas = puntasFin
-            if (desde != null && e < 1f) {
-                val inicio = desde.centro - origen
+            val de = desde
+            if (de != null && e < 1f) {
+                val inicio = de.centro - origen
                 centro = lerp(inicio, centroFin, e)
-                radio = lerp(desde.radio, radioFin, e)
+                radio = lerp(de.radio, radioFin, e)
                 hondura = lerp(HONDURA, honduraFin, e)
                 // Las ondas se multiplican ya en la esquina, con el corte fuera de la pantalla.
                 puntas = lerp(PUNTAS.toFloat(), puntasFin, ((e - 0.55f) / 0.45f).coerceIn(0f, 1f))
