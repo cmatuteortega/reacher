@@ -56,7 +56,9 @@ import kotlin.math.roundToInt
 /*
  * El sol en la pantalla principal: metido en la esquina de arriba a la
  * izquierda, como el sol que se dibuja de pequeno, con sus rayos ondulados
- * girando alrededor del cuarto que asoma y los ojos mirando hacia su gente.
+ * girando alrededor del cuarto que asoma. Los ojos van sobre la esfera
+ * entera, con la cabeza girada hacia abajo a la derecha: asi se deslizan y
+ * se estrechan hacia el borde como en las burbujas.
  * Abajo, en el centro, el + para anadir a alguien: al pulsarlo el sol lo
  * mira, se encoge y se rie. Al acabar la bienvenida llega desde donde estaba
  * alli: sube y crece hasta la esquina.
@@ -66,13 +68,17 @@ import kotlin.math.roundToInt
 private val ONDA = 44.dp
 internal val PUNTA_ESQUINA = 16.dp
 
-/** Donde van los ojos (en diagonal desde la esquina) y su tamano, en radios del sol. */
-private const val DIAGONAL_OJOS = 0.44f
-private const val RADIO_OJOS = 0.27f
+/**
+ * Grados que gira la cabeza para asomar la cara por la esquina: a la derecha
+ * y hacia abajo. Sus gestos se quedan en [GESTOS] de lo normal para que los
+ * ojos no se salgan por arriba ni por la izquierda.
+ */
+private const val GIRO_DERECHA = 48f
+private const val GIRO_ABAJO = 56f
+private const val GESTOS = 0.4f
 
-/** Grados que gira la cara: hacia su gente, y hacia el + cuando se pulsa. */
-private const val MIRA_GENTE = 12f
-private const val MIRA_MAS = 30f
+/** Grados de mas hacia el + cuando se pulsa. */
+private const val MIRA_MAS = 14f
 
 private val TAMANO_MAS = 44.dp
 private val TOQUE_MAS = 64.dp
@@ -149,8 +155,6 @@ fun SolEsquina(
             val radioFin = radioSol.toPx() - ENCOGERSE.toPx() * encogido
             // En la misma esquina de la ventana, salga donde salga este lienzo.
             val centroFin = -origen
-            val ojosFin = centroFin + Offset(1f, 1f) * (radioFin * DIAGONAL_OJOS) + Offset(0f, estado.toPx() * 0.4f)
-            val radioOjosFin = radioFin * RADIO_OJOS
             val honduraFin = PUNTA_ESQUINA.toPx() / radioFin
             // Entero: el corte no se ve ni aunque asome el sol entero.
             val puntasFin = (2f * PI.toFloat() * radioSol.toPx() / ONDA.toPx()).roundToInt().toFloat()
@@ -159,8 +163,6 @@ fun SolEsquina(
             var radio = radioFin
             var hondura = honduraFin
             var puntas = puntasFin
-            var ojos = ojosFin
-            var radioOjos = radioOjosFin
             if (desde != null && e < 1f) {
                 val inicio = desde.centro - origen
                 centro = lerp(inicio, centroFin, e)
@@ -168,16 +170,18 @@ fun SolEsquina(
                 hondura = lerp(HONDURA, honduraFin, e)
                 // Las ondas se multiplican ya en la esquina, con el corte fuera de la pantalla.
                 puntas = lerp(PUNTAS.toFloat(), puntasFin, ((e - 0.55f) / 0.45f).coerceIn(0f, 1f))
-                ojos = lerp(inicio, ojosFin, e)
-                radioOjos = lerp(desde.radio, radioOjosFin, e)
             }
             dibujarSol(centro, radio, respirar(hondura, t), puntas, t, esquema.tertiary)
 
-            // Mira abajo a la derecha, a su gente; si se pulsa el +, hacia el.
+            // La cara gira hacia la esquina a la vez que el sol llega; si se pulsa
+            // el +, un poco mas hacia el.
             val mas = Offset(size.width / 2, size.height - barra.toPx() - HUECO_MAS.toPx() / 2)
-            val d = (mas - ojos).let { it / hypot(it.x, it.y).coerceAtLeast(1f) }
-            val mirada = lerp(Offset(MIRA_GENTE, MIRA_GENTE) * e, d * MIRA_MAS, haciaMas)
-            dibujarOjos(cara.muestra(), cara.parpadeo(), ojos, radioOjos, esquema.onTertiary, mirada)
+            val d = (mas - centro).let { it / hypot(it.x, it.y).coerceAtLeast(1f) }
+            val mirada = Offset(GIRO_DERECHA, GIRO_ABAJO) * e + d * (MIRA_MAS * haciaMas)
+            val gestos = lerp(1f, GESTOS, e)
+            val m = cara.muestra()
+            val cabeza = m.girada(x = m.cabezaX * gestos, y = m.cabezaY * gestos, z = m.cabezaZ * gestos)
+            dibujarOjos(cabeza, cara.parpadeo(), centro, radio, esquema.onTertiary, mirada)
         }
 
         // El sol recoge los toques del cuarto que asoma.

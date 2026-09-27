@@ -74,7 +74,9 @@ flecha vuelven a Personas.
 
 1. **Personas** — vacía al principio. En la esquina de arriba a la
    izquierda asoma **el sol** (`ui/SolEsquina.kt`), como el de los dibujos,
-   con sus rayos girando y los ojos mirando hacia su gente; se queda en las
+   con sus rayos girando y los ojos sobre la esfera entera, con la cabeza
+   girada hacia la esquina, así que se deslizan y se estrechan hacia el borde
+   al mirar alrededor; se queda en las
    dos vistas y ni las burbujas ni la lista se le meten debajo. El **+** de
    abajo, en el centro, abre el selector de contactos del sistema filtrado a
    números de teléfono: al apretarlo el sol lo mira, se encoge y se ríe, y
