@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -87,15 +88,21 @@ fun PantallaLista(
                     // La esquina de la izquierda es del sol.
                     title = {},
                     actions = {
-                        val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
-                        IconButton(onClick = { onCambiarVista(otra) }) {
-                            // El icono ensena a donde se va, no donde se esta.
-                            Crossfade(targetState = otra, label = "icono vista") { destino ->
-                                when (destino) {
-                                    VistaPersonas.LISTA ->
-                                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
-                                    VistaPersonas.BURBUJAS ->
-                                        Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
+                        // Un boton por cada una de las otras vistas: el icono ensena a
+                        // donde se va, no donde se esta.
+                        VistaPersonas.entries.filter { it != vista }.forEachIndexed { hueco, otra ->
+                            key(hueco) {
+                                IconButton(onClick = { onCambiarVista(otra) }) {
+                                    Crossfade(targetState = otra, label = "icono vista") { destino ->
+                                        when (destino) {
+                                            VistaPersonas.LISTA ->
+                                                Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
+                                            VistaPersonas.BURBUJAS ->
+                                                Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
+                                            VistaPersonas.ORBITAS ->
+                                                Icon(painterResource(R.drawable.ic_orbitas), contentDescription = stringResource(R.string.ver_como_orbitas))
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -126,9 +133,19 @@ fun PantallaLista(
                     )
                 }
 
-                // Las dos vistas, con los mismos datos y el mismo orden por urgencia.
+                // Las tres vistas, con los mismos datos y el mismo orden por urgencia.
                 Crossfade(targetState = vista, label = "vista") { actual ->
                     when (actual) {
+                        VistaPersonas.ORBITAS -> if (!contactos.isNullOrEmpty()) {
+                            VistaOrbitas(
+                                contactos = contactos,
+                                fotosPermitidas = fotosPermitidas,
+                                onAbrir = onAbrir,
+                                huecoInferior = hueco,
+                                solArriba = arriba,
+                                solRadio = radioSol,
+                            )
+                        }
                         VistaPersonas.BURBUJAS -> if (!contactos.isNullOrEmpty()) {
                             VistaBurbujas(
                                 contactos = contactos,

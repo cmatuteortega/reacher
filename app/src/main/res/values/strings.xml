@@ -61,6 +61,7 @@
     <!-- Personas -->
     <string name="ver_como_lista">Show as list</string>
     <string name="ver_como_burbujas">Show as bubbles</string>
+    <string name="ver_como_orbitas">Show as orbits</string>
     <string name="lista_vacia">No one in your orbit yet.\nTap + and pick someone from your contacts.</string>
     <string name="toca_llamar">Time to call</string>
     <string name="burbuja_toca">%1$s, time to call</string>

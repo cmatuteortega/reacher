@@ -32,9 +32,10 @@ enum class IdiomaElegido(val codigo: String?, val nombre: String?) {
     RU("ru", "Русский"),
 }
 
-/** Como se ensena la gente en Personas; los mismos datos y el mismo orden en las dos. */
+/** Como se ensena la gente en Personas; los mismos datos y el mismo orden en todas. */
 enum class VistaPersonas {
     BURBUJAS,
+    ORBITAS,
     LISTA,
 }
 

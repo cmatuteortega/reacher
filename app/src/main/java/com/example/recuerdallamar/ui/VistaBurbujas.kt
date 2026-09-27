@@ -95,10 +95,10 @@ private const val CALMA = 0.5f
 private const val MIN_AGRUPAR = 4
 
 /** Por encima, la burbuja ya se acerca a su fecha y el anillo se colorea. */
-private const val CERCA = 0.75f
+internal const val CERCA = 0.75f
 
-private val RADIO_MIN = 26.dp // 52dp de diametro: sigue siendo facil de pulsar
-private val RADIO_MAX = 84.dp
+internal val RADIO_MIN = 26.dp // 52dp de diametro: sigue siendo facil de pulsar
+internal val RADIO_MAX = 84.dp
 private val MARGEN = 12.dp // aire alrededor de cada una, para el nombre y el dedo
 private val BORDE = 8.dp
 private val ANCHO_EXTRA_ETIQUETA = 24.dp
@@ -328,13 +328,7 @@ private fun BurbujaPersona(
     val inicial = MaterialTheme.typography.headlineMedium.copy(
         fontSize = with(LocalDensity.current) { (radio * 0.8f).toSp() },
     )
-    val animo = when {
-        urgencia >= URGENCIA_TOPE -> Animo.IMPACIENTE
-        toca -> Animo.ILUSIONADA
-        atenuada -> Animo.DORMIDA
-        urgencia >= CERCA -> Animo.ATENTA
-        else -> Animo.TRANQUILA
-    }
+    val animo = animoPara(urgencia, atenuada)
     Burbuja(
         cuerpo = cuerpo,
         sim = sim,
@@ -349,7 +343,7 @@ private fun BurbujaPersona(
         latido = toca,
         onToque = onToque,
     ) { pulsada, agarrada ->
-        CaraBurbuja(animo, pulsada, agarrada, cuerpo, fotograma)
+        CaraBurbuja(animo, pulsada, agarrada, cuerpo.clave.toInt(), fotograma) { Offset(cuerpo.vx, cuerpo.vy) }
         // La foto va en una chapita abajo a la derecha: la cara es la burbuja.
         foto?.let {
             Avatar(
@@ -364,7 +358,7 @@ private fun BurbujaPersona(
 }
 
 /** Como esta cada burbuja segun su plazo. */
-private enum class Animo(val animacion: Animacion) {
+internal enum class Animo(val animacion: Animacion) {
     DORMIDA(Animaciones.durmiendo),
     TRANQUILA(Animaciones.mirarAlrededor),
     ATENTA(Animaciones.atenta),
@@ -372,25 +366,35 @@ private enum class Animo(val animacion: Animacion) {
     IMPACIENTE(Animaciones.impaciente),
 }
 
+/** El animo que toca con esa [urgencia]; [atenuada] si va sobrada entre mucha gente. */
+internal fun animoPara(urgencia: Float, atenuada: Boolean): Animo = when {
+    urgencia >= URGENCIA_TOPE -> Animo.IMPACIENTE
+    urgencia >= 1f -> Animo.ILUSIONADA
+    atenuada -> Animo.DORMIDA
+    urgencia >= CERCA -> Animo.ATENTA
+    else -> Animo.TRANQUILA
+}
+
 /**
  * Una esfera con ojos: su animo segun el plazo, cierra los ojos de gusto al
  * apretarla, se asusta al cogerla y gira la cabeza hacia donde la lanzas.
  */
 @Composable
-private fun CaraBurbuja(
+internal fun CaraBurbuja(
     animo: Animo,
     pulsada: Boolean,
     agarrada: Boolean,
-    cuerpo: Cuerpo,
+    semilla: Int,
     fotograma: MutableLongState,
+    velocidad: () -> Offset,
 ) {
-    val cara = rememberEstadoCara(animo.animacion.pasos.first().expresion, semilla = cuerpo.clave.toInt())
+    val cara = rememberEstadoCara(animo.animacion.pasos.first().expresion, semilla = semilla)
     LaunchedEffect(animo, pulsada, agarrada) {
         when {
             agarrada -> cara.poner(Expresiones.sorpresa, 140, Transicion.SECA)
             pulsada -> cara.poner(Expresiones.apretada, 100, Transicion.SECA)
             // Cada una empieza por un paso distinto para que no vayan al unisono.
-            else -> cara.reproducir(animo.animacion, empezarEn = (cuerpo.clave % animo.animacion.pasos.size).toInt())
+            else -> cara.reproducir(animo.animacion, empezarEn = semilla.mod(animo.animacion.pasos.size))
         }
     }
     val esquema = MaterialTheme.colorScheme
@@ -400,12 +404,13 @@ private fun CaraBurbuja(
             .background(esquema.primaryContainer)
             .cara(cara, esquema.onPrimaryContainer) {
                 fotograma.longValue
-                val v = hypot(cuerpo.vx, cuerpo.vy)
+                val (vx, vy) = velocidad()
+                val v = hypot(vx, vy)
                 if (v < 1f) {
                     Offset.Zero
                 } else {
                     val f = min(v / (MIRA_A_VELOCIDAD * density), 1f) * GIRO_AL_CORRER
-                    Offset(cuerpo.vx / v * f, cuerpo.vy / v * f)
+                    Offset(vx / v * f, vy / v * f)
                 }
             },
     )

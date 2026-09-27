@@ -55,6 +55,7 @@
     <!-- Personas -->
     <string name="ver_como_lista">Показать списком</string>
     <string name="ver_como_burbujas">Показать пузырями</string>
+    <string name="ver_como_orbitas">Показать орбитами</string>
     <string name="lista_vacia">На твоей орбите пока никого.\nНажми + и выбери контакт.</string>
     <string name="toca_llamar">Пора позвонить</string>
     <string name="burbuja_toca">%1$s: пора позвонить</string>

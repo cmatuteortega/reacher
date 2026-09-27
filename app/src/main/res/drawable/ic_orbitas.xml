@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El sol en la esquina con dos orbitas y un planeta en cada una: el boton de la vista de orbitas. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M2,2h5a5,5 0,0 1,-5 5z" />
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:pathData="M2,12.5A10.5,10.5 0,0 0,12.5 2" />
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.6"
+        android:pathData="M2,21.5A19.5,19.5 0,0 0,21.5 2" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M7,9.4a2.4,2.4 0,1 1,4.8 0a2.4,2.4 0,1 1,-4.8 0z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12.8,15.8a3,3 0,1 1,6 0a3,3 0,1 1,-6 0z" />
+</vector>

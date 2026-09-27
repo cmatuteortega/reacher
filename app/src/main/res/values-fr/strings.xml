@@ -55,6 +55,7 @@
     <!-- Personas -->
     <string name="ver_como_lista">Afficher en liste</string>
     <string name="ver_como_burbujas">Afficher en bulles</string>
+    <string name="ver_como_orbitas">Afficher en orbites</string>
     <string name="lista_vacia">Personne dans ton orbite pour l\'instant.\nTouche + et choisis un contact.</string>
     <string name="toca_llamar">C\'est le moment d\'appeler</string>
     <string name="burbuja_toca">%1$s, c\'est le moment d\'appeler</string>
