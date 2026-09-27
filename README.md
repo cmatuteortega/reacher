@@ -44,16 +44,23 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 ## Flujo
 
 **Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en tres
-pasos con puntos de progreso:
+pasos con puntos de progreso, todos sobre **tu sistema** (`ui/SistemaSolar.kt`):
+arriba el sol, que eres tú, y alrededor, en órbita, la gente que añades. El
+sol es una esfera con ojos como las burbujas, pero con puntas onduladas que
+giran despacio y un halo que brilla; saluda, mira a quien llega, cierra los
+ojos al apretarlo y se ríe al tocarlo. Cada persona nueva sale del sol y se
+va a su anillo (hasta tres; los de dentro giran más deprisa), con su cara
+mirando hacia donde va. Solo cambia el texto de debajo:
 
-1. Qué es ConTacto. *Empezar* pide los permisos (avisos y fotos de la agenda),
-   ya explicados; fuera de la bienvenida se piden al abrir, como antes.
-2. Propone añadir al menos a una persona: *Elegir de la agenda* abre la ficha
-   de siempre y al darla de alta se vuelve aquí, con su cara en una fila.
-   *Ahora no* salta el paso.
-3. *¡Ya está!*: las burbujas de quienes se acaban de añadir (ya vivas) y el
-   recado de que se puede cerrar la app y seguir con la vida; se avisará
-   cuando toque. *Entendido* acaba en la vista de burbujas.
+1. *Tú eres el sol*: la gente que te importa es tu sistema. *Empezar* pide
+   los permisos (avisos y fotos de la agenda), ya explicados; fuera de la
+   bienvenida se piden al abrir, como antes.
+2. *Crea tu sistema*: *Elegir de la agenda* abre la ficha de siempre y al
+   darla de alta se vuelve aquí, con la persona ya en órbita. *Ahora no*
+   salta el paso.
+3. *¡Ya está!*: tu sistema y el recado de que se puede cerrar la app y
+   seguir con la vida; se avisará cuando toque. Un toque en un planeta abre
+   su ficha. *Entendido* acaba en la vista de burbujas.
 
 Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
@@ -90,7 +97,7 @@ flecha vuelven a Personas.
      impacientes si se pasa mucho; al apretarlas cierran los ojos de gusto, al
      cogerlas se asustan y al lanzarlas giran la cabeza hacia donde van. La
      foto de la agenda, si la hay, va en una chapita. La misma esfera, en
-     petróleo, es la **mascota** que saluda en la lista vacía.
+     azul marino, es la **mascota** que saluda en la lista vacía.
    - **Lista** — cada fila lleva la foto de la agenda o la inicial.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la
