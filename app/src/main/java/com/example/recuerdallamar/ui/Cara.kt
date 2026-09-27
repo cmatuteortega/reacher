@@ -540,7 +540,7 @@ private fun DrawScope.dibujarOjos(e: Expresion, parpadeo: Float, centro: Offset,
 }
 
 /**
- * La mascota de la app: una esfera petroleo con ojos crema. Un toque la hace
+ * La mascota de la app: una esfera azul marino con ojos crema. Un toque la hace
  * reir. Es decorativa: no anuncia nada al lector de pantalla.
  */
 @Composable

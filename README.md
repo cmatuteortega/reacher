@@ -21,18 +21,22 @@ de depuración queda como artefacto `app-debug` de la ejecución.
 ## Aspecto
 
 * **Icono**: el símbolo `reminder` de Material Symbols Outlined (Apache 2.0)
-  como icono adaptativo (`mipmap-anydpi-v26`), en crema sobre verde azulado.
+  como icono adaptativo (`mipmap-anydpi-v26`), en crema sobre azul marino.
   Tiene capa monocroma para los iconos temáticos de Android 13+. La
-  notificación usa el mismo símbolo, con acento naranja.
+  notificación usa el mismo símbolo, con acento teja.
 * **Paleta** (`ui/Tema.kt`, y en `res/values/colors.xml` para lo que no es
   Compose):
 
-  | color     | hex       | uso                                           |
-  |-----------|-----------|-----------------------------------------------|
-  | tinta     | `#001524` | texto; fondo en modo oscuro                   |
-  | petróleo  | `#15616D` | color principal; fondo del icono              |
-  | crema     | `#FFECD1` | tarjetas; texto en modo oscuro; símbolo       |
-  | naranja   | `#FF7D00` | acentos: botón *Añadir*, campana de "toca"    |
+  | color     | hex       | uso                                              |
+  |-----------|-----------|--------------------------------------------------|
+  | noche     | `#0D2B45` | texto; fondo en modo oscuro                      |
+  | marino    | `#203C56` | color principal; fondo del icono                 |
+  | ciruela   | `#544E68` | secundario; burbujas en modo oscuro              |
+  | malva     | `#8D697A` | bordes                                           |
+  | teja      | `#D08159` | acentos en claro: botón *Añadir*, "toca"         |
+  | naranja   | `#FFAA5E` | acentos en modo oscuro                           |
+  | melocotón | `#FFD4A3` | burbujas en claro; principal en modo oscuro      |
+  | crema     | `#FFECD6` | tarjetas; texto en modo oscuro; símbolo          |
 
   Sin color dinámico: en Android 12+ taparía la paleta con los colores del
   fondo de pantalla.
@@ -65,7 +69,7 @@ flecha vuelven a Personas.
    icono de la barra superior alterna entre ellas y la elección se recuerda:
    - **Burbujas** (por defecto, `ui/VistaBurbujas.kt`) — cada persona es una
      burbuja con cara, más grande cuanto más cerca está de su
-     fecha; a quien ya le toca lleva anillo naranja y un halo que respira. Se
+     fecha; a quien ya le toca lleva anillo teja/naranja y un halo que respira. Se
      colocan con un empaquetado circular (las urgentes en el centro, sin
      solaparse) y se mueven con una pequeña simulación de muelles y choques
      (`ui/FisicaBurbujas.kt`): se pueden arrastrar y lanzar, empujan a las

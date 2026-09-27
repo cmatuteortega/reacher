@@ -55,7 +55,7 @@ object Notificaciones {
 
         val notificacion = NotificationCompat.Builder(context, CANAL)
             .setSmallIcon(R.drawable.ic_notificacion)
-            .setColor(ContextCompat.getColor(context, R.color.naranja))
+            .setColor(ContextCompat.getColor(context, R.color.teja))
             .setContentTitle(contacto.nombre)
             .setContentText(contacto.medio.aviso(contacto.nombre))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

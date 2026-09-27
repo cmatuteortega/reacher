@@ -58,7 +58,7 @@ private class Anillo(lado: Float, densidad: Density) {
 
 /**
  * Esfera de 24 horas con la franja de avisos pintada como un arco. Las dos asas
- * (inicio en el color principal, fin en naranja) se arrastran alrededor y saltan
+ * (inicio en el color principal, fin en teja) se arrastran alrededor y saltan
  * de hora en hora con un tic, como una rueda con dientes. Cruzar la medianoche
  * es solo seguir girando. El punto de fuera marca la hora de ahora.
  */

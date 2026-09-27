@@ -346,7 +346,7 @@ private fun Explicacion(texto: String) {
 
 @Composable
 private fun BotonPrincipal(texto: String, onClick: () -> Unit, icono: Boolean = false) {
-    // El naranja de la paleta, como el boton de anadir de la lista.
+    // El acento de la paleta, como el boton de anadir de la lista.
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(

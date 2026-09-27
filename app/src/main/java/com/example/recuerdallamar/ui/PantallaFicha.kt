@@ -261,7 +261,7 @@ fun PantallaFicha(
 
 /**
  * Foto grande dentro de un anillo que se va llenando segun pasa el tiempo
- * desde el ultimo contacto: lleno toca llamar, y en naranja si ya se paso.
+ * desde el ultimo contacto: lleno toca llamar, y en teja si ya se paso.
  * Sigue a la frecuencia mientras se cambia.
  */
 @Composable

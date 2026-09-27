@@ -102,7 +102,7 @@ fun PantallaLista(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAnadir,
-                // El naranja de la paleta, reservado para lo que pide accion.
+                // El acento de la paleta, reservado para lo que pide accion.
                 containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary,
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
