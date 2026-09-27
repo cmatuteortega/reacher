@@ -1,13 +1,17 @@
 package com.example.recuerdallamar
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.avisos.RecordatorioWorker
+import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.CopiaSeguridad
 import com.example.recuerdallamar.datos.MedioContacto
 import com.example.recuerdallamar.datos.porUrgencia
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +41,8 @@ private const val GUARDAR_NOTAS_TRAS_MS = 500L
  * Android cierre el proceso en segundo plano va en [estado] (SavedStateHandle).
  */
 class ContactosViewModel(app: Application, private val estado: SavedStateHandle) : AndroidViewModel(app) {
-    private val dao = BaseDatos.de(app).contactos()
+    private val base = BaseDatos.de(app)
+    private val dao = base.contactos()
 
     /** Circulo por el que se filtra Personas; null = todos. */
     val filtro: StateFlow<String?> = estado.getStateFlow(FILTRO, null)
@@ -218,6 +223,91 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
             RecordatorioWorker.cancelar(getApplication(), id)
             Notificaciones.quitar(getApplication(), id)
             dao.borrar(id)
+        }
+    }
+
+    /** Como acabo una exportacion o importacion, para decirlo en pantalla. */
+    sealed interface ResultadoCopia {
+        data class Exportada(val personas: Int) : ResultadoCopia
+        data class Importada(val nuevas: Int, val actualizadas: Int) : ResultadoCopia
+        data object NoValida : ResultadoCopia
+        data object Fallo : ResultadoCopia
+    }
+
+    /** Escribe la copia en el archivo elegido con el selector del sistema. */
+    fun exportar(uri: Uri, alAcabar: (ResultadoCopia) -> Unit) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val resultado = withContext(Dispatchers.IO) {
+                try {
+                    val gente = dao.lista()
+                    val texto = CopiaSeguridad.escribir(gente, AlmacenAjustes.de(app).ajustes.value)
+                    val salida = app.contentResolver.openOutputStream(uri) ?: return@withContext ResultadoCopia.Fallo
+                    salida.use { it.write(texto.toByteArray()) }
+                    ResultadoCopia.Exportada(gente.size)
+                } catch (e: Exception) {
+                    ResultadoCopia.Fallo
+                }
+            }
+            alAcabar(resultado)
+        }
+    }
+
+    /**
+     * Anade la gente del archivo. Quien ya esta aqui con el mismo numero se
+     * actualiza con lo del archivo (sin perder su id, ni lo de su aviso en
+     * curso); el resto se da de alta. Los ajustes del archivo pisan los de
+     * aqui. Despues, cada uno con su trabajo diario, como al darlo de alta.
+     */
+    fun importar(uri: Uri, alAcabar: (ResultadoCopia) -> Unit) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val resultado = withContext(Dispatchers.IO) {
+                val leido = try {
+                    val entrada = app.contentResolver.openInputStream(uri) ?: return@withContext ResultadoCopia.Fallo
+                    CopiaSeguridad.leer(entrada.use { it.readBytes().decodeToString() })
+                } catch (e: CopiaSeguridad.ArchivoNoValido) {
+                    return@withContext ResultadoCopia.NoValida
+                } catch (e: Exception) {
+                    return@withContext ResultadoCopia.Fallo
+                }
+                var nuevas = 0
+                var actualizadas = 0
+                val tocados = mutableListOf<Long>()
+                base.withTransaction {
+                    val presentes = dao.lista().toMutableList()
+                    leido.personas.forEach { persona ->
+                        val ya = presentes.firstOrNull { CopiaSeguridad.mismoTelefono(it.telefono, persona.telefono) }
+                        if (ya != null) {
+                            dao.reemplazar(
+                                ya.copy(
+                                    nombre = persona.nombre,
+                                    frecuenciaDias = persona.frecuenciaDias,
+                                    ultimoContacto = maxOf(ya.ultimoContacto, persona.ultimoContacto),
+                                    medio = persona.medio,
+                                    notas = persona.notas,
+                                    cumpleanos = persona.cumpleanos,
+                                    cumpleanosManual = persona.cumpleanosManual,
+                                    circulo = persona.circulo,
+                                    pausadoHasta = persona.pausadoHasta,
+                                ),
+                            )
+                            tocados += ya.id
+                            actualizadas++
+                        } else {
+                            val id = dao.insertar(persona)
+                            // Dos filas del archivo con el mismo numero: la segunda actualiza a la primera.
+                            presentes += persona.copy(id = id)
+                            tocados += id
+                            nuevas++
+                        }
+                    }
+                }
+                AlmacenAjustes.de(app).cambiar { leido.aplicarA(it).copy(bienvenidaHecha = true) }
+                tocados.distinct().forEach { RecordatorioWorker.programar(app, it) }
+                ResultadoCopia.Importada(nuevas, actualizadas)
+            }
+            alAcabar(resultado)
         }
     }
 

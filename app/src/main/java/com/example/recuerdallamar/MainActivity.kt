@@ -71,6 +71,7 @@ import com.example.recuerdallamar.datos.Ajustes
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.VistaPersonas
+import com.example.recuerdallamar.ui.AvisoBateria
 import com.example.recuerdallamar.ui.PantallaAjustes
 import com.example.recuerdallamar.ui.PantallaBienvenida
 import com.example.recuerdallamar.ui.PantallaFicha
@@ -132,6 +133,7 @@ class MainActivity : ComponentActivity() {
         }
         val almacen = AlmacenAjustes.de(this)
         val idiomaAlCrear = almacen.ajustes.value.idioma
+        val bienvenidaAlCrear = almacen.ajustes.value.bienvenidaHecha
         setContent {
             val ajustes by almacen.ajustes.collectAsStateWithLifecycle()
             // Otro idioma en Ajustes: se rehace la actividad para que lo coja
@@ -165,6 +167,10 @@ class MainActivity : ComponentActivity() {
                     anchoAmplio = ventana.widthSizeClass == WindowWidthSizeClass.Expanded,
                     enlacePedido = enlacePedido.collectAsStateWithLifecycle().value,
                     onEnlaceAtendido = { enlacePedido.value = null },
+                )
+                AvisoBateria(
+                    hayGente = vm.contactos.collectAsStateWithLifecycle().value?.isNotEmpty() == true,
+                    bienvenidaYaHecha = bienvenidaAlCrear,
                 )
             }
         }
@@ -533,6 +539,8 @@ private fun AppRecuerda(
                 ajustes = ajustes,
                 onCambiar = cambiarAjustes,
                 onVolver = { navegador.volverDesde(entrada) },
+                onExportar = vm::exportar,
+                onImportar = vm::importar,
             )
         }
 

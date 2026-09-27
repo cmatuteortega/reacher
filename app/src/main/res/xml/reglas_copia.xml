@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copia de Android (Auto Backup) desde Android 12: la gente (Room) y los
+  ajustes, en la copia de Google y al pasar a un telefono nuevo. Nada mas: la
+  base de datos de WorkManager no vale en otro telefono (los avisos se vuelven
+  a programar al abrir la app, RecordatorioWorker.programarQueFalten) y el
+  aviso de bateria se repite, porque ahi puede estar distinta.
+  Lo mismo para Android 8-11 en copia_completa.xml.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="contactos.db" />
+        <include domain="database" path="contactos.db-wal" />
+        <include domain="sharedpref" path="ajustes.xml" />
+        <include domain="sharedpref" path="valoracion.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="contactos.db" />
+        <include domain="database" path="contactos.db-wal" />
+        <include domain="sharedpref" path="ajustes.xml" />
+        <include domain="sharedpref" path="valoracion.xml" />
+    </device-transfer>
+</data-extraction-rules>

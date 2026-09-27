@@ -3,6 +3,7 @@ package com.example.recuerdallamar.datos
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -72,6 +73,10 @@ interface ContactoDao {
     /** Los circulos que hay, para proponerlos en la ficha y filtrar Personas. */
     @Query("SELECT DISTINCT circulo FROM contactos WHERE circulo IS NOT NULL ORDER BY circulo COLLATE NOCASE")
     fun circulos(): Flow<List<String>>
+
+    /** Solo al importar una copia, sobre alguien que ya estaba: el archivo manda. */
+    @Update
+    suspend fun reemplazar(contacto: Contacto)
 
     @Query("DELETE FROM contactos WHERE id = :id")
     suspend fun borrar(id: Long)

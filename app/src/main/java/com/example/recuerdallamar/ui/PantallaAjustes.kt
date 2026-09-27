@@ -1,5 +1,8 @@
 package com.example.recuerdallamar.ui
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
@@ -28,8 +31,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import android.widget.Toast
+import com.example.recuerdallamar.Bateria
+import com.example.recuerdallamar.ContactosViewModel.ResultadoCopia
 import com.example.recuerdallamar.Valoracion
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +53,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +74,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.example.recuerdallamar.BuildConfig
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Ajustes
@@ -83,6 +93,8 @@ fun PantallaAjustes(
     ajustes: Ajustes,
     onCambiar: ((Ajustes) -> Ajustes) -> Unit,
     onVolver: () -> Unit,
+    onExportar: (Uri, (ResultadoCopia) -> Unit) -> Unit,
+    onImportar: (Uri, (ResultadoCopia) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val plegado = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -118,12 +130,14 @@ fun PantallaAjustes(
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             TarjetaAvisos(ajustes, onCambiar)
+                            TarjetaBateria()
                             TarjetaHorario(ajustes, onCambiar)
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                             TarjetaPosponer(ajustes, onCambiar)
                             TarjetaMedio(ajustes, onCambiar)
                             TarjetaApariencia(ajustes, onCambiar)
+                            TarjetaCopia(onExportar, onImportar)
                             TarjetaOpiniones()
                             if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                         }
@@ -131,10 +145,12 @@ fun PantallaAjustes(
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         TarjetaAvisos(ajustes, onCambiar)
+                        TarjetaBateria()
                         TarjetaHorario(ajustes, onCambiar)
                         TarjetaPosponer(ajustes, onCambiar)
                         TarjetaMedio(ajustes, onCambiar)
                         TarjetaApariencia(ajustes, onCambiar)
+                        TarjetaCopia(onExportar, onImportar)
                         TarjetaOpiniones()
                         if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                     }
@@ -314,6 +330,109 @@ private fun TarjetaApariencia(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes
         }
     }
 }
+
+/**
+ * Si el ahorro de bateria puede comerse los avisos, y el boton que lo
+ * arregla. Solo sale cuando hay algo que decir: con la app restringida, o en
+ * los fabricantes que cierran apps por su cuenta (ahi, ademas, su inicio
+ * automatico y la guia de dontkillmyapp.com). Se vuelve a mirar al volver de
+ * los ajustes del sistema.
+ */
+@Composable
+private fun TarjetaBateria() {
+    val context = LocalContext.current
+    var estado by remember { mutableStateOf(Bateria.estado(context)) }
+    LifecycleResumeEffect(Unit) {
+        estado = Bateria.estado(context)
+        onPauseOrDispose { }
+    }
+    if (estado != Bateria.Estado.RESTRINGIDA && !Bateria.fabricanteEstricto) return
+    Tarjeta(stringResource(R.string.bateria_titulo)) {
+        Explicacion(
+            stringResource(
+                when (estado) {
+                    Bateria.Estado.LIBRE -> R.string.bateria_libre
+                    Bateria.Estado.OPTIMIZADA -> R.string.bateria_optimizada
+                    Bateria.Estado.RESTRINGIDA -> R.string.bateria_restringida
+                },
+            ),
+        )
+        if (estado != Bateria.Estado.LIBRE) {
+            FilledTonalButton(
+                onClick = { Bateria.abrirAjustes(context) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.bateria_quitar))
+            }
+        }
+        if (Bateria.hayAutoarranque) {
+            Explicacion(stringResource(R.string.bateria_autoarranque_explicacion, Bateria.nombreFabricante))
+            OutlinedButton(
+                onClick = { if (!Bateria.abrirAutoarranque(context)) Bateria.abrirGuia(context) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.bateria_autoarranque))
+            }
+        }
+        if (Bateria.fabricanteEstricto) {
+            TextButton(
+                onClick = { Bateria.abrirGuia(context) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.bateria_guia, Bateria.nombreFabricante))
+            }
+        }
+    }
+}
+
+/**
+ * Exportar a un archivo JSON e importarlo, para cambiar de telefono sin la
+ * copia de Google. Los archivos se eligen con el selector del sistema: la app
+ * no necesita permiso de almacenamiento.
+ */
+@Composable
+private fun TarjetaCopia(
+    onExportar: (Uri, (ResultadoCopia) -> Unit) -> Unit,
+    onImportar: (Uri, (ResultadoCopia) -> Unit) -> Unit,
+) {
+    val context = LocalContext.current
+    val avisar: (ResultadoCopia) -> Unit = { resultado ->
+        val recursos = context.resources
+        val texto = when (resultado) {
+            is ResultadoCopia.Exportada -> recursos.getQuantityString(R.plurals.copia_exportada, resultado.personas, resultado.personas)
+            is ResultadoCopia.Importada -> recursos.getString(R.string.copia_importada, resultado.nuevas, resultado.actualizadas)
+            ResultadoCopia.NoValida -> recursos.getString(R.string.copia_no_valida)
+            ResultadoCopia.Fallo -> recursos.getString(R.string.copia_fallo)
+        }
+        Toast.makeText(context, texto, Toast.LENGTH_LONG).show()
+    }
+    val exportar = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(TIPO_COPIA)) { uri ->
+        if (uri != null) onExportar(uri, avisar)
+    }
+    val importar = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onImportar(uri, avisar)
+    }
+    Tarjeta(stringResource(R.string.copia_titulo)) {
+        Explicacion(stringResource(R.string.copia_explicacion))
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = { exportar.launch("contacto-${LocalDate.now()}.json") },
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.copia_exportar))
+            }
+            OutlinedButton(
+                // Algunos gestores de archivos no saben que un .json es JSON.
+                onClick = { importar.launch(arrayOf(TIPO_COPIA, "text/*", "application/octet-stream")) },
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.copia_importar))
+            }
+        }
+    }
+}
+
+private const val TIPO_COPIA = "application/json"
 
 /** Escribir al autor o valorar la app en Google Play. */
 @Composable

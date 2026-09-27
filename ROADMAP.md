@@ -48,14 +48,13 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 
 ## Phase 3 — Reminder reliability and user data
 
-- [ ] **Single daily scheduler** instead of one periodic worker per contact,
-      aimed at the start of the user's quiet-hours window so reminders don't
-      drift by hours.
-- [ ] **OEM battery restrictions**: detect aggressive battery optimization
+- [x] **OEM battery restrictions**: detect aggressive battery optimization
       (Xiaomi, Samsung, Huawei…) and guide the user to exempt the app.
-- [ ] **Automatic contact detection** (optional): read the call log, with
-      permission, so calls made outside the app count too.
-- [ ] **Backup and restore**: Android Auto Backup rules
+- [ ] ~~**Automatic contact detection** (optional): read the call log, with
+      permission, so calls made outside the app count too.~~ Skipped for now:
+      Google Play only grants `READ_CALL_LOG` to default phone/SMS apps and a
+      few exceptions, so it would block the Play release.
+- [x] **Backup and restore**: Android Auto Backup rules
       (`dataExtractionRules` / `fullBackupContent`), plus JSON export/import
       for switching phones.
 

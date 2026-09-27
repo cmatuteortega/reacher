@@ -240,4 +240,30 @@
     <string name="dia">Tag</string>
     <string name="mes">Monat</string>
     <string name="guardar">Speichern</string>
+
+    <!-- Bateria (Bateria.kt) -->
+    <string name="bateria_titulo">Erinnerungen im Hintergrund</string>
+    <string name="bateria_libre">Contacto kann dich erinnern, auch wenn die App geschlossen ist.</string>
+    <string name="bateria_optimizada">Der Energiesparmodus kann Erinnerungen verzögern oder blockieren. Lass Contacto im Hintergrund laufen.</string>
+    <string name="bateria_restringida">Android schränkt Contacto im Hintergrund ein: Erinnerungen kommen womöglich nicht an.</string>
+    <string name="bateria_quitar">Im Hintergrund erlauben</string>
+    <string name="bateria_autoarranque">Autostart</string>
+    <string name="bateria_autoarranque_explicacion">Auf %1$s-Handys schalte außerdem den Autostart für Contacto ein.</string>
+    <string name="bateria_guia">Schritt-für-Schritt-Anleitung für %1$s</string>
+    <string name="bateria_aviso_titulo">Keine Erinnerung verpassen</string>
+    <string name="bateria_aviso_texto">Um Akku zu sparen, kann %1$s Contacto schließen – dann kommen Erinnerungen zu spät oder gar nicht. Lass die App im Hintergrund laufen. Das geht auch später in den Einstellungen.</string>
+    <string name="bateria_ajustar">Einrichten</string>
+
+    <!-- Copia de seguridad -->
+    <string name="copia_titulo">Sicherung</string>
+    <string name="copia_explicacion">Deine Leute und Einstellungen sind in der Google-Sicherung des Handys enthalten. Um sie selbst umzuziehen, exportiere eine Datei und öffne sie auf dem anderen Handy.</string>
+    <string name="copia_exportar">Exportieren</string>
+    <string name="copia_importar">Importieren</string>
+    <string name="copia_importada">Sicherung importiert: %1$d neu, %2$d aktualisiert</string>
+    <string name="copia_no_valida">Diese Datei ist keine Contacto-Sicherung</string>
+    <string name="copia_fallo">Die Datei konnte nicht gelesen oder geschrieben werden</string>
+    <plurals name="copia_exportada">
+        <item quantity="one">%d Person exportiert</item>
+        <item quantity="other">%d Personen exportiert</item>
+    </plurals>
 </resources>

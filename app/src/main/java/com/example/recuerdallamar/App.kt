@@ -3,6 +3,7 @@ package com.example.recuerdallamar
 import android.app.Application
 import com.example.recuerdallamar.avisos.CumpleanosWorker
 import com.example.recuerdallamar.avisos.Notificaciones
+import com.example.recuerdallamar.avisos.RecordatorioWorker
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.widget.WidgetHoy
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class App : Application() {
     /**
@@ -26,6 +28,7 @@ class App : Application() {
         super.onCreate()
         Notificaciones.crearCanal(this)
         CumpleanosWorker.programar(this)
+        ambito.launch { RecordatorioWorker.programarQueFalten(this@App) }
         // El widget sigue a la base de datos mientras el proceso vive: cualquier
         // cambio (alta, "He llamado hoy", aviso tocado...) lo redibuja. La
         // primera emision es el estado de ahora, que el widget ya tiene.

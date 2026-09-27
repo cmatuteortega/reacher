@@ -77,6 +77,22 @@ class RecordatorioWorker(
         }
 
         /**
+         * Al arrancar la app: programa a quien no tenga su trabajo diario,
+         * sin tocar los que ya lo tienen (KEEP). Los trabajos no viajan en la
+         * copia de seguridad, asi que tras restaurar en otro telefono o
+         * importar un archivo es esto lo que vuelve a poner los avisos.
+         */
+        suspend fun programarQueFalten(context: Context) {
+            val wm = WorkManager.getInstance(context)
+            BaseDatos.de(context).contactos().lista().forEach { contacto ->
+                val peticion = PeriodicWorkRequestBuilder<RecordatorioWorker>(1, TimeUnit.DAYS)
+                    .setInputData(workDataOf(CLAVE_ID to contacto.id))
+                    .build()
+                wm.enqueueUniquePeriodicWork("recordatorio-${contacto.id}", ExistingPeriodicWorkPolicy.KEEP, peticion)
+            }
+        }
+
+        /**
          * Reintento al empezar la franja o pasado el "Mas tarde". REPLACE: si
          * ya habia uno pendiente, vale el ultimo que se pidio.
          */

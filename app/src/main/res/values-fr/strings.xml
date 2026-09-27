@@ -252,4 +252,30 @@
     <string name="dia">Jour</string>
     <string name="mes">Mois</string>
     <string name="guardar">Enregistrer</string>
+
+    <!-- Bateria (Bateria.kt) -->
+    <string name="bateria_titulo">Rappels en arrière-plan</string>
+    <string name="bateria_libre">Contacto peut vous rappeler même lorsqu\'elle est fermée.</string>
+    <string name="bateria_optimizada">L\'économie de batterie peut retarder ou bloquer les rappels. Laissez Contacto fonctionner en arrière-plan.</string>
+    <string name="bateria_restringida">Android limite Contacto en arrière-plan : les rappels risquent de ne pas arriver.</string>
+    <string name="bateria_quitar">Autoriser en arrière-plan</string>
+    <string name="bateria_autoarranque">Démarrage automatique</string>
+    <string name="bateria_autoarranque_explicacion">Sur les téléphones %1$s, activez aussi le démarrage automatique de Contacto.</string>
+    <string name="bateria_guia">Guide pas à pas pour %1$s</string>
+    <string name="bateria_aviso_titulo">Ne manquez pas vos rappels</string>
+    <string name="bateria_aviso_texto">Pour économiser la batterie, %1$s peut fermer Contacto : les rappels arrivent alors en retard, ou pas du tout. Laissez-la fonctionner en arrière-plan. Vous pourrez aussi le faire plus tard dans les Réglages.</string>
+    <string name="bateria_ajustar">Régler</string>
+
+    <!-- Copia de seguridad -->
+    <string name="copia_titulo">Sauvegarde</string>
+    <string name="copia_explicacion">Vos proches et vos réglages sont inclus dans la sauvegarde Google du téléphone. Pour les transférer vous-même, exportez un fichier et ouvrez-le sur l\'autre téléphone.</string>
+    <string name="copia_exportar">Exporter</string>
+    <string name="copia_importar">Importer</string>
+    <string name="copia_importada">Sauvegarde importée : %1$d nouvelles, %2$d mises à jour</string>
+    <string name="copia_no_valida">Ce fichier n\'est pas une sauvegarde de Contacto</string>
+    <string name="copia_fallo">Impossible de lire ou d\'écrire le fichier</string>
+    <plurals name="copia_exportada">
+        <item quantity="one">%d personne exportée</item>
+        <item quantity="other">%d personnes exportées</item>
+    </plurals>
 </resources>

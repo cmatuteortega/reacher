@@ -264,4 +264,32 @@
     <string name="dia">День</string>
     <string name="mes">Месяц</string>
     <string name="guardar">Сохранить</string>
+
+    <!-- Bateria (Bateria.kt) -->
+    <string name="bateria_titulo">Напоминания в фоне</string>
+    <string name="bateria_libre">Contacto может напоминать, даже когда приложение закрыто.</string>
+    <string name="bateria_optimizada">Экономия заряда может задерживать или блокировать напоминания. Разрешите Contacto работать в фоне.</string>
+    <string name="bateria_restringida">Android ограничил работу Contacto в фоне: напоминания могут не приходить.</string>
+    <string name="bateria_quitar">Разрешить работу в фоне</string>
+    <string name="bateria_autoarranque">Автозапуск</string>
+    <string name="bateria_autoarranque_explicacion">На телефонах %1$s включите также автозапуск для Contacto.</string>
+    <string name="bateria_guia">Пошаговая инструкция для %1$s</string>
+    <string name="bateria_aviso_titulo">Не пропускайте напоминания</string>
+    <string name="bateria_aviso_texto">Чтобы экономить заряд, %1$s может закрывать Contacto, и тогда напоминания приходят с опозданием или не приходят вовсе. Разрешите приложению работать в фоне. Это можно сделать и позже в настройках.</string>
+    <string name="bateria_ajustar">Настроить</string>
+
+    <!-- Copia de seguridad -->
+    <string name="copia_titulo">Резервная копия</string>
+    <string name="copia_explicacion">Ваши люди и настройки попадают в резервную копию Google на телефоне. Чтобы перенести их вручную, экспортируйте файл и откройте его на другом телефоне.</string>
+    <string name="copia_exportar">Экспорт</string>
+    <string name="copia_importar">Импорт</string>
+    <string name="copia_importada">Копия импортирована: новых — %1$d, обновлено — %2$d</string>
+    <string name="copia_no_valida">Этот файл не является копией Contacto</string>
+    <string name="copia_fallo">Не удалось прочитать или записать файл</string>
+    <plurals name="copia_exportada">
+        <item quantity="one">Экспортирован %d человек</item>
+        <item quantity="few">Экспортировано %d человека</item>
+        <item quantity="many">Экспортировано %d человек</item>
+        <item quantity="other">Экспортировано %d человека</item>
+    </plurals>
 </resources>

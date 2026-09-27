@@ -246,4 +246,30 @@
     <string name="dia">Day</string>
     <string name="mes">Month</string>
     <string name="guardar">Save</string>
+
+    <!-- Bateria (Bateria.kt) -->
+    <string name="bateria_titulo">Reminders in the background</string>
+    <string name="bateria_libre">Contacto can remind you even when it\'s closed.</string>
+    <string name="bateria_optimizada">Battery saving can delay or block your reminders. Let Contacto run in the background.</string>
+    <string name="bateria_restringida">Android has restricted Contacto in the background, so reminders may not arrive.</string>
+    <string name="bateria_quitar">Allow in background</string>
+    <string name="bateria_autoarranque">Autostart</string>
+    <string name="bateria_autoarranque_explicacion">On %1$s phones, also turn on autostart for Contacto.</string>
+    <string name="bateria_guia">Step-by-step guide for %1$s</string>
+    <string name="bateria_aviso_titulo">Don\'t miss your reminders</string>
+    <string name="bateria_aviso_texto">To save battery, %1$s may close Contacto, and then reminders arrive late or not at all. Let it run in the background. You can also do this later in Settings.</string>
+    <string name="bateria_ajustar">Fix it</string>
+
+    <!-- Copia de seguridad -->
+    <string name="copia_titulo">Backup</string>
+    <string name="copia_explicacion">Your people and settings go into your phone\'s Google backup. To move them yourself, export a file and open it on the other phone.</string>
+    <string name="copia_exportar">Export</string>
+    <string name="copia_importar">Import</string>
+    <string name="copia_importada">Backup imported: %1$d new, %2$d updated</string>
+    <string name="copia_no_valida">That file isn\'t a Contacto backup</string>
+    <string name="copia_fallo">Couldn\'t read or write the file</string>
+    <plurals name="copia_exportada">
+        <item quantity="one">%d person exported</item>
+        <item quantity="other">%d people exported</item>
+    </plurals>
 </resources>

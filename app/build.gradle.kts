@@ -116,6 +116,8 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
+    // Copia de seguridad en JSON (Ajustes > Copia de seguridad).
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Widget de la pantalla de inicio.

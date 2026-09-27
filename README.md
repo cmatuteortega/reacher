@@ -186,6 +186,8 @@ interfaz como el worker.
 | Botón «Más tarde» del aviso    | Cuántas horas tarda en volver el aviso pospuesto (por defecto 2) |
 | Forma de contacto por defecto  | La que se propone al añadir a alguien; se cambia en su ficha    |
 | Apariencia                     | Sistema, claro u oscuro                                         |
+| Avisos en segundo plano        | Solo si hace falta (ver *Batería* abajo): quitar la restricción de batería, inicio automático del fabricante y su guía |
+| Copia de seguridad             | *Exportar* / *Importar* un archivo JSON (ver *Copia de seguridad* abajo) |
 | Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones (solo en depuración) |
 
 El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
@@ -322,6 +324,56 @@ todo. Si viene de la agenda, la ficha lo dice.
   sigue calculando desde `ultimoContacto`.
 * *Forzar notificación ahora* encola el mismo worker una vez con un indicador
   que se salta la comprobación de fecha.
+
+* Al arrancar la app se programa el trabajo diario de quien no lo tenga
+  (`ExistingPeriodicWorkPolicy.KEEP`, no toca los que ya hay): así vuelven los
+  avisos tras restaurar una copia o importar un archivo, porque los trabajos
+  de WorkManager no viajan en la copia.
+
+**Batería** (`Bateria.kt`): el ahorro de batería es lo que más avisos se
+come. Android retrasa los trabajos de las apps *optimizadas* y varios
+fabricantes (Xiaomi, Huawei, Samsung, Oppo, Vivo…) además cierran la app y
+no la dejan volver a arrancar sola. La app mira si está *restringida* en
+segundo plano (`ActivityManager.isBackgroundRestricted`, Android 9+) o
+*optimizada* (`PowerManager.isIgnoringBatteryOptimizations`) y quién es el
+fabricante. Si hay algo que decir (restringida, u optimizada en un fabricante
+estricto):
+
+* **Una vez**, al abrir la app ya con gente y nunca en la misma sesión que la
+  bienvenida, un diálogo lo explica y ofrece *Ajustar*. Se recuerda en unas
+  preferencias aparte (`bateria.xml`) que no van en la copia: en otro teléfono
+  hay que volver a mirarlo.
+* En **Ajustes › Avisos en segundo plano**, el estado (se vuelve a mirar al
+  volver de los ajustes del sistema), *Permitir en segundo plano* (la
+  pantalla de la app, con *Batería › Sin restricciones*, en Android 12+; antes,
+  la lista de optimización de batería), la pantalla de **inicio automático**
+  del fabricante si se conoce y la guía de <https://dontkillmyapp.com> para esa
+  marca.
+
+No se usa `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (el diálogo directo): Google
+Play solo lo permite a unos pocos tipos de app.
+
+**Copia de seguridad**:
+
+* La **copia de Android** (Auto Backup, a la cuenta de Google y al pasar a un
+  teléfono nuevo) lleva solo la base de datos y los ajustes
+  (`res/xml/reglas_copia.xml` desde Android 12, `copia_completa.xml` antes).
+  Ni la base de datos de WorkManager ni el aviso de batería.
+* En **Ajustes › Copia de seguridad**, *Exportar* escribe un JSON
+  (`datos/CopiaSeguridad.kt`) donde se elija con el selector del sistema (sin
+  permiso de almacenamiento) e *Importar* lo lee. Lleva la gente (nombre,
+  número, frecuencia, último contacto, forma de contacto, notas, cumpleaños,
+  círculo y pausa) y los ajustes que valen en otro teléfono; no lo de un aviso
+  en curso (descartes, *Más tarde*) ni el idioma de depuración. Al importar,
+  quien ya está con el mismo número (solo las cifras y el `+`) se actualiza con
+  lo del archivo, quedándose con el último contacto más reciente de los dos;
+  el resto se da de alta. Los campos que falten toman su valor por defecto y
+  los que sobren se ignoran; `formato` solo sube si cambia el significado de
+  algo.
+
+Detectar solas las llamadas hechas fuera de la app necesitaría leer el
+registro de llamadas (`READ_CALL_LOG`), que Google Play solo concede a las apps
+de teléfono o SMS por defecto y a unas pocas excepciones: por ahora no se hace.
 
 En Android 13+ la app pide `POST_NOTIFICATIONS` al arrancar; sin ese permiso no
 hay avisos. Elegir un contacto no necesita `READ_CONTACTS`: con `ACTION_PICK`

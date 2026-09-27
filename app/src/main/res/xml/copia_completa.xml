@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copia de Android hasta Android 11. Lo mismo que reglas_copia.xml. -->
+<full-backup-content>
+    <include domain="database" path="contactos.db" />
+    <include domain="database" path="contactos.db-wal" />
+    <include domain="sharedpref" path="ajustes.xml" />
+    <include domain="sharedpref" path="valoracion.xml" />
+</full-backup-content>

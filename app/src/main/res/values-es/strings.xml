@@ -252,4 +252,30 @@
     <string name="dia">Día</string>
     <string name="mes">Mes</string>
     <string name="guardar">Guardar</string>
+
+    <!-- Bateria (Bateria.kt) -->
+    <string name="bateria_titulo">Avisos en segundo plano</string>
+    <string name="bateria_libre">Contacto puede avisarte aunque esté cerrada.</string>
+    <string name="bateria_optimizada">El ahorro de batería puede retrasar o bloquear los avisos. Deja que Contacto funcione en segundo plano.</string>
+    <string name="bateria_restringida">Android tiene a Contacto restringida en segundo plano: puede que los avisos no lleguen.</string>
+    <string name="bateria_quitar">Permitir en segundo plano</string>
+    <string name="bateria_autoarranque">Inicio automático</string>
+    <string name="bateria_autoarranque_explicacion">En los teléfonos %1$s, activa también el inicio automático de Contacto.</string>
+    <string name="bateria_guia">Guía paso a paso para %1$s</string>
+    <string name="bateria_aviso_titulo">Que no se pierdan los avisos</string>
+    <string name="bateria_aviso_texto">Para ahorrar batería, %1$s puede cerrar Contacto, y entonces los avisos llegan tarde o no llegan. Deja que funcione en segundo plano. También puedes hacerlo luego en Ajustes.</string>
+    <string name="bateria_ajustar">Ajustar</string>
+
+    <!-- Copia de seguridad -->
+    <string name="copia_titulo">Copia de seguridad</string>
+    <string name="copia_explicacion">Tu gente y tus ajustes van en la copia de Google del teléfono. Para pasarlos tú a mano, exporta un archivo y ábrelo en el otro teléfono.</string>
+    <string name="copia_exportar">Exportar</string>
+    <string name="copia_importar">Importar</string>
+    <string name="copia_importada">Copia importada: %1$d nuevas, %2$d actualizadas</string>
+    <string name="copia_no_valida">Ese archivo no es una copia de Contacto</string>
+    <string name="copia_fallo">No se ha podido leer o escribir el archivo</string>
+    <plurals name="copia_exportada">
+        <item quantity="one">%d persona exportada</item>
+        <item quantity="other">%d personas exportadas</item>
+    </plurals>
 </resources>

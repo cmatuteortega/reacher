@@ -24,8 +24,15 @@
     <!-- Vibraciones compuestas de las burbujas (choques con fuerza variable). -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!--
+      Copia de Android: solo la gente y los ajustes (ver res/xml/reglas_copia.xml).
+      Ademas, en Ajustes se exporta e importa un archivo JSON a mano.
+    -->
     <application
         android:name=".App"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/reglas_copia"
+        android:fullBackupContent="@xml/copia_completa"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
