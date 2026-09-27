@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Marca -->
+    <string name="subtitulo">Береги свою систему</string>
+
+    <!-- Avisos -->
+    <string name="canal_nombre">Напоминания о звонках</string>
+    <string name="canal_descripcion">Уведомление, когда пора позвонить контакту</string>
+    <string name="aviso_contactar">Связаться</string>
+    <string name="aviso_mas_tarde">Позже</string>
+    <string name="aviso_mas_opciones">Ещё</string>
+    <string name="aviso_llamar">Нажми, чтобы позвонить: %1$s</string>
+    <string name="aviso_whatsapp">Нажми, чтобы написать в WhatsApp: %1$s</string>
+    <string name="aviso_sms">Нажми, чтобы отправить SMS: %1$s</string>
+    <string name="aviso_telegram">Нажми, чтобы написать в Telegram: %1$s</string>
+
+    <!-- Formas de contacto -->
+    <string name="medio_marcador">Открыть набор номера</string>
+    <string name="medio_llamada">Звонить сразу</string>
+    <string name="medio_sms">Сообщение (SMS)</string>
+    <string name="medio_marcador_corto">Набор</string>
+    <string name="medio_llamada_corto">Звонок</string>
+    <string name="boton_llamar">Позвонить</string>
+    <string name="boton_mensaje">Написать</string>
+    <string name="sin_app_para">Нет приложения для: %1$s</string>
+    <string name="sin_permiso_llamadas">Без разрешения на звонки откроется набор номера</string>
+
+    <!-- Permisos y mensajes cortos -->
+    <string name="sin_permiso_avisos">Без разрешения напоминаний не будет</string>
+    <string name="sin_agenda">Нет приложения «Контакты»</string>
+    <string name="anotado_hoy">Отмечено: последний контакт сегодня</string>
+    <string name="contacto_eliminado">Контакт удалён</string>
+    <string name="activa_notificaciones">Включи уведомления приложения</string>
+    <string name="notificacion_prueba_enviada">Тестовое уведомление отправлено</string>
+
+    <!-- Bienvenida -->
+    <string name="bienvenida_sol_titulo">Ты — солнце</string>
+    <string name="bienvenida_sol_texto">Вокруг тебя вращаются люди, которые тебе дороги: это твоя система. Contacto напомнит, когда пора позвонить или написать каждому, чтобы никто не сошёл с твоей орбиты.</string>
+    <string name="empezar">Начать</string>
+    <string name="crea_tu_sistema">Создай свою систему</string>
+    <string name="alguien_en_orbita">Кто-то уже на твоей орбите!</string>
+    <string name="sistema_crece">Твоя система растёт</string>
+    <string name="anade_mas_texto">Добавь ещё кого-нибудь или продолжай: людей в систему всегда можно добавить позже.</string>
+    <string name="elige_agenda_texto">Выбери в контактах того, кого не хочешь терять из виду, и он выйдет на твою орбиту. В его карточке выбери, как часто и как общаться: звонок, WhatsApp, SMS или Telegram.</string>
+    <string name="continuar">Продолжить</string>
+    <string name="anadir_otra_persona">Добавить ещё человека</string>
+    <string name="elegir_de_la_agenda">Выбрать из контактов</string>
+    <string name="ahora_no">Не сейчас</string>
+    <string name="ya_esta">Готово!</string>
+    <string name="listo_con_gente">Это твоя система. Теперь можно закрыть приложение и жить своей жизнью: мы напомним, когда пора поговорить с каждым.</string>
+    <string name="listo_sin_gente">Твоя система ждёт: каждый, кого добавишь, выйдет на твою орбиту. Мы напомним, когда пора поговорить с каждым.</string>
+    <string name="entendido">Понятно</string>
+
+    <!-- Personas -->
+    <string name="ver_como_lista">Показать списком</string>
+    <string name="ver_como_burbujas">Показать пузырями</string>
+    <string name="lista_vacia">На твоей орбите пока никого.\nНажми + и выбери контакт.</string>
+    <string name="toca_llamar">Пора позвонить</string>
+    <string name="burbuja_toca">%1$s: пора позвонить</string>
+    <string name="burbuja_plazo">%1$s: %2$d %% срока</string>
+    <string name="recoger">Свернуть</string>
+    <string name="con_calma">Не к спеху</string>
+    <string name="tu_el_sol">Ты — солнце своей системы</string>
+    <string name="anadir_persona">Добавить человека</string>
+    <string name="proximo_aviso_el">следующее напоминание %1$s</string>
+
+    <!-- Ajustes -->
+    <string name="ajustes">Настройки</string>
+    <string name="volver">Назад</string>
+    <string name="recordatorios">Напоминания</string>
+    <string name="activados">Включены</string>
+    <string name="en_pausa_vuelven">На паузе: вернутся %1$s</string>
+    <string name="desactivados">Выключены, пока не включишь снова</string>
+    <string name="pausa">Пауза</string>
+    <string name="hasta_reactivar">Пока не включу снова</string>
+    <string name="horario_avisos">Время напоминаний</string>
+    <string name="horario_juntas">Двигай ручки по кольцу. Вместе — напоминания в любое время.</string>
+    <string name="horario_fuera">Двигай ручки по кольцу. Напоминание вне этого времени подождёт до %1$s.</string>
+    <string name="boton_mas_tarde_titulo">Кнопка «Позже» в уведомлении</string>
+    <string name="posponer_explicacion">Вернётся через %1$s; если это вне времени напоминаний — в %2$s. Если просто смахнуть уведомление, оно вернётся на следующий день.</string>
+    <string name="contactos_nuevos">Новые контакты</string>
+    <string name="medio_explicacion">%1$s. Предлагается при добавлении; можно изменить в карточке.</string>
+    <string name="apariencia">Оформление</string>
+    <string name="tema_sistema">Системная</string>
+    <string name="tema_claro">Светлая</string>
+    <string name="tema_oscuro">Тёмная</string>
+    <string name="depuracion">Отладка</string>
+    <string name="idioma_app">Язык приложения</string>
+    <string name="idioma_sistema">Как в телефоне (%1$s)</string>
+    <string name="idioma_explicacion">Для проверки переводов. По умолчанию приложение использует язык телефона.</string>
+
+    <!-- Ficha -->
+    <string name="nuevo_contacto">Новый контакт</string>
+    <string name="ultimo_contacto_hoy">Последний контакт: сегодня</string>
+    <string name="manten_para_anotar">Удерживай, чтобы отметить звонок</string>
+    <string name="he_llamado_hoy">Сегодня созвонились</string>
+    <string name="anotar_llamada_hoy">Отметить сегодняшний звонок</string>
+    <string name="cada_cuanto">Как часто</string>
+    <string name="al_tocar_aviso">При нажатии на уведомление</string>
+    <string name="se_guardara_hoy">Последний контакт сохранится с сегодняшней датой.</string>
+    <string name="toca_manana">Завтра</string>
+    <string name="toca_hoy">Сегодня</string>
+    <string name="mostrar_foto">Показать фото из контактов</string>
+    <string name="ultimo_contacto">Последний контакт</string>
+    <string name="proximo_aviso">Следующее напоминание</string>
+    <string name="notificacion_pulsada">Уведомление нажато %1$s</string>
+    <string name="notificacion_no_pulsada">Уведомление ещё не нажимали</string>
+    <string name="aviso_quitado">Уведомление смахнуто без контакта: %1$s</string>
+    <string name="un_dia_menos">На день меньше</string>
+    <string name="un_dia_mas">На день больше</string>
+    <string name="frecuencia">Частота</string>
+    <string name="cada">раз в</string>
+    <string name="cada_dia">Каждый день</string>
+    <string name="guardado">Сохранено</string>
+    <string name="anadir">Добавить</string>
+    <string name="avisos_de">Напоминания: %1$s</string>
+    <string name="en_pausa_burbuja">На паузе: вернутся %1$s. А пузырь тем временем растёт.</string>
+    <string name="reanudar_avisos">Возобновить напоминания</string>
+    <string name="pausar">Пауза на %1$s</string>
+    <string name="eliminar_contacto">Удалить контакт</string>
+    <string name="eliminar_a">Удалить: %1$s</string>
+    <string name="eliminar_texto">Контакт пропадёт из приложения, и напоминаний больше не будет. В контактах телефона ничего не удалится.</string>
+    <string name="eliminar">Удалить</string>
+    <string name="cancelar">Отмена</string>
+    <string name="forzar_notificacion">Отправить уведомление сейчас</string>
+    <string name="forzar_explicacion">Отправляет напоминание, даже если ещё не пора, тем же путём, что и ежедневное.</string>
+    <string name="guarda_primero">Сначала сохрани контакт, чтобы проверить уведомление.</string>
+
+    <!-- Abreviaturas -->
+    <string name="dias_corto">%d д</string>
+    <string name="horas_corto">%d ч</string>
+    <string name="atajo_1_semana">1 нед</string>
+    <string name="atajo_2_semanas">2 нед</string>
+    <string name="atajo_1_mes">1 мес</string>
+    <string name="atajo_2_meses">2 мес</string>
+    <string name="atajo_3_meses">3 мес</string>
+    <string name="atajo_6_meses">6 мес</string>
+    <string name="atajo_1_anio">1 год</string>
+
+    <!-- Horario (lector de pantalla y esfera) -->
+    <string name="horario_todo_el_dia">Время напоминаний: весь день</string>
+    <string name="horario_de_a">Время напоминаний: с %1$s до %2$s</string>
+    <string name="empezar_antes">Начинать на час раньше</string>
+    <string name="empezar_despues">Начинать на час позже</string>
+    <string name="terminar_antes">Заканчивать на час раньше</string>
+    <string name="terminar_despues">Заканчивать на час позже</string>
+    <string name="todo_el_dia">весь день</string>
+
+    <!-- Plurales -->
+    <plurals name="dias">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <plurals name="horas">
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d часа</item>
+    </plurals>
+    <plurals name="cada_dias">
+        <item quantity="one">Раз в %d день</item>
+        <item quantity="few">Раз в %d дня</item>
+        <item quantity="many">Раз в %d дней</item>
+        <item quantity="other">Раз в %d дня</item>
+    </plurals>
+    <plurals name="toca_en_dias">
+        <item quantity="one">Через %d день</item>
+        <item quantity="few">Через %d дня</item>
+        <item quantity="many">Через %d дней</item>
+        <item quantity="other">Через %d дня</item>
+    </plurals>
+    <plurals name="dias_tarde">
+        <item quantity="one">Опоздание на %d день</item>
+        <item quantity="few">Опоздание на %d дня</item>
+        <item quantity="many">Опоздание на %d дней</item>
+        <item quantity="other">Опоздание на %d дня</item>
+    </plurals>
+    <plurals name="veces">
+        <item quantity="one">%d раз</item>
+        <item quantity="few">%d раза</item>
+        <item quantity="many">%d раз</item>
+        <item quantity="other">%d раза</item>
+    </plurals>
+    <plurals name="avisos_en_pausa">
+        <item quantity="one">Напоминания на паузе %d день</item>
+        <item quantity="few">Напоминания на паузе %d дня</item>
+        <item quantity="many">Напоминания на паузе %d дней</item>
+        <item quantity="other">Напоминания на паузе %d дня</item>
+    </plurals>
+    <plurals name="con_calma_mostrar">
+        <item quantity="one">%d человек не к спеху. Показать</item>
+        <item quantity="few">%d человека не к спеху. Показать</item>
+        <item quantity="many">%d человек не к спеху. Показать</item>
+        <item quantity="other">%d человека не к спеху. Показать</item>
+    </plurals>
+    <plurals name="con_calma_recoger">
+        <item quantity="one">Свернуть %d человека не к спеху</item>
+        <item quantity="few">Свернуть %d человек не к спеху</item>
+        <item quantity="many">Свернуть %d человек не к спеху</item>
+        <item quantity="other">Свернуть %d человек не к спеху</item>
+    </plurals>
+    <plurals name="unidad_dias_desliza" tools:ignore="ImpliedQuantity">
+        <item quantity="one">день · листай ↔</item>
+        <item quantity="few">дня · листай ↔</item>
+        <item quantity="many">дней · листай ↔</item>
+        <item quantity="other">дня · листай ↔</item>
+    </plurals>
+</resources>

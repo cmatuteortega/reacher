@@ -1,7 +1,9 @@
 package com.example.recuerdallamar.datos
 
 import android.content.Context
+import androidx.annotation.StringRes
 import androidx.core.content.edit
+import com.example.recuerdallamar.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,10 +12,24 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-enum class TemaElegido(val etiqueta: String) {
-    SISTEMA("Sistema"),
-    CLARO("Claro"),
-    OSCURO("Oscuro"),
+enum class TemaElegido(@StringRes val etiqueta: Int) {
+    SISTEMA(R.string.tema_sistema),
+    CLARO(R.string.tema_claro),
+    OSCURO(R.string.tema_oscuro),
+}
+
+/**
+ * Idioma de la app. Por defecto el del telefono; los demas se eligen a mano en
+ * Ajustes > Depuracion para probar las traducciones. El nombre de cada uno va
+ * en su propio idioma, como en los ajustes del sistema. Se guarda por nombre.
+ */
+enum class IdiomaElegido(val codigo: String?, val nombre: String?) {
+    SISTEMA(null, null),
+    ES("es", "Español"),
+    EN("en", "English"),
+    FR("fr", "Français"),
+    DE("de", "Deutsch"),
+    RU("ru", "Русский"),
 }
 
 /** Como se ensena la gente en Personas; los mismos datos y el mismo orden en las dos. */
@@ -39,6 +55,7 @@ data class Ajustes(
     val medioPorDefecto: MedioContacto = MedioContacto.MARCADOR,
     val tema: TemaElegido = TemaElegido.SISTEMA,
     val vista: VistaPersonas = VistaPersonas.BURBUJAS,
+    val idioma: IdiomaElegido = IdiomaElegido.SISTEMA,
     /** La bienvenida ya se vio (o se salto): no se vuelve a ensenar. */
     val bienvenidaHecha: Boolean = false,
 ) {
@@ -82,6 +99,7 @@ class AlmacenAjustes private constructor(context: Context) {
             putString(MEDIO, nuevos.medioPorDefecto.name)
             putString(TEMA, nuevos.tema.name)
             putString(VISTA, nuevos.vista.name)
+            putString(IDIOMA, nuevos.idioma.name)
             putBoolean(BIENVENIDA, nuevos.bienvenidaHecha)
         }
         _ajustes.value = nuevos
@@ -98,6 +116,7 @@ class AlmacenAjustes private constructor(context: Context) {
             medioPorDefecto = MedioContacto.desde(preferencias.getString(MEDIO, null)),
             tema = TemaElegido.entries.firstOrNull { it.name == preferencias.getString(TEMA, null) } ?: defecto.tema,
             vista = VistaPersonas.entries.firstOrNull { it.name == preferencias.getString(VISTA, null) } ?: defecto.vista,
+            idioma = IdiomaElegido.entries.firstOrNull { it.name == preferencias.getString(IDIOMA, null) } ?: defecto.idioma,
             bienvenidaHecha = preferencias.getBoolean(BIENVENIDA, defecto.bienvenidaHecha),
         )
     }
@@ -111,6 +130,7 @@ class AlmacenAjustes private constructor(context: Context) {
         private const val MEDIO = "medio_por_defecto"
         private const val TEMA = "tema"
         private const val VISTA = "vista_personas"
+        private const val IDIOMA = "idioma"
         private const val BIENVENIDA = "bienvenida_hecha"
 
         @Volatile

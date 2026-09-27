@@ -1,28 +1,25 @@
 package com.example.recuerdallamar.datos
 
+import androidx.annotation.StringRes
+import com.example.recuerdallamar.R
+
 /**
  * Como se prefiere contactar con alguien. Decide que abre la notificacion y
  * el boton de la ficha. Se guarda por nombre: no renombrar las constantes.
  */
 enum class MedioContacto(
-    val etiqueta: String,
+    @StringRes val etiqueta: Int,
     /** Texto corto del boton de la ficha. */
-    val boton: String,
+    @StringRes val boton: Int,
+    /** Texto de la notificacion; lleva el nombre de la persona. */
+    @StringRes val aviso: Int,
 ) {
-    MARCADOR("Abrir el marcador", "Llamar"),
-    LLAMADA("Llamar directamente", "Llamar"),
-    WHATSAPP("WhatsApp", "WhatsApp"),
-    SMS("Mensaje (SMS)", "Mensaje"),
-    TELEGRAM("Telegram", "Telegram"),
+    MARCADOR(R.string.medio_marcador, R.string.boton_llamar, R.string.aviso_llamar),
+    LLAMADA(R.string.medio_llamada, R.string.boton_llamar, R.string.aviso_llamar),
+    WHATSAPP(R.string.whatsapp, R.string.whatsapp, R.string.aviso_whatsapp),
+    SMS(R.string.medio_sms, R.string.boton_mensaje, R.string.aviso_sms),
+    TELEGRAM(R.string.telegram, R.string.telegram, R.string.aviso_telegram),
     ;
-
-    /** Texto de la notificacion. */
-    fun aviso(nombre: String): String = when (this) {
-        MARCADOR, LLAMADA -> "Toca para llamar a $nombre"
-        WHATSAPP -> "Toca para escribir a $nombre por WhatsApp"
-        SMS -> "Toca para mandar un mensaje a $nombre"
-        TELEGRAM -> "Toca para escribir a $nombre por Telegram"
-    }
 
     companion object {
         /** Un nombre desconocido o ausente vuelve al marcador, lo de antes. */

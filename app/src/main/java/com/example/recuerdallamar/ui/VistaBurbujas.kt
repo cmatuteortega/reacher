@@ -55,6 +55,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
@@ -68,6 +70,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.recuerdallamar.FotoContacto
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -318,9 +321,9 @@ private fun BurbujaPersona(
         foto = FotoContacto.cargar(context, contacto.telefono, miniatura = !grande)
     }
     val descripcion = if (toca) {
-        "${contacto.nombre}, toca llamar"
+        stringResource(R.string.burbuja_toca, contacto.nombre)
     } else {
-        "${contacto.nombre}, ${(urgencia * 100).roundToInt()} % de su plazo"
+        stringResource(R.string.burbuja_plazo, contacto.nombre, (urgencia * 100).roundToInt())
     }
     val inicial = MaterialTheme.typography.headlineMedium.copy(
         fontSize = with(LocalDensity.current) { (radio * 0.8f).toSp() },
@@ -425,12 +428,12 @@ private fun BurbujaGrupo(
         fotograma = fotograma,
         radio = radio,
         orden = orden,
-        etiqueta = if (abierto) "Recoger" else "Con calma",
-        descripcion = if (abierto) {
-            "Recoger a los $cuantos que van con calma"
-        } else {
-            "$cuantos personas van con calma. Mostrarlas"
-        },
+        etiqueta = stringResource(if (abierto) R.string.recoger else R.string.con_calma),
+        descripcion = pluralStringResource(
+            if (abierto) R.plurals.con_calma_recoger else R.plurals.con_calma_mostrar,
+            cuantos,
+            cuantos,
+        ),
         atenuada = false,
         anillo = MaterialTheme.colorScheme.outlineVariant,
         latido = false,

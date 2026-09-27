@@ -1,5 +1,6 @@
 package com.example.recuerdallamar
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import com.example.recuerdallamar.avisos.Notificaciones
@@ -19,6 +20,10 @@ import java.time.LocalDateTime
  * servicio ya no pueden abrir otra app).
  */
 class NotificacionPulsadaActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(Idioma.envolver(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

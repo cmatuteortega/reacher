@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import android.content.res.Resources
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -86,6 +87,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -98,6 +101,7 @@ import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import java.time.LocalDate
@@ -166,10 +170,10 @@ fun PantallaFicha(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (guardado) "" else "Nuevo contacto") },
+                title = { Text(if (guardado) "" else stringResource(R.string.nuevo_contacto)) },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
                     }
                 },
                 actions = { if (guardado) AvisoGuardado(guardadoHace) },
@@ -198,7 +202,7 @@ fun PantallaFicha(
                 if (guardado) {
                     val yaHoy = actual.ultimoContacto == LocalDate.now()
                     BotonMantener(
-                        texto = if (yaHoy) "Último contacto: hoy" else "Mantén para anotar: he llamado hoy",
+                        texto = stringResource(if (yaHoy) R.string.ultimo_contacto_hoy else R.string.manten_para_anotar),
                         habilitado = !yaHoy,
                         onConfirmar = { onLlamadoHoy(actual.id) },
                     )
@@ -206,13 +210,13 @@ fun PantallaFicha(
                 }
             }
             val ajustes: @Composable ColumnScope.() -> Unit = {
-                TarjetaFicha("Cada cuánto") {
+                TarjetaFicha(stringResource(R.string.cada_cuanto)) {
                     SelectorFrecuencia(frecuencia, onCambio = { frecuencia = it })
                 }
-                TarjetaFicha("Al tocar el aviso") {
+                TarjetaFicha(stringResource(R.string.al_tocar_aviso)) {
                     SelectorMedio(medio = medio, onCambio = { medio = it })
                     Text(
-                        medio.etiqueta,
+                        stringResource(medio.etiqueta),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 4.dp),
@@ -227,7 +231,7 @@ fun PantallaFicha(
                     )
                 } else {
                     Text(
-                        "El último contacto se guardará con la fecha de hoy.",
+                        stringResource(R.string.se_guardara_hoy),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 4.dp),
                     )
@@ -325,11 +329,10 @@ private fun Cabecera(
                 ) {
                     Text(
                         when {
-                            n > 1 -> "Toca en $n días"
-                            n == 1 -> "Toca mañana"
-                            n == 0 -> "Toca hoy"
-                            n == -1 -> "Va 1 día tarde"
-                            else -> "Va ${-n} días tarde"
+                            n > 1 -> pluralStringResource(R.plurals.toca_en_dias, n, n)
+                            n == 1 -> stringResource(R.string.toca_manana)
+                            n == 0 -> stringResource(R.string.toca_hoy)
+                            else -> pluralStringResource(R.plurals.dias_tarde, -n, -n)
                         },
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -338,7 +341,7 @@ private fun Cabecera(
             }
         }
         if (!fotosPermitidas) {
-            TextButton(onClick = onPedirFotos) { Text("Mostrar foto de la agenda") }
+            TextButton(onClick = onPedirFotos) { Text(stringResource(R.string.mostrar_foto)) }
         }
     }
 }
@@ -362,6 +365,8 @@ private fun BotonMantener(texto: String, habilitado: Boolean, onConfirmar: () ->
         label = "fondoMantener",
     )
     val escala = 1f - 0.04f * progreso.value
+    val heLlamadoHoy = stringResource(R.string.he_llamado_hoy)
+    val anotarLlamada = stringResource(R.string.anotar_llamada_hoy)
 
     Box(
         contentAlignment = Alignment.Center,
@@ -376,9 +381,9 @@ private fun BotonMantener(texto: String, habilitado: Boolean, onConfirmar: () ->
             .background(fondo)
             .semantics {
                 role = Role.Button
-                contentDescription = if (habilitado) "He llamado hoy" else texto
+                contentDescription = if (habilitado) heLlamadoHoy else texto
                 if (habilitado) {
-                    onClick("Anotar llamada de hoy") {
+                    onClick(anotarLlamada) {
                         confirmar()
                         true
                     }
@@ -430,15 +435,15 @@ private fun BotonMantener(texto: String, habilitado: Boolean, onConfirmar: () ->
 private fun Fechas(contacto: Contacto) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Dato("Último contacto", contacto.ultimoContacto.bonita(), Modifier.weight(1f))
-            Dato("Próximo aviso", contacto.proximoAviso().bonita(), Modifier.weight(1f))
+            Dato(stringResource(R.string.ultimo_contacto), contacto.ultimoContacto.bonita(), Modifier.weight(1f))
+            Dato(stringResource(R.string.proximo_aviso), contacto.proximoAviso().bonita(), Modifier.weight(1f))
         }
         val pulsada = contacto.fechaPulsacion
         Text(
             if (contacto.notificacionPulsada && pulsada != null) {
-                "Notificación pulsada el ${pulsada.bonito()}"
+                stringResource(R.string.notificacion_pulsada, pulsada.bonito())
             } else {
-                "Notificación aún no pulsada"
+                stringResource(R.string.notificacion_no_pulsada)
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -446,8 +451,10 @@ private fun Fechas(contacto: Contacto) {
         )
         if (contacto.descartes > 0) {
             Text(
-                "Aviso quitado sin contactar: " +
-                    if (contacto.descartes == 1) "1 vez" else "${contacto.descartes} veces",
+                stringResource(
+                    R.string.aviso_quitado,
+                    pluralStringResource(R.plurals.veces, contacto.descartes, contacto.descartes),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp),
@@ -475,6 +482,9 @@ private fun SelectorFrecuencia(valor: Int, onCambio: (Int) -> Unit) {
     val vista = LocalView.current
     val actual by rememberUpdatedState(valor)
     val cambio by rememberUpdatedState(onCambio)
+    val recursos = LocalContext.current.resources
+    val frecuencia = stringResource(R.string.frecuencia)
+    val cadaTanto = recursos.cadaDias(valor)
     val poner = { n: Int ->
         val nuevo = n.coerceIn(1, FRECUENCIA_MAXIMA)
         if (nuevo != actual) {
@@ -484,14 +494,14 @@ private fun SelectorFrecuencia(valor: Int, onCambio: (Int) -> Unit) {
     }
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        BotonRepetir("−", "Un día menos", habilitado = valor > 1) { poner(actual - 1) }
+        BotonRepetir("−", stringResource(R.string.un_dia_menos), habilitado = valor > 1) { poner(actual - 1) }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .weight(1f)
                 .semantics {
-                    contentDescription = "Frecuencia"
-                    stateDescription = "Cada ${dias(valor)}"
+                    contentDescription = frecuencia
+                    stateDescription = cadaTanto
                     setProgress { valor ->
                         poner(valor.roundToInt())
                         true
@@ -511,7 +521,7 @@ private fun SelectorFrecuencia(valor: Int, onCambio: (Int) -> Unit) {
                     }
                 },
         ) {
-            Text("cada", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.cada), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             AnimatedContent(
                 targetState = valor,
                 transitionSpec = {
@@ -524,18 +534,18 @@ private fun SelectorFrecuencia(valor: Int, onCambio: (Int) -> Unit) {
                 Text(n.toString(), style = MaterialTheme.typography.displayMedium)
             }
             Text(
-                if (valor == 1) "día · desliza ↔" else "días · desliza ↔",
+                pluralStringResource(R.plurals.unidad_dias_desliza, valor),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        BotonRepetir("+", "Un día más", habilitado = valor < FRECUENCIA_MAXIMA) { poner(actual + 1) }
+        BotonRepetir("+", stringResource(R.string.un_dia_mas), habilitado = valor < FRECUENCIA_MAXIMA) { poner(actual + 1) }
     }
     Deslizador(
         opciones = ATAJOS_FRECUENCIA,
         elegida = valor,
-        texto = ::atajo,
-        descripcion = { "Cada ${dias(it)}" },
+        texto = { recursos.atajo(it) },
+        descripcion = { recursos.cadaDias(it) },
         onElegir = { cambio(it) },
     )
 }
@@ -613,7 +623,7 @@ private fun AvisoGuardado(cambios: Int) {
                 .semantics { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-            Text("Guardado", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.guardado), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -643,7 +653,7 @@ private fun BarraAcciones(medio: MedioContacto, onAnadir: (() -> Unit)?, onConta
             ) {
                 Icon(medio.icono(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(medio.boton)
+                Text(stringResource(medio.boton))
             }
             if (onAnadir != null) {
                 Button(
@@ -654,7 +664,7 @@ private fun BarraAcciones(medio: MedioContacto, onAnadir: (() -> Unit)?, onConta
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Añadir")
+                    Text(stringResource(R.string.anadir))
                 }
             }
         }
@@ -691,33 +701,33 @@ private fun PausaYBorrado(
 ) {
     var diasPausa by rememberSaveable { mutableIntStateOf(PAUSA_INICIAL) }
     var confirmandoBorrado by rememberSaveable { mutableStateOf(false) }
+    val recursos = LocalContext.current.resources
 
-    TarjetaFicha("Avisos de ${contacto.nombre}") {
+    TarjetaFicha(stringResource(R.string.avisos_de, contacto.nombre)) {
         val pausa = contacto.pausadoHasta?.takeIf { contacto.pausado() }
         if (pausa != null) {
             Text(
-                "En pausa: vuelven el ${pausa.toLocalDate().bonita()}. " +
-                    "Mientras, la burbuja sigue creciendo.",
+                stringResource(R.string.en_pausa_burbuja, pausa.toLocalDate().bonita()),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
             OutlinedButton(onClick = onReanudar, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Reanudar avisos")
+                Text(stringResource(R.string.reanudar_avisos))
             }
         } else {
             Deslizador(
                 opciones = PLAZOS_PAUSA,
                 elegida = diasPausa,
-                texto = { "$it d" },
-                descripcion = ::dias,
+                texto = { recursos.getString(R.string.dias_corto, it) },
+                descripcion = { recursos.dias(it) },
                 onElegir = { diasPausa = it },
             )
             OutlinedButton(onClick = { onPausar(diasPausa) }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Pausar ${dias(diasPausa)}")
+                Text(stringResource(R.string.pausar, recursos.dias(diasPausa)))
             }
         }
         TextButton(
@@ -727,15 +737,15 @@ private fun PausaYBorrado(
         ) {
             Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Eliminar contacto")
+            Text(stringResource(R.string.eliminar_contacto))
         }
     }
 
     if (confirmandoBorrado) {
         AlertDialog(
             onDismissRequest = { confirmandoBorrado = false },
-            title = { Text("Eliminar a ${contacto.nombre}") },
-            text = { Text("Dejará de salir en la app y no habrá más avisos. En la agenda del teléfono no se borra nada.") },
+            title = { Text(stringResource(R.string.eliminar_a, contacto.nombre)) },
+            text = { Text(stringResource(R.string.eliminar_texto)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -743,9 +753,9 @@ private fun PausaYBorrado(
                         onEliminar()
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text("Eliminar") }
+                ) { Text(stringResource(R.string.eliminar)) }
             },
-            dismissButton = { TextButton(onClick = { confirmandoBorrado = false }) { Text("Cancelar") } },
+            dismissButton = { TextButton(onClick = { confirmandoBorrado = false }) { Text(stringResource(R.string.cancelar)) } },
         )
     }
 }
@@ -753,18 +763,14 @@ private fun PausaYBorrado(
 @Composable
 private fun Depuracion(guardado: Boolean, onForzar: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 4.dp)) {
-        Text("Depuración", style = MaterialTheme.typography.labelLarge)
+        Text(stringResource(R.string.depuracion), style = MaterialTheme.typography.labelLarge)
         OutlinedButton(onClick = onForzar, enabled = guardado, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Filled.Build, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text("Forzar notificación ahora")
+            Text(stringResource(R.string.forzar_notificacion))
         }
         Text(
-            if (guardado) {
-                "Lanza el aviso aunque no toque todavía, por el mismo camino que el diario."
-            } else {
-                "Guarda el contacto primero para poder probar su notificación."
-            },
+            stringResource(if (guardado) R.string.forzar_explicacion else R.string.guarda_primero),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -778,15 +784,13 @@ private val PLAZOS_PAUSA = listOf(1, 3, 7, 14, 30)
 
 private val ATAJOS_FRECUENCIA = listOf(7, 14, 30, 60, 90, 180, 365)
 
-private fun atajo(d: Int): String = when (d) {
-    7 -> "1 sem"
-    14 -> "2 sem"
-    30 -> "1 mes"
-    60 -> "2 m"
-    90 -> "3 m"
-    180 -> "6 m"
-    365 -> "1 año"
-    else -> "$d d"
+private fun Resources.atajo(d: Int): String = when (d) {
+    7 -> getString(R.string.atajo_1_semana)
+    14 -> getString(R.string.atajo_2_semanas)
+    30 -> getString(R.string.atajo_1_mes)
+    60 -> getString(R.string.atajo_2_meses)
+    90 -> getString(R.string.atajo_3_meses)
+    180 -> getString(R.string.atajo_6_meses)
+    365 -> getString(R.string.atajo_1_anio)
+    else -> getString(R.string.dias_corto, d)
 }
-
-private fun dias(d: Int): String = if (d == 1) "1 día" else "$d días"

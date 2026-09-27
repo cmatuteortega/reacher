@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.recuerdallamar.Idioma
 import com.example.recuerdallamar.MainActivity
 import com.example.recuerdallamar.NotificacionPulsadaActivity
 import com.example.recuerdallamar.R
@@ -20,12 +21,14 @@ import com.example.recuerdallamar.datos.Contacto
 object Notificaciones {
     private const val CANAL = "recordatorios"
 
+    /** Crearlo otra vez con el mismo id solo le cambia el nombre: asi sigue al idioma. */
     fun crearCanal(context: Context) {
+        val textos = Idioma.envolver(context)
         val canal = NotificationChannel(
             CANAL,
-            "Recordatorios de llamada",
+            textos.getString(R.string.canal_nombre),
             NotificationManager.IMPORTANCE_DEFAULT,
-        ).apply { description = "Aviso cuando toca llamar a un contacto" }
+        ).apply { description = textos.getString(R.string.canal_descripcion) }
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(canal)
     }
 
@@ -37,6 +40,8 @@ object Notificaciones {
     @SuppressLint("MissingPermission") // comprobado en permitidas()
     fun mostrar(context: Context, contacto: Contacto) {
         if (!permitidas(context)) return
+        // Sale del worker, sin actividad: el idioma elegido hay que ponerlo a mano.
+        val textos = Idioma.envolver(context)
 
         // Numero y medio viajan en el intent para no esperar a la base de datos al tocar.
         val intent = Intent(context, NotificacionPulsadaActivity::class.java).apply {
@@ -57,7 +62,7 @@ object Notificaciones {
             .setSmallIcon(R.drawable.ic_notificacion)
             .setColor(ContextCompat.getColor(context, R.color.teja))
             .setContentTitle(contacto.nombre)
-            .setContentText(contacto.medio.aviso(contacto.nombre))
+            .setContentText(textos.getString(contacto.medio.aviso, contacto.nombre))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setContentIntent(pendiente)
             .setAutoCancel(true)
@@ -65,11 +70,11 @@ object Notificaciones {
             // al retirarlo la app con cancel().
             .setDeleteIntent(AccionesAviso.pendiente(context, AccionesAviso.DESCARTADO, contacto.id))
             // Tocar el boton es lo mismo que tocar el aviso.
-            .addAction(0, "Contactar", pendiente)
-            .addAction(0, "Más tarde", AccionesAviso.pendiente(context, AccionesAviso.MAS_TARDE, contacto.id))
+            .addAction(0, textos.getString(R.string.aviso_contactar), pendiente)
+            .addAction(0, textos.getString(R.string.aviso_mas_tarde), AccionesAviso.pendiente(context, AccionesAviso.MAS_TARDE, contacto.id))
             // Android deja tres botones; el tercero lleva a la ficha, donde estan
             // "He llamado hoy" (si ya se hablo por otro lado), pausar y eliminar.
-            .addAction(0, "Más opciones", abrirFicha(context, contacto.id))
+            .addAction(0, textos.getString(R.string.aviso_mas_opciones), abrirFicha(context, contacto.id))
             .build()
 
         NotificationManagerCompat.from(context).notify(contacto.id.toInt(), notificacion)

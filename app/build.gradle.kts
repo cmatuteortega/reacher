@@ -33,6 +33,13 @@ android {
     buildFeatures {
         compose = true
     }
+    // El idioma se puede elegir dentro de la app (Ajustes > Depuracion): todas
+    // las traducciones tienen que venir en el APK, no solo la del telefono.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {

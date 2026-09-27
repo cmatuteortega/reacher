@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Marca -->
+    <string name="subtitulo">Pflege dein System</string>
+
+    <!-- Avisos -->
+    <string name="canal_nombre">Anruferinnerungen</string>
+    <string name="canal_descripcion">Hinweis, wenn es Zeit ist, jemanden anzurufen</string>
+    <string name="aviso_contactar">Kontaktieren</string>
+    <string name="aviso_mas_tarde">Später</string>
+    <string name="aviso_mas_opciones">Weitere Optionen</string>
+    <string name="aviso_llamar">Tippe, um %1$s anzurufen</string>
+    <string name="aviso_whatsapp">Tippe, um %1$s auf WhatsApp zu schreiben</string>
+    <string name="aviso_sms">Tippe, um %1$s eine SMS zu schreiben</string>
+    <string name="aviso_telegram">Tippe, um %1$s auf Telegram zu schreiben</string>
+
+    <!-- Formas de contacto -->
+    <string name="medio_marcador">Wähltastatur öffnen</string>
+    <string name="medio_llamada">Direkt anrufen</string>
+    <string name="medio_sms">Nachricht (SMS)</string>
+    <string name="medio_marcador_corto">Wählen</string>
+    <string name="medio_llamada_corto">Anruf</string>
+    <string name="boton_llamar">Anrufen</string>
+    <string name="boton_mensaje">Nachricht</string>
+    <string name="sin_app_para">Keine App für %1$s</string>
+    <string name="sin_permiso_llamadas">Ohne Anrufberechtigung öffnet sich die Wähltastatur</string>
+
+    <!-- Permisos y mensajes cortos -->
+    <string name="sin_permiso_avisos">Ohne Berechtigung gibt es keine Erinnerungen</string>
+    <string name="sin_agenda">Keine Kontakte-App gefunden</string>
+    <string name="anotado_hoy">Eingetragen: letzter Kontakt heute</string>
+    <string name="contacto_eliminado">Kontakt gelöscht</string>
+    <string name="activa_notificaciones">Aktiviere die Benachrichtigungen der App</string>
+    <string name="notificacion_prueba_enviada">Testbenachrichtigung gesendet</string>
+
+    <!-- Bienvenida -->
+    <string name="bienvenida_sol_titulo">Du bist die Sonne</string>
+    <string name="bienvenida_sol_texto">Um dich kreisen die Menschen, die dir wichtig sind: Das ist dein System. Contacto erinnert dich, wenn es Zeit ist, jemanden anzurufen oder ihm zu schreiben, damit niemand aus deiner Umlaufbahn driftet.</string>
+    <string name="empezar">Los geht\'s</string>
+    <string name="crea_tu_sistema">Erschaffe dein System</string>
+    <string name="alguien_en_orbita">Jemand ist schon in deiner Umlaufbahn!</string>
+    <string name="sistema_crece">Dein System wächst</string>
+    <string name="anade_mas_texto">Füge noch jemanden hinzu oder mach weiter: Du kannst deinem System später jederzeit Leute hinzufügen.</string>
+    <string name="elige_agenda_texto">Wähle aus deinen Kontakten jemanden, den du nicht aus den Augen verlieren willst, und er tritt in deine Umlaufbahn ein. In seinem Profil legst du fest, wie oft ihr euch meldet und wie: Anruf, WhatsApp, SMS oder Telegram.</string>
+    <string name="continuar">Weiter</string>
+    <string name="anadir_otra_persona">Weitere Person hinzufügen</string>
+    <string name="elegir_de_la_agenda">Aus Kontakten wählen</string>
+    <string name="ahora_no">Nicht jetzt</string>
+    <string name="ya_esta">Fertig!</string>
+    <string name="listo_con_gente">Das ist dein System. Jetzt kannst du die App schließen und dein Leben genießen: Wir melden uns, wenn es Zeit ist, mit jemandem zu sprechen.</string>
+    <string name="listo_sin_gente">Dein System wartet: Wen du hinzufügst, tritt in deine Umlaufbahn ein. Wir melden uns, wenn es Zeit ist, mit jemandem zu sprechen.</string>
+    <string name="entendido">Verstanden</string>
+
+    <!-- Personas -->
+    <string name="ver_como_lista">Als Liste anzeigen</string>
+    <string name="ver_como_burbujas">Als Blasen anzeigen</string>
+    <string name="lista_vacia">Noch niemand in deiner Umlaufbahn.\nTippe auf + und wähle einen Kontakt.</string>
+    <string name="toca_llamar">Zeit für einen Anruf</string>
+    <string name="burbuja_toca">%1$s, Zeit für einen Anruf</string>
+    <string name="burbuja_plazo">%1$s, %2$d %% der Frist</string>
+    <string name="recoger">Einklappen</string>
+    <string name="con_calma">Entspannt</string>
+    <string name="tu_el_sol">Du, die Sonne deines Systems</string>
+    <string name="anadir_persona">Person hinzufügen</string>
+    <string name="proximo_aviso_el">nächste Erinnerung %1$s</string>
+
+    <!-- Ajustes -->
+    <string name="ajustes">Einstellungen</string>
+    <string name="volver">Zurück</string>
+    <string name="recordatorios">Erinnerungen</string>
+    <string name="activados">Aktiviert</string>
+    <string name="en_pausa_vuelven">Pausiert: wieder ab %1$s</string>
+    <string name="desactivados">Aus, bis du sie wieder einschaltest</string>
+    <string name="pausa">Pause</string>
+    <string name="hasta_reactivar">Bis ich sie wieder einschalte</string>
+    <string name="horario_avisos">Erinnerungszeiten</string>
+    <string name="horario_juntas">Zieh die Griffe am Ring entlang. Übereinander: Erinnerungen zu jeder Uhrzeit.</string>
+    <string name="horario_fuera">Zieh die Griffe am Ring entlang. Eine Erinnerung außerhalb wartet bis %1$s.</string>
+    <string name="boton_mas_tarde_titulo">„Später“-Taste der Erinnerung</string>
+    <string name="posponer_explicacion">Sie kommt nach %1$s wieder; liegt das außerhalb der Erinnerungszeiten, um %2$s. Wischst du sie einfach weg, kommt sie am nächsten Tag wieder.</string>
+    <string name="contactos_nuevos">Neue Kontakte</string>
+    <string name="medio_explicacion">%1$s. Wird beim Hinzufügen vorgeschlagen; im Profil änderbar.</string>
+    <string name="apariencia">Darstellung</string>
+    <string name="tema_sistema">System</string>
+    <string name="tema_claro">Hell</string>
+    <string name="tema_oscuro">Dunkel</string>
+    <string name="depuracion">Debug</string>
+    <string name="idioma_app">App-Sprache</string>
+    <string name="idioma_sistema">Wie das Telefon (%1$s)</string>
+    <string name="idioma_explicacion">Zum Testen der Übersetzungen. Standardmäßig folgt die App der Sprache des Telefons.</string>
+
+    <!-- Ficha -->
+    <string name="nuevo_contacto">Neuer Kontakt</string>
+    <string name="ultimo_contacto_hoy">Letzter Kontakt: heute</string>
+    <string name="manten_para_anotar">Halten zum Eintragen: heute angerufen</string>
+    <string name="he_llamado_hoy">Heute angerufen</string>
+    <string name="anotar_llamada_hoy">Heutigen Anruf eintragen</string>
+    <string name="cada_cuanto">Wie oft</string>
+    <string name="al_tocar_aviso">Beim Tippen auf die Erinnerung</string>
+    <string name="se_guardara_hoy">Der letzte Kontakt wird mit dem heutigen Datum gespeichert.</string>
+    <string name="toca_manana">Morgen fällig</string>
+    <string name="toca_hoy">Heute fällig</string>
+    <string name="mostrar_foto">Foto aus den Kontakten zeigen</string>
+    <string name="ultimo_contacto">Letzter Kontakt</string>
+    <string name="proximo_aviso">Nächste Erinnerung</string>
+    <string name="notificacion_pulsada">Benachrichtigung angetippt am %1$s</string>
+    <string name="notificacion_no_pulsada">Benachrichtigung noch nicht angetippt</string>
+    <string name="aviso_quitado">Erinnerung ohne Kontakt weggewischt: %1$s</string>
+    <string name="un_dia_menos">Einen Tag weniger</string>
+    <string name="un_dia_mas">Einen Tag mehr</string>
+    <string name="frecuencia">Häufigkeit</string>
+    <string name="cada">alle</string>
+    <string name="cada_dia">Jeden Tag</string>
+    <string name="guardado">Gespeichert</string>
+    <string name="anadir">Hinzufügen</string>
+    <string name="avisos_de">Erinnerungen für %1$s</string>
+    <string name="en_pausa_burbuja">Pausiert: wieder ab %1$s. Bis dahin wächst die Blase weiter.</string>
+    <string name="reanudar_avisos">Erinnerungen fortsetzen</string>
+    <string name="pausar">%1$s pausieren</string>
+    <string name="eliminar_contacto">Kontakt löschen</string>
+    <string name="eliminar_a">%1$s löschen</string>
+    <string name="eliminar_texto">Die Person erscheint nicht mehr in der App und es gibt keine Erinnerungen mehr. In den Kontakten des Telefons wird nichts gelöscht.</string>
+    <string name="eliminar">Löschen</string>
+    <string name="cancelar">Abbrechen</string>
+    <string name="forzar_notificacion">Benachrichtigung jetzt senden</string>
+    <string name="forzar_explicacion">Sendet die Erinnerung, auch wenn sie noch nicht fällig ist, auf demselben Weg wie die tägliche.</string>
+    <string name="guarda_primero">Speichere den Kontakt zuerst, um seine Benachrichtigung zu testen.</string>
+
+    <!-- Abreviaturas -->
+    <string name="dias_corto">%d T</string>
+    <string name="horas_corto">%d h</string>
+    <string name="atajo_1_semana">1 Wo.</string>
+    <string name="atajo_2_semanas">2 Wo.</string>
+    <string name="atajo_1_mes">1 Mon.</string>
+    <string name="atajo_2_meses">2 M.</string>
+    <string name="atajo_3_meses">3 M.</string>
+    <string name="atajo_6_meses">6 M.</string>
+    <string name="atajo_1_anio">1 J.</string>
+
+    <!-- Horario (lector de pantalla y esfera) -->
+    <string name="horario_todo_el_dia">Erinnerungszeiten: ganztägig</string>
+    <string name="horario_de_a">Erinnerungszeiten: von %1$s bis %2$s</string>
+    <string name="empezar_antes">Eine Stunde früher beginnen</string>
+    <string name="empezar_despues">Eine Stunde später beginnen</string>
+    <string name="terminar_antes">Eine Stunde früher enden</string>
+    <string name="terminar_despues">Eine Stunde später enden</string>
+    <string name="todo_el_dia">ganztägig</string>
+
+    <!-- Plurales -->
+    <plurals name="dias">
+        <item quantity="one">%d Tag</item>
+        <item quantity="other">%d Tage</item>
+    </plurals>
+    <plurals name="horas">
+        <item quantity="one">%d Stunde</item>
+        <item quantity="other">%d Stunden</item>
+    </plurals>
+    <plurals name="cada_dias">
+        <item quantity="one">Alle %d Tage</item>
+        <item quantity="other">Alle %d Tage</item>
+    </plurals>
+    <plurals name="toca_en_dias">
+        <item quantity="one">In %d Tag fällig</item>
+        <item quantity="other">In %d Tagen fällig</item>
+    </plurals>
+    <plurals name="dias_tarde">
+        <item quantity="one">%d Tag überfällig</item>
+        <item quantity="other">%d Tage überfällig</item>
+    </plurals>
+    <plurals name="veces">
+        <item quantity="one">%d-mal</item>
+        <item quantity="other">%d-mal</item>
+    </plurals>
+    <plurals name="avisos_en_pausa">
+        <item quantity="one">Erinnerungen %d Tag pausiert</item>
+        <item quantity="other">Erinnerungen %d Tage pausiert</item>
+    </plurals>
+    <plurals name="con_calma_mostrar">
+        <item quantity="one">%d Person ist entspannt. Anzeigen</item>
+        <item quantity="other">%d Personen sind entspannt. Anzeigen</item>
+    </plurals>
+    <plurals name="con_calma_recoger">
+        <item quantity="one">%d entspannte Person einklappen</item>
+        <item quantity="other">%d entspannte Personen einklappen</item>
+    </plurals>
+    <plurals name="unidad_dias_desliza" tools:ignore="ImpliedQuantity">
+        <item quantity="one">Tag · wischen ↔</item>
+        <item quantity="other">Tage · wischen ↔</item>
+    </plurals>
+</resources>

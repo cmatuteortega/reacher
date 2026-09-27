@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -40,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -49,13 +53,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Ajustes
+import com.example.recuerdallamar.datos.IdiomaElegido
 import com.example.recuerdallamar.datos.TemaElegido
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 /** A partir de este ancho (tablet, plegable abierto, movil apaisado) van dos columnas. */
 private val ANCHO_DOS_COLUMNAS = 600.dp
@@ -72,10 +82,10 @@ fun PantallaAjustes(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text(stringResource(R.string.ajustes)) },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
                     }
                 },
                 scrollBehavior = plegado,
@@ -107,6 +117,7 @@ fun PantallaAjustes(
                             TarjetaPosponer(ajustes, onCambiar)
                             TarjetaMedio(ajustes, onCambiar)
                             TarjetaApariencia(ajustes, onCambiar)
+                            TarjetaDepuracion(ajustes, onCambiar)
                         }
                     }
                 } else {
@@ -116,8 +127,17 @@ fun PantallaAjustes(
                         TarjetaPosponer(ajustes, onCambiar)
                         TarjetaMedio(ajustes, onCambiar)
                         TarjetaApariencia(ajustes, onCambiar)
+                        TarjetaDepuracion(ajustes, onCambiar)
                     }
                 }
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    stringResource(R.string.app_name) + " · " + stringResource(R.string.subtitulo),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -136,6 +156,8 @@ private fun TarjetaAvisos(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) ->
     val encendidos = ajustes.avisosEncendidos(hoy)
     val pausa = ajustes.pausaHasta.takeIf { !encendidos }
     val diasPausa: Int? = pausa?.let { ChronoUnit.DAYS.between(hoy, it).toInt() }
+    val recursos = LocalContext.current.resources
+    val hastaReactivar = stringResource(R.string.hasta_reactivar)
 
     val interaccion = remember { MutableInteractionSource() }
     val escala = escalaAlPulsar(interaccion, hundido = 0.97f)
@@ -172,12 +194,12 @@ private fun TarjetaAvisos(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) ->
                     .padding(horizontal = 20.dp, vertical = 20.dp),
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text("Recordatorios", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.recordatorios), style = MaterialTheme.typography.titleLarge)
                     Explicacion(
                         when {
-                            encendidos -> "Activados"
-                            pausa != null -> "En pausa: vuelven el ${pausa.bonita()}"
-                            else -> "Desactivados hasta que los vuelvas a activar"
+                            encendidos -> stringResource(R.string.activados)
+                            pausa != null -> stringResource(R.string.en_pausa_vuelven, pausa.bonita())
+                            else -> stringResource(R.string.desactivados)
                         },
                     )
                 }
@@ -185,13 +207,13 @@ private fun TarjetaAvisos(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) ->
             }
             AnimatedVisibility(visible = !encendidos) {
                 Column(Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp)) {
-                    Text("Pausa", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.pausa), style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(8.dp))
                     Deslizador(
                         opciones = PLAZOS_PAUSA,
                         elegida = diasPausa,
-                        texto = { d -> d?.let { "$it d" } ?: "∞" },
-                        descripcion = { d -> d?.let(::dias) ?: "Hasta que los vuelva a activar" },
+                        texto = { d -> d?.let { recursos.getString(R.string.dias_corto, it) } ?: "∞" },
+                        descripcion = { d -> d?.let { recursos.dias(it) } ?: hastaReactivar },
                         onElegir = { d ->
                             onCambiar { it.copy(avisosActivos = false, pausaHasta = d?.let { n -> hoy.plusDays(n.toLong()) }) }
                         },
@@ -204,7 +226,7 @@ private fun TarjetaAvisos(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) ->
 
 @Composable
 private fun TarjetaHorario(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
-    Tarjeta("Horario de avisos") {
+    Tarjeta(stringResource(R.string.horario_avisos)) {
         DialFranja(
             desde = ajustes.horaDesde,
             hasta = ajustes.horaHasta,
@@ -216,9 +238,9 @@ private fun TarjetaHorario(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -
         )
         Explicacion(
             if (ajustes.horaDesde == ajustes.horaHasta) {
-                "Arrastra las asas por el anillo. Juntas: se avisa a cualquier hora."
+                stringResource(R.string.horario_juntas)
             } else {
-                "Arrastra las asas por el anillo. Un aviso que caiga fuera espera a las ${hora(ajustes.horaDesde)}."
+                stringResource(R.string.horario_fuera, hora(ajustes.horaDesde))
             },
         )
     }
@@ -226,36 +248,36 @@ private fun TarjetaHorario(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -
 
 @Composable
 private fun TarjetaPosponer(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
-    Tarjeta("Botón \"Más tarde\" del aviso") {
+    val recursos = LocalContext.current.resources
+    Tarjeta(stringResource(R.string.boton_mas_tarde_titulo)) {
         Deslizador(
             opciones = HORAS_POSPONER,
             elegida = ajustes.horasPosponer,
-            texto = { "${it}h" },
-            descripcion = ::horas,
+            texto = { recursos.getString(R.string.horas_corto, it) },
+            descripcion = { recursos.horas(it) },
             onElegir = { h -> onCambiar { it.copy(horasPosponer = h) } },
         )
         Explicacion(
-            "Vuelve al cabo de ${horas(ajustes.horasPosponer)}; si cae fuera del horario, " +
-                "a las ${hora(ajustes.horaDesde)}. Si quitas el aviso sin más, vuelve al día siguiente.",
+            stringResource(R.string.posponer_explicacion, recursos.horas(ajustes.horasPosponer), hora(ajustes.horaDesde)),
         )
     }
 }
 
 @Composable
 private fun TarjetaMedio(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
-    Tarjeta("Contactos nuevos") {
+    Tarjeta(stringResource(R.string.contactos_nuevos)) {
         SelectorMedio(
             medio = ajustes.medioPorDefecto,
             onCambio = { medio -> onCambiar { it.copy(medioPorDefecto = medio) } },
         )
-        Explicacion("${ajustes.medioPorDefecto.etiqueta}. Se propone al añadir a alguien; en su ficha se puede cambiar.")
+        Explicacion(stringResource(R.string.medio_explicacion, stringResource(ajustes.medioPorDefecto.etiqueta)))
     }
 }
 
 @Composable
 private fun TarjetaApariencia(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
     val vista = LocalView.current
-    Tarjeta("Apariencia") {
+    Tarjeta(stringResource(R.string.apariencia)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
@@ -277,12 +299,64 @@ private fun TarjetaApariencia(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes
                             .fillMaxWidth()
                             .height(56.dp),
                     )
-                    Text(tema.etiqueta, style = MaterialTheme.typography.labelLarge, color = color)
+                    Text(stringResource(tema.etiqueta), style = MaterialTheme.typography.labelLarge, color = color)
                 }
             }
         }
     }
 }
+
+/**
+ * Idioma de la app, para probar las traducciones sin cambiar el del telefono.
+ * Al elegir otro, MainActivity se rehace ya en ese idioma.
+ */
+@Composable
+private fun TarjetaDepuracion(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
+    val vista = LocalView.current
+    // El del telefono: el de la aplicacion, que no lleva el elegido aqui (solo lo llevan las actividades).
+    val delTelefono = LocalContext.current.applicationContext.resources.configuration.locales[0]
+    Tarjeta(stringResource(R.string.depuracion)) {
+        Text(
+            stringResource(R.string.idioma_app),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
+        Column(Modifier.selectableGroup()) {
+            IdiomaElegido.entries.forEach { idioma ->
+                val elegido = ajustes.idioma == idioma
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .selectable(
+                            selected = elegido,
+                            role = Role.RadioButton,
+                            onClick = {
+                                if (!elegido) {
+                                    vista.toque()
+                                    onCambiar { it.copy(idioma = idioma) }
+                                }
+                            },
+                        ),
+                ) {
+                    RadioButton(selected = elegido, onClick = null, modifier = Modifier.padding(horizontal = 12.dp))
+                    Text(
+                        idioma.nombre
+                            ?: stringResource(R.string.idioma_sistema, delTelefono.nombreEnSuIdioma()),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+            }
+        }
+        Explicacion(stringResource(R.string.idioma_explicacion))
+    }
+}
+
+/** "Español", "English"...: cada idioma con su propio nombre. */
+private fun Locale.nombreEnSuIdioma(): String =
+    getDisplayLanguage(this).replaceFirstChar { it.titlecase(this) }
 
 /** Pantalla en miniatura con los colores del tema; la del sistema, partida en diagonal. */
 @Composable
@@ -356,7 +430,3 @@ private val HORAS_POSPONER = listOf(1, 2, 3, 4, 6, 8, 12)
 
 /** Plazos de pausa en dias; null es hasta volver a activarlos. */
 private val PLAZOS_PAUSA: List<Int?> = listOf(1, 3, 7, 14, 30, null)
-
-private fun horas(h: Int): String = if (h == 1) "1 hora" else "$h horas"
-
-private fun dias(d: Int): String = if (d == 1) "1 día" else "$d días"

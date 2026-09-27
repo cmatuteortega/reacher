@@ -2,6 +2,7 @@ package com.example.recuerdallamar
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -54,14 +55,27 @@ class MainActivity : ComponentActivity() {
     /** Contacto cuya ficha pide abrir el boton "Mas opciones" del aviso. */
     private val fichaPedida = MutableStateFlow<Long?>(null)
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(Idioma.envolver(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         // Al recrear (p. ej. al girar) el intent sigue ahi, pero ya se atendio.
         if (savedInstanceState == null) atender(intent)
         val almacen = AlmacenAjustes.de(this)
+        val idiomaAlCrear = almacen.ajustes.value.idioma
         setContent {
             val ajustes by almacen.ajustes.collectAsStateWithLifecycle()
+            // Otro idioma en Ajustes: se rehace la actividad para que lo coja
+            // todo; rememberSaveable deja al usuario en la misma pantalla.
+            LaunchedEffect(ajustes.idioma) {
+                if (ajustes.idioma != idiomaAlCrear) {
+                    Notificaciones.crearCanal(applicationContext)
+                    recreate()
+                }
+            }
             val oscuro = ajustes.tema.esOscuro()
             // Los iconos de las barras del sistema siguen al tema elegido en la
             // app, no al del sistema: si no, en claro forzado saldrian blancos.
@@ -171,7 +185,7 @@ private fun AppRecuerda(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { resultado ->
         if (resultado[Manifest.permission.POST_NOTIFICATIONS] == false) {
-            Toast.makeText(context, "Sin permiso no habra recordatorios", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.sin_permiso_avisos), Toast.LENGTH_LONG).show()
         }
         resultado[Manifest.permission.READ_CONTACTS]?.let { concedido ->
             fotosPermitidas = concedido
@@ -228,7 +242,7 @@ private fun AppRecuerda(
         try {
             elegir.launch(Unit)
         } catch (e: android.content.ActivityNotFoundException) {
-            Toast.makeText(context, "No hay agenda de contactos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.sin_agenda), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -300,23 +314,23 @@ private fun AppRecuerda(
                 onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
                 onLlamadoHoy = { id ->
                     vm.llamadoHoy(id)
-                    Toast.makeText(context, "Anotado: último contacto hoy", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.anotado_hoy), Toast.LENGTH_SHORT).show()
                 },
                 onPausar = { id, dias ->
                     vm.pausar(id, dias)
-                    Toast.makeText(context, "Avisos en pausa $dias días", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.resources.getQuantityString(R.plurals.avisos_en_pausa, dias, dias), Toast.LENGTH_SHORT).show()
                 },
                 onReanudar = vm::reanudar,
                 onEliminar = { id ->
                     vm.eliminar(id)
-                    Toast.makeText(context, "Contacto eliminado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.contacto_eliminado), Toast.LENGTH_SHORT).show()
                 },
                 onForzarNotificacion = { id ->
                     if (!Notificaciones.permitidas(context)) {
-                        Toast.makeText(context, "Activa las notificaciones de la app", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.activa_notificaciones), Toast.LENGTH_LONG).show()
                     } else {
                         vm.forzarNotificacion(id)
-                        Toast.makeText(context, "Notificacion de prueba enviada", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.notificacion_prueba_enviada), Toast.LENGTH_SHORT).show()
                     }
                 },
                 onVolver = vm::cerrarFicha,

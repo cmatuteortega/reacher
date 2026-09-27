@@ -50,7 +50,8 @@ object Contactar {
         try {
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "No hay app para ${medio.boton}", Toast.LENGTH_SHORT).show()
+            val textos = Idioma.envolver(context)
+            Toast.makeText(context, textos.getString(R.string.sin_app_para, textos.getString(medio.boton)), Toast.LENGTH_SHORT).show()
         }
     }
 

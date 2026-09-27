@@ -48,6 +48,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 import kotlin.math.PI
 import kotlin.math.cos
@@ -384,6 +386,7 @@ private fun Sol(radio: Dp, orbitas: Orbitas, cuantos: Int) {
     )
     val esquema = MaterialTheme.colorScheme
     val caja = radio * 2 * (1f + HONDURA * 1.6f)
+    val tuElSol = stringResource(R.string.tu_el_sol)
     Canvas(
         Modifier
             .size(caja)
@@ -391,7 +394,7 @@ private fun Sol(radio: Dp, orbitas: Orbitas, cuantos: Int) {
                 scaleX = escala
                 scaleY = escala
             }
-            .semantics { contentDescription = "Tú, el sol de tu sistema" }
+            .semantics { contentDescription = tuElSol }
             .pointerInput(cara) {
                 detectTapGestures(
                     onPress = {

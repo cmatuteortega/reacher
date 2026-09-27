@@ -1,4 +1,6 @@
-# ConTacto
+# Contacto
+
+*Cuida tu sistema.*
 
 Prueba de concepto Android (Kotlin + Jetpack Compose + Material 3): una lista de
 personas a las que llamar cada cierto número de días, con un recordatorio diario
@@ -132,8 +134,26 @@ interfaz como el worker.
 | Botón «Más tarde» del aviso    | Cuántas horas tarda en volver el aviso pospuesto (por defecto 2) |
 | Forma de contacto por defecto  | La que se propone al añadir a alguien; se cambia en su ficha    |
 | Apariencia                     | Sistema, claro u oscuro                                         |
+| Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones |
 
 El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
+
+## Idiomas
+
+La app se llama **Contacto** en todos los idiomas; el lema, *Cuida tu
+sistema*, sí se traduce. Textos en español (`values-es`), inglés (`values`,
+el que ve quien tenga el teléfono en un idioma sin traducir), francés,
+alemán y ruso, con plurales de cada gramática (`<plurals>`). Añadir una
+cadena es añadirla en los cinco, o lint (`MissingTranslation`) no deja pasar
+la compilación de CI.
+
+Sigue el idioma del teléfono. En *Ajustes › Depuración* se puede fijar otro
+sin tocar el del sistema: se guarda en `Ajustes.idioma` e `Idioma.kt` lo
+pone al crear cada actividad y al montar la notificación (que sale del
+worker, sin actividad); al cambiarlo la pantalla se rehace ya traducida. En
+Android 13+ los idiomas también salen en los ajustes de idioma por app del
+sistema (`res/xml/locales_config.xml`). El App Bundle no parte por idioma,
+para que el que se elija dentro de la app esté siempre instalado.
 
 ## Datos (Room)
 

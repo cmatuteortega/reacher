@@ -37,9 +37,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 
 /** Pasos de la bienvenida: tu eres el sol, crea tu sistema y "ya puedes cerrar". */
@@ -152,20 +154,19 @@ private fun Puntos(paso: Int) {
 
 @Composable
 private fun PasoSol(onEmpezar: () -> Unit) {
+    // La marca: el nombre (igual en todos los idiomas) y su lema.
     Text(
-        "ConTacto",
+        stringResource(R.string.app_name) + " · " + stringResource(R.string.subtitulo),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.Center,
     )
     Spacer(Modifier.height(4.dp))
-    Titulo("Tú eres el sol")
+    Titulo(stringResource(R.string.bienvenida_sol_titulo))
     Spacer(Modifier.height(12.dp))
-    Explicacion(
-        "A tu alrededor gira la gente que te importa: es tu sistema. " +
-            "ConTacto te avisa cuando toca llamar o escribir a cada uno, para que nadie se aleje de tu órbita.",
-    )
+    Explicacion(stringResource(R.string.bienvenida_sol_texto))
     Spacer(Modifier.height(24.dp))
-    BotonPrincipal("Empezar", onEmpezar)
+    BotonPrincipal(stringResource(R.string.empezar), onEmpezar)
     Spacer(Modifier.height(48.dp)) // mismo pie que los otros pasos, sin boton secundario
 }
 
@@ -173,50 +174,37 @@ private fun PasoSol(onEmpezar: () -> Unit) {
 private fun PasoAnadir(cuantos: Int, onAnadir: () -> Unit, onSeguir: () -> Unit) {
     val hayAlguien = cuantos > 0
     Titulo(
-        when (cuantos) {
-            0 -> "Crea tu sistema"
-            1 -> "¡Ya tienes a alguien en órbita!"
-            else -> "Tu sistema crece"
-        },
+        stringResource(
+            when (cuantos) {
+                0 -> R.string.crea_tu_sistema
+                1 -> R.string.alguien_en_orbita
+                else -> R.string.sistema_crece
+            },
+        ),
     )
     Spacer(Modifier.height(12.dp))
-    Explicacion(
-        if (hayAlguien) {
-            "Añade a alguien más o sigue: siempre podrás sumar gente a tu sistema después."
-        } else {
-            "Elige de tu agenda a quien no quieres perder de vista y entrará en tu órbita. " +
-                "En su ficha eliges cada cuántos días hablar y cómo: llamada, WhatsApp, SMS o Telegram."
-        },
-    )
+    Explicacion(stringResource(if (hayAlguien) R.string.anade_mas_texto else R.string.elige_agenda_texto))
     Spacer(Modifier.height(24.dp))
     if (hayAlguien) {
-        BotonPrincipal("Continuar", onSeguir)
+        BotonPrincipal(stringResource(R.string.continuar), onSeguir)
         OutlinedButton(onClick = onAnadir, modifier = Modifier.fillMaxWidth().height(48.dp)) {
             Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text("Añadir a otra persona")
+            Text(stringResource(R.string.anadir_otra_persona))
         }
     } else {
-        BotonPrincipal("Elegir de la agenda", onAnadir, icono = true)
-        TextButton(onClick = onSeguir, modifier = Modifier.height(48.dp)) { Text("Ahora no") }
+        BotonPrincipal(stringResource(R.string.elegir_de_la_agenda), onAnadir, icono = true)
+        TextButton(onClick = onSeguir, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.ahora_no)) }
     }
 }
 
 @Composable
 private fun PasoListo(hayAlguien: Boolean, onTerminar: () -> Unit) {
-    Titulo("¡Ya está!")
+    Titulo(stringResource(R.string.ya_esta))
     Spacer(Modifier.height(12.dp))
-    Explicacion(
-        if (hayAlguien) {
-            "Este es tu sistema. Ahora puedes cerrar la app y seguir con tu vida: " +
-                "te avisaremos cuando toque hablar con cada uno."
-        } else {
-            "Tu sistema te espera: quien añadas entrará en tu órbita. " +
-                "Te avisaremos cuando toque hablar con cada uno."
-        },
-    )
+    Explicacion(stringResource(if (hayAlguien) R.string.listo_con_gente else R.string.listo_sin_gente))
     Spacer(Modifier.height(24.dp))
-    BotonPrincipal("Entendido", onTerminar)
+    BotonPrincipal(stringResource(R.string.entendido), onTerminar)
     Spacer(Modifier.height(48.dp))
 }
 

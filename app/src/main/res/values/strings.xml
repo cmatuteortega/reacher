@@ -1,4 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">ConTacto</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Idioma por defecto (el que ve quien tenga el telefono en uno sin traducir). -->
+    <!-- La app se llama igual en todos los idiomas. -->
+    <string name="app_name" translatable="false">Contacto</string>
+    <string name="whatsapp" translatable="false">WhatsApp</string>
+    <string name="telegram" translatable="false">Telegram</string>
+    <string name="sms" translatable="false">SMS</string>
+
+    <!-- Marca -->
+    <string name="subtitulo">Take care of your system</string>
+
+    <!-- Avisos -->
+    <string name="canal_nombre">Call reminders</string>
+    <string name="canal_descripcion">Alert when it\'s time to call a contact</string>
+    <string name="aviso_contactar">Contact</string>
+    <string name="aviso_mas_tarde">Later</string>
+    <string name="aviso_mas_opciones">More options</string>
+    <string name="aviso_llamar">Tap to call %1$s</string>
+    <string name="aviso_whatsapp">Tap to message %1$s on WhatsApp</string>
+    <string name="aviso_sms">Tap to text %1$s</string>
+    <string name="aviso_telegram">Tap to message %1$s on Telegram</string>
+
+    <!-- Formas de contacto -->
+    <string name="medio_marcador">Open the dialer</string>
+    <string name="medio_llamada">Call directly</string>
+    <string name="medio_sms">Message (SMS)</string>
+    <string name="medio_marcador_corto">Dialer</string>
+    <string name="medio_llamada_corto">Call</string>
+    <string name="boton_llamar">Call</string>
+    <string name="boton_mensaje">Message</string>
+    <string name="sin_app_para">No app found for %1$s</string>
+    <string name="sin_permiso_llamadas">Without call permission, the dialer will open</string>
+
+    <!-- Permisos y mensajes cortos -->
+    <string name="sin_permiso_avisos">Without permission there won\'t be any reminders</string>
+    <string name="sin_agenda">No contacts app found</string>
+    <string name="anotado_hoy">Noted: last contact today</string>
+    <string name="contacto_eliminado">Contact deleted</string>
+    <string name="activa_notificaciones">Turn on the app\'s notifications</string>
+    <string name="notificacion_prueba_enviada">Test notification sent</string>
+
+    <!-- Bienvenida -->
+    <string name="bienvenida_sol_titulo">You are the sun</string>
+    <string name="bienvenida_sol_texto">The people you care about revolve around you: they\'re your system. Contacto reminds you when it\'s time to call or message each of them, so no one drifts out of your orbit.</string>
+    <string name="empezar">Get started</string>
+    <string name="crea_tu_sistema">Build your system</string>
+    <string name="alguien_en_orbita">You\'ve got someone in orbit!</string>
+    <string name="sistema_crece">Your system is growing</string>
+    <string name="anade_mas_texto">Add someone else or carry on: you can always add people to your system later.</string>
+    <string name="elige_agenda_texto">Pick someone from your contacts you don\'t want to lose touch with and they\'ll join your orbit. On their card you choose how often to talk and how: call, WhatsApp, SMS or Telegram.</string>
+    <string name="continuar">Continue</string>
+    <string name="anadir_otra_persona">Add another person</string>
+    <string name="elegir_de_la_agenda">Pick from contacts</string>
+    <string name="ahora_no">Not now</string>
+    <string name="ya_esta">All set!</string>
+    <string name="listo_con_gente">This is your system. Now you can close the app and get on with your life: we\'ll let you know when it\'s time to talk to each of them.</string>
+    <string name="listo_sin_gente">Your system is waiting: whoever you add will join your orbit. We\'ll let you know when it\'s time to talk to each of them.</string>
+    <string name="entendido">Got it</string>
+
+    <!-- Personas -->
+    <string name="ver_como_lista">Show as list</string>
+    <string name="ver_como_burbujas">Show as bubbles</string>
+    <string name="lista_vacia">No one in your orbit yet.\nTap + and pick someone from your contacts.</string>
+    <string name="toca_llamar">Time to call</string>
+    <string name="burbuja_toca">%1$s, time to call</string>
+    <string name="burbuja_plazo">%1$s, %2$d%% of their interval</string>
+    <string name="recoger">Collapse</string>
+    <string name="con_calma">Doing fine</string>
+    <string name="tu_el_sol">You, the sun of your system</string>
+    <string name="anadir_persona">Add person</string>
+    <string name="proximo_aviso_el">next reminder %1$s</string>
+
+    <!-- Ajustes -->
+    <string name="ajustes">Settings</string>
+    <string name="volver">Back</string>
+    <string name="recordatorios">Reminders</string>
+    <string name="activados">On</string>
+    <string name="en_pausa_vuelven">Paused: back on %1$s</string>
+    <string name="desactivados">Off until you turn them back on</string>
+    <string name="pausa">Pause</string>
+    <string name="hasta_reactivar">Until I turn them back on</string>
+    <string name="horario_avisos">Reminder hours</string>
+    <string name="horario_juntas">Drag the handles around the ring. Together: reminders at any hour.</string>
+    <string name="horario_fuera">Drag the handles around the ring. A reminder that falls outside waits until %1$s.</string>
+    <string name="boton_mas_tarde_titulo">The reminder\'s “Later” button</string>
+    <string name="posponer_explicacion">It comes back after %1$s; if that\'s outside reminder hours, at %2$s. If you just dismiss it, it comes back the next day.</string>
+    <string name="contactos_nuevos">New contacts</string>
+    <string name="medio_explicacion">%1$s. Suggested when you add someone; you can change it on their card.</string>
+    <string name="apariencia">Appearance</string>
+    <string name="tema_sistema">System</string>
+    <string name="tema_claro">Light</string>
+    <string name="tema_oscuro">Dark</string>
+    <string name="depuracion">Debug</string>
+    <string name="idioma_app">App language</string>
+    <string name="idioma_sistema">Phone\'s (%1$s)</string>
+    <string name="idioma_explicacion">For testing translations. By default, the app follows the phone\'s language.</string>
+
+    <!-- Ficha -->
+    <string name="nuevo_contacto">New contact</string>
+    <string name="ultimo_contacto_hoy">Last contact: today</string>
+    <string name="manten_para_anotar">Hold to log: I called today</string>
+    <string name="he_llamado_hoy">I called today</string>
+    <string name="anotar_llamada_hoy">Log today\'s call</string>
+    <string name="cada_cuanto">How often</string>
+    <string name="al_tocar_aviso">When you tap the reminder</string>
+    <string name="se_guardara_hoy">The last contact will be saved with today\'s date.</string>
+    <string name="toca_manana">Due tomorrow</string>
+    <string name="toca_hoy">Due today</string>
+    <string name="mostrar_foto">Show photo from contacts</string>
+    <string name="ultimo_contacto">Last contact</string>
+    <string name="proximo_aviso">Next reminder</string>
+    <string name="notificacion_pulsada">Notification tapped on %1$s</string>
+    <string name="notificacion_no_pulsada">Notification not tapped yet</string>
+    <string name="aviso_quitado">Reminder dismissed without contacting: %1$s</string>
+    <string name="un_dia_menos">One day less</string>
+    <string name="un_dia_mas">One day more</string>
+    <string name="frecuencia">Frequency</string>
+    <string name="cada">every</string>
+    <string name="cada_dia">Every day</string>
+    <string name="guardado">Saved</string>
+    <string name="anadir">Add</string>
+    <string name="avisos_de">Reminders for %1$s</string>
+    <string name="en_pausa_burbuja">Paused: back on %1$s. Meanwhile, the bubble keeps growing.</string>
+    <string name="reanudar_avisos">Resume reminders</string>
+    <string name="pausar">Pause for %1$s</string>
+    <string name="eliminar_contacto">Delete contact</string>
+    <string name="eliminar_a">Delete %1$s</string>
+    <string name="eliminar_texto">They\'ll no longer appear in the app and there\'ll be no more reminders. Nothing is deleted from your phone\'s contacts.</string>
+    <string name="eliminar">Delete</string>
+    <string name="cancelar">Cancel</string>
+    <string name="forzar_notificacion">Force notification now</string>
+    <string name="forzar_explicacion">Sends the reminder even if it isn\'t due yet, the same way as the daily one.</string>
+    <string name="guarda_primero">Save the contact first to test its notification.</string>
+
+    <!-- Abreviaturas -->
+    <string name="dias_corto">%d d</string>
+    <string name="horas_corto">%d h</string>
+    <string name="atajo_1_semana">1 wk</string>
+    <string name="atajo_2_semanas">2 wk</string>
+    <string name="atajo_1_mes">1 mo</string>
+    <string name="atajo_2_meses">2 mo</string>
+    <string name="atajo_3_meses">3 mo</string>
+    <string name="atajo_6_meses">6 mo</string>
+    <string name="atajo_1_anio">1 yr</string>
+
+    <!-- Horario (lector de pantalla y esfera) -->
+    <string name="horario_todo_el_dia">Reminder hours: all day</string>
+    <string name="horario_de_a">Reminder hours: from %1$s to %2$s</string>
+    <string name="empezar_antes">Start one hour earlier</string>
+    <string name="empezar_despues">Start one hour later</string>
+    <string name="terminar_antes">End one hour earlier</string>
+    <string name="terminar_despues">End one hour later</string>
+    <string name="todo_el_dia">all day</string>
+
+    <!-- Plurales -->
+    <plurals name="dias">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="horas">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="cada_dias">
+        <item quantity="one">Every %d day</item>
+        <item quantity="other">Every %d days</item>
+    </plurals>
+    <plurals name="toca_en_dias">
+        <item quantity="one">Due in %d day</item>
+        <item quantity="other">Due in %d days</item>
+    </plurals>
+    <plurals name="dias_tarde">
+        <item quantity="one">%d day overdue</item>
+        <item quantity="other">%d days overdue</item>
+    </plurals>
+    <plurals name="veces">
+        <item quantity="one">%d time</item>
+        <item quantity="other">%d times</item>
+    </plurals>
+    <plurals name="avisos_en_pausa">
+        <item quantity="one">Reminders paused for %d day</item>
+        <item quantity="other">Reminders paused for %d days</item>
+    </plurals>
+    <plurals name="con_calma_mostrar">
+        <item quantity="one">%d person is doing fine. Show them</item>
+        <item quantity="other">%d people are doing fine. Show them</item>
+    </plurals>
+    <plurals name="con_calma_recoger">
+        <item quantity="one">Collapse the %d doing fine</item>
+        <item quantity="other">Collapse the %d doing fine</item>
+    </plurals>
+    <plurals name="unidad_dias_desliza" tools:ignore="ImpliedQuantity">
+        <item quantity="one">day · swipe ↔</item>
+        <item quantity="other">days · swipe ↔</item>
+    </plurals>
 </resources>

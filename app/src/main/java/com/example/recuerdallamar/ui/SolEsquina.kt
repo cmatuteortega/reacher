@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
@@ -47,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import com.example.recuerdallamar.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -188,6 +190,8 @@ fun SolEsquina(
         }
 
         // El sol recoge los toques del cuarto que asoma.
+        val tuElSol = stringResource(R.string.tu_el_sol)
+        val anadirPersona = stringResource(R.string.anadir_persona)
         Box(
             Modifier
                 .align(Alignment.TopStart)
@@ -202,7 +206,7 @@ fun SolEsquina(
                         onTap = { reir() },
                     )
                 }
-                .semantics { contentDescription = "Tú, el sol de tu sistema" },
+                .semantics { contentDescription = tuElSol },
         )
 
         Box(
@@ -219,7 +223,7 @@ fun SolEsquina(
                     scaleY = escalaMas
                 }
                 .semantics {
-                    contentDescription = "Añadir persona"
+                    contentDescription = anadirPersona
                     role = Role.Button
                     onClick {
                         reir()

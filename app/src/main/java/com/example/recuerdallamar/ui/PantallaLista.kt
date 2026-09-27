@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
@@ -92,14 +93,14 @@ fun PantallaLista(
                             Crossfade(targetState = otra, label = "icono vista") { destino ->
                                 when (destino) {
                                     VistaPersonas.LISTA ->
-                                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Ver como lista")
+                                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
                                     VistaPersonas.BURBUJAS ->
-                                        Icon(painterResource(R.drawable.ic_burbujas), contentDescription = "Ver como burbujas")
+                                        Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
                                 }
                             }
                         }
                         IconButton(onClick = onAjustes) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Ajustes")
+                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.ajustes))
                         }
                     },
                 )
@@ -117,7 +118,7 @@ fun PantallaLista(
                 ) {
                     // Sin mascota: el sol de abajo ya mira y saluda.
                     Text(
-                        "Aún no hay nadie en tu órbita.\nPulsa + y elige un contacto de tu agenda.",
+                        stringResource(R.string.lista_vacia),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -188,7 +189,11 @@ private fun FilaContacto(
         modifier = modifier.clickable(onClick = onClick),
         headlineContent = { Text(contacto.nombre) },
         supportingContent = {
-            Text("Cada ${contacto.frecuenciaDias} días · próximo aviso ${contacto.proximoAviso().bonita()}")
+            val recursos = LocalContext.current.resources
+            Text(
+                recursos.cadaDias(contacto.frecuenciaDias) + " · " +
+                    stringResource(R.string.proximo_aviso_el, contacto.proximoAviso().bonita()),
+            )
         },
         leadingContent = { Avatar(contacto.nombre, foto, 40.dp, MaterialTheme.typography.titleMedium) },
         trailingContent = {
@@ -196,7 +201,7 @@ private fun FilaContacto(
             AnimatedVisibility(visible = toca, enter = scaleIn() + fadeIn(), exit = fadeOut()) {
                 Icon(
                     Icons.Filled.Notifications,
-                    contentDescription = "Toca llamar",
+                    contentDescription = stringResource(R.string.toca_llamar),
                     tint = MaterialTheme.colorScheme.tertiary,
                 )
             }

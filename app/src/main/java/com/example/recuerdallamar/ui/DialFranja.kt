@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.R
 import java.time.LocalTime
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -88,21 +90,27 @@ fun DialFranja(
     val todoElDia = desde == hasta
     val horasAvisando = if (todoElDia) 24 else (hasta - desde + 24) % 24
 
+    val descripcion = if (todoElDia) {
+        stringResource(R.string.horario_todo_el_dia)
+    } else {
+        stringResource(R.string.horario_de_a, hora(desde), hora(hasta))
+    }
+    val empezarAntes = stringResource(R.string.empezar_antes)
+    val empezarDespues = stringResource(R.string.empezar_despues)
+    val terminarAntes = stringResource(R.string.terminar_antes)
+    val terminarDespues = stringResource(R.string.terminar_despues)
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .aspectRatio(1f)
             .semantics {
-                contentDescription = if (todoElDia) {
-                    "Horario de avisos: todo el día"
-                } else {
-                    "Horario de avisos: de ${hora(desde)} a ${hora(hasta)}"
-                }
+                contentDescription = descripcion
                 customActions = listOf(
-                    CustomAccessibilityAction("Empezar una hora antes") { cambio((desde + 23) % 24, hasta); true },
-                    CustomAccessibilityAction("Empezar una hora después") { cambio((desde + 1) % 24, hasta); true },
-                    CustomAccessibilityAction("Terminar una hora antes") { cambio(desde, (hasta + 23) % 24); true },
-                    CustomAccessibilityAction("Terminar una hora después") { cambio(desde, (hasta + 1) % 24); true },
+                    CustomAccessibilityAction(empezarAntes) { cambio((desde + 23) % 24, hasta); true },
+                    CustomAccessibilityAction(empezarDespues) { cambio((desde + 1) % 24, hasta); true },
+                    CustomAccessibilityAction(terminarAntes) { cambio(desde, (hasta + 23) % 24); true },
+                    CustomAccessibilityAction(terminarDespues) { cambio(desde, (hasta + 1) % 24); true },
                 )
             },
     ) {
@@ -193,12 +201,12 @@ fun DialFranja(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                if (todoElDia) "24 h" else "$horasAvisando h",
+                stringResource(R.string.horas_corto, horasAvisando),
                 style = MaterialTheme.typography.displaySmall,
                 color = colores.onSurface,
             )
             Text(
-                if (todoElDia) "todo el día" else "${hora(desde)} – ${hora(hasta)}",
+                if (todoElDia) stringResource(R.string.todo_el_dia) else "${hora(desde)} – ${hora(hasta)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colores.onSurfaceVariant,
             )

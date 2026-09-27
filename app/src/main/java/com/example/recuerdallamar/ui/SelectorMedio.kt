@@ -4,6 +4,7 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.Contactar
@@ -58,7 +60,7 @@ fun SelectorMedio(
             ) { color ->
                 Icon(opcion.icono(), contentDescription = null, tint = color, modifier = Modifier.size(26.dp))
                 Text(
-                    opcion.corto(),
+                    stringResource(opcion.corto()),
                     style = MaterialTheme.typography.labelSmall,
                     color = color,
                     maxLines = 1,
@@ -70,12 +72,13 @@ fun SelectorMedio(
 }
 
 /** Nombre corto para que quepa bajo el icono. */
-private fun MedioContacto.corto(): String = when (this) {
-    MedioContacto.MARCADOR -> "Marcador"
-    MedioContacto.LLAMADA -> "Llamada"
-    MedioContacto.WHATSAPP -> "WhatsApp"
-    MedioContacto.SMS -> "SMS"
-    MedioContacto.TELEGRAM -> "Telegram"
+@StringRes
+private fun MedioContacto.corto(): Int = when (this) {
+    MedioContacto.MARCADOR -> R.string.medio_marcador_corto
+    MedioContacto.LLAMADA -> R.string.medio_llamada_corto
+    MedioContacto.WHATSAPP -> R.string.whatsapp
+    MedioContacto.SMS -> R.string.sms
+    MedioContacto.TELEGRAM -> R.string.telegram
 }
 
 /**
@@ -91,7 +94,7 @@ fun rememberElegirMedio(onCambio: (MedioContacto) -> Unit): (MedioContacto) -> U
     ) { concedido ->
         if (!concedido) {
             cambio(MedioContacto.MARCADOR)
-            Toast.makeText(context, "Sin permiso de llamadas se abrirá el marcador", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.sin_permiso_llamadas), Toast.LENGTH_LONG).show()
         }
     }
     return { opcion ->

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Marca -->
+    <string name="subtitulo">Cuida tu sistema</string>
+
+    <!-- Avisos -->
+    <string name="canal_nombre">Recordatorios de llamada</string>
+    <string name="canal_descripcion">Aviso cuando toca llamar a un contacto</string>
+    <string name="aviso_contactar">Contactar</string>
+    <string name="aviso_mas_tarde">Más tarde</string>
+    <string name="aviso_mas_opciones">Más opciones</string>
+    <string name="aviso_llamar">Toca para llamar a %1$s</string>
+    <string name="aviso_whatsapp">Toca para escribir a %1$s por WhatsApp</string>
+    <string name="aviso_sms">Toca para mandar un mensaje a %1$s</string>
+    <string name="aviso_telegram">Toca para escribir a %1$s por Telegram</string>
+
+    <!-- Formas de contacto -->
+    <string name="medio_marcador">Abrir el marcador</string>
+    <string name="medio_llamada">Llamar directamente</string>
+    <string name="medio_sms">Mensaje (SMS)</string>
+    <string name="medio_marcador_corto">Marcador</string>
+    <string name="medio_llamada_corto">Llamada</string>
+    <string name="boton_llamar">Llamar</string>
+    <string name="boton_mensaje">Mensaje</string>
+    <string name="sin_app_para">No hay app para %1$s</string>
+    <string name="sin_permiso_llamadas">Sin permiso de llamadas se abrirá el marcador</string>
+
+    <!-- Permisos y mensajes cortos -->
+    <string name="sin_permiso_avisos">Sin permiso no habrá recordatorios</string>
+    <string name="sin_agenda">No hay agenda de contactos</string>
+    <string name="anotado_hoy">Anotado: último contacto hoy</string>
+    <string name="contacto_eliminado">Contacto eliminado</string>
+    <string name="activa_notificaciones">Activa las notificaciones de la app</string>
+    <string name="notificacion_prueba_enviada">Notificación de prueba enviada</string>
+
+    <!-- Bienvenida -->
+    <string name="bienvenida_sol_titulo">Tú eres el sol</string>
+    <string name="bienvenida_sol_texto">A tu alrededor gira la gente que te importa: es tu sistema. Contacto te avisa cuando toca llamar o escribir a cada uno, para que nadie se aleje de tu órbita.</string>
+    <string name="empezar">Empezar</string>
+    <string name="crea_tu_sistema">Crea tu sistema</string>
+    <string name="alguien_en_orbita">¡Ya tienes a alguien en órbita!</string>
+    <string name="sistema_crece">Tu sistema crece</string>
+    <string name="anade_mas_texto">Añade a alguien más o sigue: siempre podrás sumar gente a tu sistema después.</string>
+    <string name="elige_agenda_texto">Elige de tu agenda a quien no quieres perder de vista y entrará en tu órbita. En su ficha eliges cada cuántos días hablar y cómo: llamada, WhatsApp, SMS o Telegram.</string>
+    <string name="continuar">Continuar</string>
+    <string name="anadir_otra_persona">Añadir a otra persona</string>
+    <string name="elegir_de_la_agenda">Elegir de la agenda</string>
+    <string name="ahora_no">Ahora no</string>
+    <string name="ya_esta">¡Ya está!</string>
+    <string name="listo_con_gente">Este es tu sistema. Ahora puedes cerrar la app y seguir con tu vida: te avisaremos cuando toque hablar con cada uno.</string>
+    <string name="listo_sin_gente">Tu sistema te espera: quien añadas entrará en tu órbita. Te avisaremos cuando toque hablar con cada uno.</string>
+    <string name="entendido">Entendido</string>
+
+    <!-- Personas -->
+    <string name="ver_como_lista">Ver como lista</string>
+    <string name="ver_como_burbujas">Ver como burbujas</string>
+    <string name="lista_vacia">Aún no hay nadie en tu órbita.\nPulsa + y elige un contacto de tu agenda.</string>
+    <string name="toca_llamar">Toca llamar</string>
+    <string name="burbuja_toca">%1$s, toca llamar</string>
+    <string name="burbuja_plazo">%1$s, %2$d %% de su plazo</string>
+    <string name="recoger">Recoger</string>
+    <string name="con_calma">Con calma</string>
+    <string name="tu_el_sol">Tú, el sol de tu sistema</string>
+    <string name="anadir_persona">Añadir persona</string>
+    <string name="proximo_aviso_el">próximo aviso %1$s</string>
+
+    <!-- Ajustes -->
+    <string name="ajustes">Ajustes</string>
+    <string name="volver">Volver</string>
+    <string name="recordatorios">Recordatorios</string>
+    <string name="activados">Activados</string>
+    <string name="en_pausa_vuelven">En pausa: vuelven el %1$s</string>
+    <string name="desactivados">Desactivados hasta que los vuelvas a activar</string>
+    <string name="pausa">Pausa</string>
+    <string name="hasta_reactivar">Hasta que los vuelva a activar</string>
+    <string name="horario_avisos">Horario de avisos</string>
+    <string name="horario_juntas">Arrastra las asas por el anillo. Juntas: se avisa a cualquier hora.</string>
+    <string name="horario_fuera">Arrastra las asas por el anillo. Un aviso que caiga fuera espera a las %1$s.</string>
+    <string name="boton_mas_tarde_titulo">Botón «Más tarde» del aviso</string>
+    <string name="posponer_explicacion">Vuelve al cabo de %1$s; si cae fuera del horario, a las %2$s. Si quitas el aviso sin más, vuelve al día siguiente.</string>
+    <string name="contactos_nuevos">Contactos nuevos</string>
+    <string name="medio_explicacion">%1$s. Se propone al añadir a alguien; en su ficha se puede cambiar.</string>
+    <string name="apariencia">Apariencia</string>
+    <string name="tema_sistema">Sistema</string>
+    <string name="tema_claro">Claro</string>
+    <string name="tema_oscuro">Oscuro</string>
+    <string name="depuracion">Depuración</string>
+    <string name="idioma_app">Idioma de la app</string>
+    <string name="idioma_sistema">Del teléfono (%1$s)</string>
+    <string name="idioma_explicacion">Para probar las traducciones. Por defecto, la app sigue el idioma del teléfono.</string>
+
+    <!-- Ficha -->
+    <string name="nuevo_contacto">Nuevo contacto</string>
+    <string name="ultimo_contacto_hoy">Último contacto: hoy</string>
+    <string name="manten_para_anotar">Mantén para anotar: he llamado hoy</string>
+    <string name="he_llamado_hoy">He llamado hoy</string>
+    <string name="anotar_llamada_hoy">Anotar llamada de hoy</string>
+    <string name="cada_cuanto">Cada cuánto</string>
+    <string name="al_tocar_aviso">Al tocar el aviso</string>
+    <string name="se_guardara_hoy">El último contacto se guardará con la fecha de hoy.</string>
+    <string name="toca_manana">Toca mañana</string>
+    <string name="toca_hoy">Toca hoy</string>
+    <string name="mostrar_foto">Mostrar foto de la agenda</string>
+    <string name="ultimo_contacto">Último contacto</string>
+    <string name="proximo_aviso">Próximo aviso</string>
+    <string name="notificacion_pulsada">Notificación pulsada el %1$s</string>
+    <string name="notificacion_no_pulsada">Notificación aún no pulsada</string>
+    <string name="aviso_quitado">Aviso quitado sin contactar: %1$s</string>
+    <string name="un_dia_menos">Un día menos</string>
+    <string name="un_dia_mas">Un día más</string>
+    <string name="frecuencia">Frecuencia</string>
+    <string name="cada">cada</string>
+    <string name="cada_dia">Cada día</string>
+    <string name="guardado">Guardado</string>
+    <string name="anadir">Añadir</string>
+    <string name="avisos_de">Avisos de %1$s</string>
+    <string name="en_pausa_burbuja">En pausa: vuelven el %1$s. Mientras, la burbuja sigue creciendo.</string>
+    <string name="reanudar_avisos">Reanudar avisos</string>
+    <string name="pausar">Pausar %1$s</string>
+    <string name="eliminar_contacto">Eliminar contacto</string>
+    <string name="eliminar_a">Eliminar a %1$s</string>
+    <string name="eliminar_texto">Dejará de salir en la app y no habrá más avisos. En la agenda del teléfono no se borra nada.</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="forzar_notificacion">Forzar notificación ahora</string>
+    <string name="forzar_explicacion">Lanza el aviso aunque no toque todavía, por el mismo camino que el diario.</string>
+    <string name="guarda_primero">Guarda el contacto primero para poder probar su notificación.</string>
+
+    <!-- Abreviaturas -->
+    <string name="dias_corto">%d d</string>
+    <string name="horas_corto">%d h</string>
+    <string name="atajo_1_semana">1 sem</string>
+    <string name="atajo_2_semanas">2 sem</string>
+    <string name="atajo_1_mes">1 mes</string>
+    <string name="atajo_2_meses">2 m</string>
+    <string name="atajo_3_meses">3 m</string>
+    <string name="atajo_6_meses">6 m</string>
+    <string name="atajo_1_anio">1 año</string>
+
+    <!-- Horario (lector de pantalla y esfera) -->
+    <string name="horario_todo_el_dia">Horario de avisos: todo el día</string>
+    <string name="horario_de_a">Horario de avisos: de %1$s a %2$s</string>
+    <string name="empezar_antes">Empezar una hora antes</string>
+    <string name="empezar_despues">Empezar una hora después</string>
+    <string name="terminar_antes">Terminar una hora antes</string>
+    <string name="terminar_despues">Terminar una hora después</string>
+    <string name="todo_el_dia">todo el día</string>
+
+    <!-- Plurales -->
+    <plurals name="dias">
+        <item quantity="one">%d día</item>
+        <item quantity="many">%d días</item>
+        <item quantity="other">%d días</item>
+    </plurals>
+    <plurals name="horas">
+        <item quantity="one">%d hora</item>
+        <item quantity="many">%d horas</item>
+        <item quantity="other">%d horas</item>
+    </plurals>
+    <plurals name="cada_dias">
+        <item quantity="one">Cada %d día</item>
+        <item quantity="many">Cada %d días</item>
+        <item quantity="other">Cada %d días</item>
+    </plurals>
+    <plurals name="toca_en_dias">
+        <item quantity="one">Toca en %d día</item>
+        <item quantity="many">Toca en %d días</item>
+        <item quantity="other">Toca en %d días</item>
+    </plurals>
+    <plurals name="dias_tarde">
+        <item quantity="one">Va %d día tarde</item>
+        <item quantity="many">Va %d días tarde</item>
+        <item quantity="other">Va %d días tarde</item>
+    </plurals>
+    <plurals name="veces">
+        <item quantity="one">%d vez</item>
+        <item quantity="many">%d veces</item>
+        <item quantity="other">%d veces</item>
+    </plurals>
+    <plurals name="avisos_en_pausa">
+        <item quantity="one">Avisos en pausa %d día</item>
+        <item quantity="many">Avisos en pausa %d días</item>
+        <item quantity="other">Avisos en pausa %d días</item>
+    </plurals>
+    <plurals name="con_calma_mostrar">
+        <item quantity="one">%d persona va con calma. Mostrarla</item>
+        <item quantity="many">%d personas van con calma. Mostrarlas</item>
+        <item quantity="other">%d personas van con calma. Mostrarlas</item>
+    </plurals>
+    <plurals name="con_calma_recoger">
+        <item quantity="one">Recoger a %d que va con calma</item>
+        <item quantity="many">Recoger a los %d que van con calma</item>
+        <item quantity="other">Recoger a los %d que van con calma</item>
+    </plurals>
+    <plurals name="unidad_dias_desliza" tools:ignore="ImpliedQuantity">
+        <item quantity="one">día · desliza ↔</item>
+        <item quantity="many">días · desliza ↔</item>
+        <item quantity="other">días · desliza ↔</item>
+    </plurals>
+</resources>
