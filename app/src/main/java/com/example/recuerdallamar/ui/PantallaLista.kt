@@ -87,7 +87,9 @@ fun PantallaLista(
                     // La esquina de la izquierda es del sol.
                     title = {},
                     actions = {
-                        val otra = if (vista == VistaPersonas.BURBUJAS) VistaPersonas.LISTA else VistaPersonas.BURBUJAS
+                        // Un solo boton que va pasando por las tres: burbujas, orbitas, lista.
+                        val entradas = VistaPersonas.entries
+                        val otra = entradas[(vista.ordinal + 1) % entradas.size]
                         IconButton(onClick = { onCambiarVista(otra) }) {
                             // El icono ensena a donde se va, no donde se esta.
                             Crossfade(targetState = otra, label = "icono vista") { destino ->
@@ -96,6 +98,8 @@ fun PantallaLista(
                                         Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ver_como_lista))
                                     VistaPersonas.BURBUJAS ->
                                         Icon(painterResource(R.drawable.ic_burbujas), contentDescription = stringResource(R.string.ver_como_burbujas))
+                                    VistaPersonas.ORBITAS ->
+                                        Icon(painterResource(R.drawable.ic_orbitas), contentDescription = stringResource(R.string.ver_como_orbitas))
                                 }
                             }
                         }
@@ -126,9 +130,19 @@ fun PantallaLista(
                     )
                 }
 
-                // Las dos vistas, con los mismos datos y el mismo orden por urgencia.
+                // Las tres vistas, con los mismos datos y el mismo orden por urgencia.
                 Crossfade(targetState = vista, label = "vista") { actual ->
                     when (actual) {
+                        VistaPersonas.ORBITAS -> if (!contactos.isNullOrEmpty()) {
+                            VistaOrbitas(
+                                contactos = contactos,
+                                fotosPermitidas = fotosPermitidas,
+                                onAbrir = onAbrir,
+                                huecoInferior = hueco,
+                                solArriba = arriba,
+                                solRadio = radioSol,
+                            )
+                        }
                         VistaPersonas.BURBUJAS -> if (!contactos.isNullOrEmpty()) {
                             VistaBurbujas(
                                 contactos = contactos,

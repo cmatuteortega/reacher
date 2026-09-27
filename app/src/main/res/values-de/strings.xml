@@ -55,6 +55,7 @@
     <!-- Personas -->
     <string name="ver_como_lista">Als Liste anzeigen</string>
     <string name="ver_como_burbujas">Als Blasen anzeigen</string>
+    <string name="ver_como_orbitas">Als Umlaufbahnen anzeigen</string>
     <string name="lista_vacia">Noch niemand in deiner Umlaufbahn.\nTippe auf + und wähle einen Kontakt.</string>
     <string name="toca_llamar">Zeit für einen Anruf</string>
     <string name="burbuja_toca">%1$s, Zeit für einen Anruf</string>

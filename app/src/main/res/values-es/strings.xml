@@ -55,6 +55,7 @@
     <!-- Personas -->
     <string name="ver_como_lista">Ver como lista</string>
     <string name="ver_como_burbujas">Ver como burbujas</string>
+    <string name="ver_como_orbitas">Ver como órbitas</string>
     <string name="lista_vacia">Aún no hay nadie en tu órbita.\nPulsa + y elige un contacto de tu agenda.</string>
     <string name="toca_llamar">Toca llamar</string>
     <string name="burbuja_toca">%1$s, toca llamar</string>
