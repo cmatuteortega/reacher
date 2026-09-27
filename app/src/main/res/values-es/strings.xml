@@ -199,4 +199,46 @@
         <item quantity="many">días · desliza ↔</item>
         <item quantity="other">días · desliza ↔</item>
     </plurals>
+
+    <!-- Plataforma: widget, atajo, circulos, notas, cumpleanos, opiniones -->
+    <string name="canal_grupo">Personas</string>
+    <string name="canal_atrasados">Muy atrasados</string>
+    <string name="canal_atrasados_descripcion">Avisa cuando ya se ha pasado de largo el momento de hablar con alguien</string>
+    <string name="canal_cumpleanos">Cumpleaños</string>
+    <string name="canal_cumpleanos_descripcion">Avisa el día del cumpleaños de alguien de tu sistema</string>
+    <string name="cumpleanos_hoy">¡Hoy es el cumpleaños de %1$s!</string>
+    <string name="cumpleanos_felicita">Toca para felicitarle</string>
+    <string name="cumpleanos_corto">Cumple hoy</string>
+    <string name="cumpleanos_es_hoy">¡Cumple hoy!</string>
+    <string name="cumpleanos_el">Cumpleaños el %1$s · %2$s</string>
+    <string name="widget_titulo">Hoy toca</string>
+    <string name="widget_nadie">Hoy no toca nadie. ¡Disfruta del día!</string>
+    <string name="widget_descripcion">A quién le toca hoy, de un vistazo</string>
+    <string name="anadir_persona_largo">Añadir a alguien de la agenda</string>
+    <string name="elige_a_alguien">Elige a alguien para ver su ficha</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="crear">Crear</string>
+    <string name="circulo">Círculo</string>
+    <string name="circulo_ninguno">Ninguno</string>
+    <string name="circulo_nuevo">Círculo nuevo</string>
+    <string name="circulo_pista">Familia, amigos, trabajo…</string>
+    <string name="circulo_todos">Todos</string>
+    <string name="notas">Notas</string>
+    <string name="notas_pista">Cosas que recordar: cómo se llaman sus hijos, de qué hablasteis…</string>
+    <string name="opiniones">Opiniones</string>
+    <string name="opiniones_explicacion">¿Algo no funciona o tienes una idea? Escríbenos. Si la app te ayuda, valorarla en Google Play ayuda a que otros la encuentren.</string>
+    <string name="enviar_opiniones">Enviar opiniones</string>
+    <string name="valorar_app">Valorar en Google Play</string>
+    <string name="opiniones_asunto">Opiniones sobre %1$s</string>
+    <string name="sin_app_correo">No hay ninguna app de correo</string>
+    <plurals name="resumen_avisos">
+        <item quantity="one">%d persona a quien contactar</item>
+        <item quantity="many">%d personas a quienes contactar</item>
+        <item quantity="other">%d personas a quienes contactar</item>
+    </plurals>
+    <plurals name="en_dias">
+        <item quantity="one">dentro de %d día</item>
+        <item quantity="many">dentro de %d días</item>
+        <item quantity="other">dentro de %d días</item>
+    </plurals>
 </resources>

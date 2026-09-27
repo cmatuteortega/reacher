@@ -27,6 +27,9 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
 
+      - name: Pruebas unitarias
+        run: ./gradlew testDebugUnitTest
+
       # Despues de subir el APK: un aviso de lint no debe dejarte sin instalable.
       - name: Lint
         run: ./gradlew lintDebug

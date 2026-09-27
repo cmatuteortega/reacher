@@ -1,0 +1,112 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "08eda9f2565e60ce909aa4a550c4614e",
+    "entities": [
+      {
+        "tableName": "contactos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `telefono` TEXT NOT NULL, `frecuenciaDias` INTEGER NOT NULL, `ultimoContacto` INTEGER NOT NULL, `notificacionPulsada` INTEGER NOT NULL, `fechaPulsacion` TEXT, `medio` TEXT NOT NULL, `descartes` INTEGER NOT NULL, `pospuestoHasta` TEXT, `pausadoHasta` TEXT, `notas` TEXT NOT NULL, `cumpleanos` TEXT, `circulo` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "telefono",
+            "columnName": "telefono",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frecuenciaDias",
+            "columnName": "frecuenciaDias",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ultimoContacto",
+            "columnName": "ultimoContacto",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notificacionPulsada",
+            "columnName": "notificacionPulsada",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaPulsacion",
+            "columnName": "fechaPulsacion",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "medio",
+            "columnName": "medio",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descartes",
+            "columnName": "descartes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pospuestoHasta",
+            "columnName": "pospuestoHasta",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "pausadoHasta",
+            "columnName": "pausadoHasta",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cumpleanos",
+            "columnName": "cumpleanos",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "circulo",
+            "columnName": "circulo",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '08eda9f2565e60ce909aa4a550c4614e')"
+    ]
+  }
+}

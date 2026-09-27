@@ -21,6 +21,9 @@
     -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- Vibraciones compuestas de las burbujas (choques con fuerza variable). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:name=".App"
         android:icon="@mipmap/ic_launcher"
@@ -28,18 +31,36 @@
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.RecuerdaLlamar"
         tools:targetApi="33">
 
-        <!-- singleTop: "Mas opciones" en el aviso reusa la app abierta (onNewIntent). -->
+        <!--
+          singleTop: los enlaces del aviso, el widget y el atajo reusan la app
+          abierta (onNewIntent). enableOnBackInvokedCallback de arriba activa el
+          gesto atras predictivo (Android 13+).
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.RecuerdaLlamar.Arranque">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--
+              Enlaces contacto://... (ver Enlaces.kt). Sin BROWSABLE: solo los
+              abren la propia app y el lanzador, no una pagina web.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="contacto" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/atajos" />
         </activity>
 
         <!--
@@ -60,5 +81,18 @@
         <receiver
             android:name=".avisos.AccionesAviso"
             android:exported="false" />
+
+        <!-- Widget "Hoy toca". -->
+        <receiver
+            android:name=".widget.ReceptorWidgetHoy"
+            android:exported="true"
+            android:label="@string/widget_titulo">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_hoy" />
+        </receiver>
     </application>
 </manifest>

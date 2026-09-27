@@ -55,6 +55,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -122,6 +123,18 @@ private const val CAIDA = 160f
 /** Parte del lienzo visible que se deja ocupar antes de encoger las grandes. */
 private const val OCUPACION = 0.5f
 
+/** Choques mas flojos que esto (dp/s) no vibran: el vaiven de reposo y los recolocados. */
+private const val GOLPE_MINIMO = 280f
+
+/** A partir de aqui (dp/s por encima del minimo) el choque vibra a toda fuerza. */
+private const val GOLPE_PLENO = 1400f
+
+/** Separacion minima entre dos vibraciones de choque, para que una cascada no zumbe. */
+private const val ENTRE_GOLPES_NS = 70_000_000L
+
+/** Soltarla mas deprisa que esto (dp/s) es lanzarla: se nota un golpe seco. */
+private const val VELOCIDAD_LANZAR = 700f
+
 /**
  * Personas como burbujas flotantes: mas grandes cuanto mas cerca estan de su
  * fecha, las mas urgentes en el centro. Se pueden arrastrar y lanzar; al
@@ -185,13 +198,21 @@ fun VistaBurbujas(
         // Un contador por fotograma: las burbujas lo leen al colocarse y
         // pintarse, asi que se mueven sin recomponer nada.
         val fotograma = remember { mutableLongStateOf(0L) }
+        val vista = LocalView.current
         LaunchedEffect(sim) {
             var antes = 0L
+            var ultimoGolpe = 0L
             while (true) {
                 withFrameNanos { ahora ->
                     if (antes != 0L) sim.paso(((ahora - antes) / 1e9f).coerceAtMost(1f / 30f))
                     antes = ahora
                     fotograma.longValue = ahora
+                    // Cada choque se siente, con mas fuerza cuanto mas deprisa iban.
+                    val golpe = sim.golpe / densidad.density - GOLPE_MINIMO
+                    if (golpe > 0f && ahora - ultimoGolpe > ENTRE_GOLPES_NS) {
+                        ultimoGolpe = ahora
+                        vista.choque(golpe / GOLPE_PLENO)
+                    }
                 }
             }
         }
@@ -478,6 +499,7 @@ private fun Burbuja(
     contenido: @Composable BoxScope.(pulsada: Boolean, agarrada: Boolean) -> Unit,
 ) {
     val alToque by rememberUpdatedState(onToque)
+    val vista = LocalView.current
     val anchoCaja = radio * 2 + ANCHO_EXTRA_ETIQUETA
     val altoCaja = radio * 2 + ALTO_ETIQUETA
 
@@ -586,11 +608,13 @@ private fun Burbuja(
                         onDragStart = {
                             rastreo.resetTracking()
                             agarrada = true
+                            vista.agarrar()
                             sim.agarrar(cuerpo)
                         },
                         onDragEnd = {
                             agarrada = false
                             val v = rastreo.calculateVelocity()
+                            if (hypot(v.x, v.y) > VELOCIDAD_LANZAR * density) vista.lanzar()
                             sim.soltar(cuerpo, v.x, v.y)
                         },
                         onDragCancel = {

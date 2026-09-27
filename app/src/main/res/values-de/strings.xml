@@ -189,4 +189,44 @@
         <item quantity="one">Tag · wischen ↔</item>
         <item quantity="other">Tage · wischen ↔</item>
     </plurals>
+
+    <!-- Plataforma: widget, atajo, circulos, notas, cumpleanos, opiniones -->
+    <string name="canal_grupo">Personen</string>
+    <string name="canal_atrasados">Stark überfällig</string>
+    <string name="canal_atrasados_descripcion">Benachrichtigen, wenn der Zeitpunkt für einen Kontakt längst vorbei ist</string>
+    <string name="canal_cumpleanos">Geburtstage</string>
+    <string name="canal_cumpleanos_descripcion">Am Geburtstag von jemandem aus deinem System benachrichtigen</string>
+    <string name="cumpleanos_hoy">%1$s hat heute Geburtstag!</string>
+    <string name="cumpleanos_felicita">Tippen, um zu gratulieren</string>
+    <string name="cumpleanos_corto">Geburtstag heute</string>
+    <string name="cumpleanos_es_hoy">Geburtstag heute!</string>
+    <string name="cumpleanos_el">Geburtstag am %1$s · %2$s</string>
+    <string name="widget_titulo">Heute dran</string>
+    <string name="widget_nadie">Heute ist niemand dran. Genieß den Tag!</string>
+    <string name="widget_descripcion">Wer heute dran ist, auf einen Blick</string>
+    <string name="anadir_persona_largo">Jemanden aus den Kontakten hinzufügen</string>
+    <string name="elige_a_alguien">Wähle jemanden aus, um die Details zu sehen</string>
+    <string name="cerrar">Schließen</string>
+    <string name="crear">Erstellen</string>
+    <string name="circulo">Kreis</string>
+    <string name="circulo_ninguno">Keiner</string>
+    <string name="circulo_nuevo">Neuer Kreis</string>
+    <string name="circulo_pista">Familie, Freunde, Arbeit…</string>
+    <string name="circulo_todos">Alle</string>
+    <string name="notas">Notizen</string>
+    <string name="notas_pista">Zum Merken: Namen der Kinder, worüber ihr gesprochen habt…</string>
+    <string name="opiniones">Feedback</string>
+    <string name="opiniones_explicacion">Funktioniert etwas nicht, oder hast du eine Idee? Schreib uns. Wenn dir die App hilft, hilft eine Bewertung bei Google Play anderen, sie zu finden.</string>
+    <string name="enviar_opiniones">Feedback senden</string>
+    <string name="valorar_app">Bei Google Play bewerten</string>
+    <string name="opiniones_asunto">Feedback zu %1$s</string>
+    <string name="sin_app_correo">Keine E-Mail-App gefunden</string>
+    <plurals name="resumen_avisos">
+        <item quantity="one">%d Person zu kontaktieren</item>
+        <item quantity="other">%d Personen zu kontaktieren</item>
+    </plurals>
+    <plurals name="en_dias">
+        <item quantity="one">in %d Tag</item>
+        <item quantity="other">in %d Tagen</item>
+    </plurals>
 </resources>

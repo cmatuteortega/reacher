@@ -70,6 +70,38 @@ mirando hacia donde va. Solo cambia el texto de debajo:
 Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
 
+**Arranque**: la API SplashScreen (`core-splashscreen`, también en Android
+8–11) enseña el sol del icono sobre el fondo de la app hasta que la lista ha
+cargado, y se funde (sin animación si el sistema las tiene quitadas).
+
+**Navegación** (`Navegacion.kt`, Navigation Compose con rutas con tipo):
+Bienvenida, Personas, Ajustes, Ficha(id) y Nueva (el alta a medias). La pila
+la guarda Navigation, así que girar la pantalla o que Android cierre la app
+en segundo plano no saca a nadie de donde estaba; el alta a medias, el filtro
+por círculo y la persona elegida en tableta van en el `SavedStateHandle` del
+ViewModel. El gesto atrás es predictivo (Android 13+,
+`enableOnBackInvokedCallback`): al arrastrar se ve la pantalla de debajo con
+la misma animación de deslizar. Enlaces profundos (`Enlaces.kt`), solo para la
+propia app y el lanzador:
+
+| enlace                  | abre                                        |
+|-------------------------|---------------------------------------------|
+| `contacto://personas`   | la pantalla principal                       |
+| `contacto://ficha/{id}` | la ficha de esa persona (aviso, widget)     |
+| `contacto://nuevo`      | Personas y la agenda para añadir (atajo, +) |
+
+**Pantallas anchas**: con ancho *expandido* (tableta, plegable abierto,
+ventana grande; clases de tamaño de ventana de Material 3) Personas va a la
+izquierda y la ficha de quien se toque a la derecha. Al plegar con alguien
+abierto, su ficha pasa a pantalla completa, y al desplegar vuelve al panel.
+Ajustes y la ficha ya van en dos columnas desde 600 dp.
+
+**Widget** «Hoy toca» (`widget/WidgetHoy.kt`, Glance): a quién le toca hoy o
+ya se pasó, por urgencia, y quién cumple años, con los colores de la app en
+claro y oscuro. Tocar a alguien abre su ficha; el título, Personas; el +, la
+agenda. Se redibuja con cada cambio de la base de datos y una vez al día.
+**Atajo** del icono (mantenerlo pulsado): *Añadir persona*.
+
 La pantalla principal es **Personas** (la lista y sus fichas). El botón de
 engranaje, arriba a la derecha junto al de la vista, abre **Ajustes**; *Atrás* o la
 flecha vuelven a Personas.
@@ -109,7 +141,16 @@ flecha vuelven a Personas.
      impacientes si se pasa mucho; al apretarlas cierran los ojos de gusto, al
      cogerlas se asustan y al lanzarlas giran la cabeza hacia donde van. La
      foto de la agenda, si la hay, va en una chapita.
-   - **Lista** — cada fila lleva la foto de la agenda o la inicial.
+     Se notan en la mano (`ui/Tacto.kt`): un toque al cogerlas, un golpe seco
+     al lanzarlas fuerte y un «click» en cada choque, entre ellas o contra el
+     borde, más fuerte cuanto más deprisa iban (vibración compuesta en Android
+     11+ si el motor la admite; si no, un tic en los golpes que se notan).
+     Sigue el ajuste del sistema de vibrar al tocar.
+   - **Lista** — cada fila lleva la foto de la agenda o la inicial, el
+     círculo encima del nombre y una tarta si hoy es su cumpleaños.
+
+   Si alguien tiene **círculo**, arriba aparece un filtro («Todos»,
+   «Familia»...) que vale para las tres vistas.
 2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
    elegido, campo de frecuencia en días, la
    **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
@@ -118,6 +159,10 @@ flecha vuelven a Personas.
    *Pausar avisos* (N días sin avisos de esa persona; el último contacto no
    cambia, así que la burbuja sigue creciendo), *Eliminar contacto* (con
    confirmación) y un botón de **depuración** que fuerza la notificación.
+   Además, el **círculo** de la persona (uno como mucho: se elige entre los
+   que hay o se crea otro), unas **notas** libres (se guardan al dejar de
+   escribir) y, si está en la agenda, su **cumpleaños** con los días que
+   faltan.
 3. Al guardar se vuelve a Personas; el contacto nuevo, sin urgencia, entra al
    final: en la lista aparece fundido y el resto se recoloca con un muelle
    (`Modifier.animateItem`); en burbujas nace pequeña y sube a su sitio.
@@ -137,6 +182,14 @@ interfaz como el worker.
 | Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones |
 
 El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
+
+Debajo, **Opiniones**: *Enviar opiniones* abre el correo con la versión y el
+teléfono ya escritos (el destinatario sale de la propiedad de Gradle
+`contacto.correoOpiniones`; vacía, se elige en la app de correo) y *Valorar en
+Google Play* abre la ficha de la tienda. Además, tras cinco contactos hechos
+(aviso tocado o *He llamado hoy*) la app pide la valoración de Play dentro de
+la propia app, como mucho una vez cada 120 días (`Valoracion.kt`); Google
+decide si llega a enseñar el diálogo.
 
 ## Idiomas
 
@@ -172,8 +225,13 @@ Una tabla, `contactos`:
 | `descartes`           | Int             | veces que se quitó el aviso sin contactar; 0 al contactar |
 | `pospuestoHasta`      | LocalDateTime?  | hasta cuándo se pospuso con *Más tarde* |
 | `pausadoHasta`        | LocalDateTime?  | avisos de esta persona en pausa hasta   |
+| `notas`               | String          | texto libre; vacío por defecto          |
+| `cumpleanos`          | MonthDay?       | día y mes, leído de la agenda («--MM-DD») |
+| `circulo`             | String?         | familia, amigos...; uno como mucho      |
 
-La base va por la versión 3: la migración 1→2 añade `medio` y deja los
+La base va por la versión 4 (la 3→4 añade `notas`, `cumpleanos` y
+`circulo`, vacíos). Los esquemas se exportan a `app/schemas` para ver cada
+cambio y probar migraciones. Antes, en la versión 3: la migración 1→2 añade `medio` y deja los
 contactos existentes en `MARCADOR`, que es lo que hacían antes; la 2→3 añade
 `descartes`, `pospuestoHasta` y `pausadoHasta`, vacíos.
 
@@ -205,6 +263,20 @@ directamente*, que lleva el auricular. Qué se abre al tocar la notificación
   WhatsApp"). Un aviso ya mostrado conserva la opción que había al crearse.
 
 ## Recordatorios
+
+Tres canales, cada uno con su importancia, para que en los ajustes del
+sistema se elija cuáles suenan: **Recordatorios** (normal, los que tocan hoy),
+**Muy atrasados** (alta: cuando ya va con media frecuencia de retraso) y
+**Cumpleaños** (alta). Con dos o más avisos de gente en la bandeja se agrupan
+bajo un resumen con los nombres; suena cada aviso, no el resumen.
+
+**Cumpleaños** (`CumpleanosAgenda.kt`, `avisos/CumpleanosWorker.kt`): con
+`READ_CONTACTS` se lee la fecha de la agenda al dar de alta, al abrir la ficha
+y una vez al día para todos. Ese mismo trabajo diario felicita a quien cumple
+hoy (el 29 de febrero, el 28 los años que no son bisiestos), con los mismos
+ajustes que el resto: apagados o en pausa no avisa y fuera del horario espera
+a la hora de inicio. Tocarlo abre la forma de contacto de esa persona y cuenta
+como contacto.
 
 * Al guardar o actualizar un contacto se programa un trabajo periódico único
   por contacto (`recordatorio-<id>`, cada 24 h, `CANCEL_AND_REENQUEUE`). La

@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,9 +50,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,6 +104,8 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.R
@@ -124,10 +131,14 @@ private val ANCHO_DOS_COLUMNAS = 600.dp
 fun PantallaFicha(
     borrador: Contacto,
     observar: (Long) -> Flow<Contacto?>,
+    circulos: List<String>,
     fotosPermitidas: Boolean,
     onPedirFotos: () -> Unit,
-    onAnadir: (Contacto, Int, MedioContacto) -> Unit,
+    /** Alta: el contacto ya lleva frecuencia, medio, notas y circulo. */
+    onAnadir: (Contacto) -> Unit,
     onActualizar: (Long, Int, MedioContacto) -> Unit,
+    onNotas: (Long, String) -> Unit,
+    onCirculo: (Long, String?) -> Unit,
     onContactar: (String, MedioContacto) -> Unit,
     onLlamadoHoy: (Long) -> Unit,
     onPausar: (Long, Int) -> Unit,
@@ -135,6 +146,8 @@ fun PantallaFicha(
     onEliminar: (Long) -> Unit,
     onForzarNotificacion: (Long) -> Unit,
     onVolver: () -> Unit,
+    /** Junto a la lista en pantalla ancha: la flecha de volver pasa a ser una X que la cierra. */
+    enPanel: Boolean = false,
 ) {
     val guardado = borrador.id != 0L
 
@@ -145,6 +158,8 @@ fun PantallaFicha(
 
     var frecuencia by rememberSaveable(borrador.id) { mutableIntStateOf(borrador.frecuenciaDias.coerceIn(1, FRECUENCIA_MAXIMA)) }
     var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
+    var notas by rememberSaveable(borrador.id) { mutableStateOf(borrador.notas) }
+    var circulo by rememberSaveable(borrador.id) { mutableStateOf(borrador.circulo) }
 
     // Lo que se esta editando, para que el anillo y las fechas respondan al momento.
     val vistaPrevia = actual.copy(frecuenciaDias = frecuencia)
@@ -155,6 +170,16 @@ fun PantallaFicha(
     LaunchedEffect(frecuencia, medio) {
         if (guardado && (frecuencia != actual.frecuenciaDias || medio != actual.medio)) {
             onActualizar(actual.id, frecuencia, medio)
+            guardadoHace++
+        }
+    }
+    // Las notas se guardan al dejar de escribir (lo espera el ViewModel), sin "Guardado".
+    LaunchedEffect(notas) {
+        if (guardado && notas.trim() != actual.notas) onNotas(actual.id, notas)
+    }
+    LaunchedEffect(circulo) {
+        if (guardado && circulo != actual.circulo) {
+            onCirculo(actual.id, circulo)
             guardadoHace++
         }
     }
@@ -173,7 +198,11 @@ fun PantallaFicha(
                 title = { Text(if (guardado) "" else stringResource(R.string.nuevo_contacto)) },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
+                        if (enPanel) {
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cerrar))
+                        } else {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
+                        }
                     }
                 },
                 actions = { if (guardado) AvisoGuardado(guardadoHace) },
@@ -184,7 +213,11 @@ fun PantallaFicha(
             BarraAcciones(
                 medio = medio,
                 // Solo al dar de alta: lo que ya existe se guarda solo.
-                onAnadir = if (guardado) null else ({ onAnadir(actual, frecuencia, medio) }),
+                onAnadir = if (guardado) {
+                    null
+                } else {
+                    { onAnadir(actual.copy(frecuenciaDias = frecuencia, medio = medio, notas = notas.trim(), circulo = circulo)) }
+                },
                 // Prueba lo elegido aunque aun no se haya guardado.
                 onContactar = { onContactar(actual.telefono, medio) },
             )
@@ -220,6 +253,19 @@ fun PantallaFicha(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
+                TarjetaFicha(stringResource(R.string.circulo)) {
+                    SelectorCirculo(circulo, circulos, onCambio = { circulo = it })
+                }
+                TarjetaFicha(stringResource(R.string.notas)) {
+                    OutlinedTextField(
+                        value = notas,
+                        onValueChange = { notas = it },
+                        placeholder = { Text(stringResource(R.string.notas_pista)) },
+                        minLines = 3,
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
                 if (guardado) {
@@ -312,6 +358,21 @@ private fun Cabecera(
         }
         Text(contacto.nombre, style = MaterialTheme.typography.headlineMedium)
         Text(contacto.telefono, style = MaterialTheme.typography.bodyLarge, color = colores.onSurfaceVariant)
+        contacto.cumpleanos?.let { dia ->
+            val faltan = contacto.diasHastaCumpleanos(hoy) ?: 0L
+            Text(
+                "🎂 " + when (faltan) {
+                    0L -> stringResource(R.string.cumpleanos_es_hoy)
+                    else -> stringResource(
+                        R.string.cumpleanos_el,
+                        dia.bonito(),
+                        pluralStringResource(R.plurals.en_dias, faltan.toInt(), faltan.toInt()),
+                    )
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (faltan == 0L) colores.tertiary else colores.onSurfaceVariant,
+            )
+        }
         if (guardado) {
             val faltan = ChronoUnit.DAYS.between(hoy, contacto.proximoAviso()).toInt()
             AnimatedContent(
@@ -793,4 +854,69 @@ private fun Resources.atajo(d: Int): String = when (d) {
     180 -> getString(R.string.atajo_6_meses)
     365 -> getString(R.string.atajo_1_anio)
     else -> getString(R.string.dias_corto, d)
+}
+
+/**
+ * Circulo de la persona (familia, amigos, trabajo...): uno como mucho. Se
+ * elige entre los que ya hay o se crea uno nuevo con su nombre.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SelectorCirculo(circulo: String?, circulos: List<String>, onCambio: (String?) -> Unit) {
+    val vista = LocalView.current
+    var creando by rememberSaveable { mutableStateOf(false) }
+    val opciones = (circulos + listOfNotNull(circulo)).distinct()
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = circulo == null,
+            onClick = {
+                vista.toque()
+                onCambio(null)
+            },
+            label = { Text(stringResource(R.string.circulo_ninguno)) },
+        )
+        opciones.forEach { nombre ->
+            FilterChip(
+                selected = circulo == nombre,
+                onClick = {
+                    vista.toque()
+                    onCambio(nombre)
+                },
+                label = { Text(nombre) },
+            )
+        }
+        FilterChip(
+            selected = false,
+            onClick = { creando = true },
+            leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            label = { Text(stringResource(R.string.circulo_nuevo)) },
+        )
+    }
+    if (creando) {
+        var nombre by rememberSaveable { mutableStateOf("") }
+        val listo = nombre.isNotBlank()
+        AlertDialog(
+            onDismissRequest = { creando = false },
+            title = { Text(stringResource(R.string.circulo_nuevo)) },
+            text = {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it.take(30) },
+                    placeholder = { Text(stringResource(R.string.circulo_pista)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = listo,
+                    onClick = {
+                        creando = false
+                        onCambio(nombre.trim())
+                    },
+                ) { Text(stringResource(R.string.crear)) }
+            },
+            dismissButton = { TextButton(onClick = { creando = false }) { Text(stringResource(R.string.cancelar)) } },
+        )
+    }
 }

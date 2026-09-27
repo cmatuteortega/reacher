@@ -1,6 +1,11 @@
 package com.example.recuerdallamar.ui
 
+import android.content.Context
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.compose.animation.animateColorAsState
@@ -67,6 +72,58 @@ fun View.confirmar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM else HapticFeedbackConstants.LONG_PRESS,
     )
 }
+
+/** Al coger una burbuja con el dedo: el inicio de un arrastre. */
+fun View.agarrar() {
+    performHapticFeedback(
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> HapticFeedbackConstants.DRAG_START
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> HapticFeedbackConstants.GESTURE_START
+            else -> HapticFeedbackConstants.VIRTUAL_KEY
+        },
+    )
+}
+
+/** Al lanzarla con fuerza: el final del gesto, un golpe seco. */
+fun View.lanzar() {
+    performHapticFeedback(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.GESTURE_END else HapticFeedbackConstants.KEYBOARD_TAP,
+    )
+}
+
+/**
+ * Choque entre burbujas (o contra el borde) con [fuerza] de 0 a 1. Donde el
+ * vibrador sabe componer (Android 11+ con motor que lo admite) el golpe es un
+ * "click" a esa intensidad, asi que un roce suena flojo y un lanzamiento
+ * fuerte, fuerte; si no, un tic para los golpes que se notan. Respeta el
+ * ajuste del sistema de vibrar al tocar, como performHapticFeedback.
+ */
+fun View.choque(fuerza: Float) {
+    val f = fuerza.coerceIn(0f, 1f)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && vibracionAlTocar(context)) {
+        val vibrador = vibrador(context)
+        if (vibrador != null && vibrador.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_CLICK)) {
+            vibrador.vibrate(
+                VibrationEffect.startComposition()
+                    .addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, 0.15f + 0.85f * f)
+                    .compose(),
+            )
+            return
+        }
+    }
+    if (f > 0.3f) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+}
+
+private fun vibracionAlTocar(context: Context): Boolean =
+    Settings.System.getInt(context.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) != 0
+
+private fun vibrador(context: Context): Vibrator? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    }?.takeIf { it.hasVibrator() }
 
 /** Escala para que lo que se pulsa se hunda un poco y rebote al soltar. */
 @Composable

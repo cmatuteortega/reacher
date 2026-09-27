@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
+import com.example.recuerdallamar.widget.WidgetHoy
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
@@ -32,6 +33,8 @@ class RecordatorioWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        // Corre al menos una vez al dia: el widget se entera de que ha cambiado la fecha.
+        WidgetHoy.actualizar(applicationContext)
         val id = inputData.getLong(CLAVE_ID, -1)
         // Si el contacto ya no existe no hay nada que reintentar.
         val contacto = BaseDatos.de(applicationContext).contactos().buscar(id)

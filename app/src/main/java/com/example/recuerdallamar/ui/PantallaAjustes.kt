@@ -25,6 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import android.widget.Toast
+import com.example.recuerdallamar.Valoracion
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -117,6 +123,7 @@ fun PantallaAjustes(
                             TarjetaPosponer(ajustes, onCambiar)
                             TarjetaMedio(ajustes, onCambiar)
                             TarjetaApariencia(ajustes, onCambiar)
+                            TarjetaOpiniones()
                             TarjetaDepuracion(ajustes, onCambiar)
                         }
                     }
@@ -127,6 +134,7 @@ fun PantallaAjustes(
                         TarjetaPosponer(ajustes, onCambiar)
                         TarjetaMedio(ajustes, onCambiar)
                         TarjetaApariencia(ajustes, onCambiar)
+                        TarjetaOpiniones()
                         TarjetaDepuracion(ajustes, onCambiar)
                     }
                 }
@@ -302,6 +310,37 @@ private fun TarjetaApariencia(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes
                     Text(stringResource(tema.etiqueta), style = MaterialTheme.typography.labelLarge, color = color)
                 }
             }
+        }
+    }
+}
+
+/** Escribir al autor o valorar la app en Google Play. */
+@Composable
+private fun TarjetaOpiniones() {
+    val context = LocalContext.current
+    val asunto = stringResource(R.string.opiniones_asunto, stringResource(R.string.app_name))
+    val sinCorreo = stringResource(R.string.sin_app_correo)
+    Tarjeta(stringResource(R.string.opiniones)) {
+        Explicacion(stringResource(R.string.opiniones_explicacion))
+        OutlinedButton(
+            onClick = {
+                if (!Valoracion.enviarOpiniones(context, asunto)) {
+                    Toast.makeText(context, sinCorreo, Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            Icon(Icons.Filled.Email, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.enviar_opiniones))
+        }
+        OutlinedButton(
+            onClick = { Valoracion.abrirFichaTienda(context) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.valorar_app))
         }
     }
 }

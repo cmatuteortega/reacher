@@ -69,17 +69,18 @@ Work through the phases in order.
 
 ## Phase 5 — Platform polish and product depth
 
-- [ ] **Splash screen** via the SplashScreen API.
-- [ ] **Large screens**: tablet/foldable layouts using window size classes.
-- [ ] **Navigation**: move to Navigation Compose for deep links, predictive
+- [x] **Splash screen** via the SplashScreen API.
+- [x] **Large screens**: tablet/foldable layouts using window size classes.
+- [x] **Navigation**: move to Navigation Compose for deep links, predictive
       back and robust process-death restoration.
-- [ ] **Home-screen widget** ("who's due today") and a launcher shortcut for
+- [x] **Home-screen widget** ("who's due today") and a launcher shortcut for
       "add person".
-- [ ] **Notifications**: grouping when several people are due, channels per
+- [x] **Notifications**: grouping when several people are due, channels per
       importance.
-- [ ] **Richer haptics** for grabbing, throwing and colliding bubbles.
-- [ ] **Product features**: history and streaks/stats, notes per person,
-      birthdays from contacts, groups/circles.
-- [ ] **In-app feedback** and rating prompt.
+- [x] **Richer haptics** for grabbing, throwing and colliding bubbles.
+- [ ] **Product features**: history and streaks/stats, ~~notes per person~~,
+      ~~birthdays from contacts~~, ~~groups/circles~~ (done; history and
+      streaks/stats still to do).
+- [x] **In-app feedback** and rating prompt.
 - [ ] **Optional sync** across devices (keeping local-only as the default and
       privacy selling point).

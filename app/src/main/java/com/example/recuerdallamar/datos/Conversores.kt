@@ -3,10 +3,11 @@ package com.example.recuerdallamar.datos
 import androidx.room.TypeConverter
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.MonthDay
 
 /**
  * Room no sabe guardar java.time: la fecha va como dia epoch y el instante como
- * texto ISO. El medio de contacto va por nombre.
+ * texto ISO, y el cumpleanos como "--MM-DD". El medio de contacto va por nombre.
  */
 class Conversores {
     @TypeConverter
@@ -26,4 +27,10 @@ class Conversores {
 
     @TypeConverter
     fun aMedio(nombre: String): MedioContacto = MedioContacto.desde(nombre)
+
+    @TypeConverter
+    fun deDiaDelAno(dia: MonthDay?): String? = dia?.toString()
+
+    @TypeConverter
+    fun aDiaDelAno(texto: String?): MonthDay? = texto?.let { runCatching { MonthDay.parse(it) }.getOrNull() }
 }

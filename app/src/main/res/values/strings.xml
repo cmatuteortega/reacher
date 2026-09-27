@@ -195,4 +195,44 @@
         <item quantity="one">day · swipe ↔</item>
         <item quantity="other">days · swipe ↔</item>
     </plurals>
+
+    <!-- Plataforma: widget, atajo, circulos, notas, cumpleanos, opiniones -->
+    <string name="canal_grupo">People</string>
+    <string name="canal_atrasados">Very overdue</string>
+    <string name="canal_atrasados_descripcion">Alert when you\'re well past the time to contact someone</string>
+    <string name="canal_cumpleanos">Birthdays</string>
+    <string name="canal_cumpleanos_descripcion">Alert on the birthday of someone in your system</string>
+    <string name="cumpleanos_hoy">It\'s %1$s\'s birthday!</string>
+    <string name="cumpleanos_felicita">Tap to send your congratulations</string>
+    <string name="cumpleanos_corto">Birthday today</string>
+    <string name="cumpleanos_es_hoy">Birthday today!</string>
+    <string name="cumpleanos_el">Birthday %1$s · %2$s</string>
+    <string name="widget_titulo">Due today</string>
+    <string name="widget_nadie">Nobody\'s due today. Enjoy the day!</string>
+    <string name="widget_descripcion">Who\'s due today, at a glance</string>
+    <string name="anadir_persona_largo">Add a person from your contacts</string>
+    <string name="elige_a_alguien">Pick someone to see their details</string>
+    <string name="cerrar">Close</string>
+    <string name="crear">Create</string>
+    <string name="circulo">Circle</string>
+    <string name="circulo_ninguno">None</string>
+    <string name="circulo_nuevo">New circle</string>
+    <string name="circulo_pista">Family, friends, work…</string>
+    <string name="circulo_todos">All</string>
+    <string name="notas">Notes</string>
+    <string name="notas_pista">Things to remember: their kids\' names, what you talked about…</string>
+    <string name="opiniones">Feedback</string>
+    <string name="opiniones_explicacion">Something not working, or an idea? Write to us. If the app helps you, a rating on Google Play helps others find it.</string>
+    <string name="enviar_opiniones">Send feedback</string>
+    <string name="valorar_app">Rate on Google Play</string>
+    <string name="opiniones_asunto">%1$s feedback</string>
+    <string name="sin_app_correo">No email app found</string>
+    <plurals name="resumen_avisos">
+        <item quantity="one">%d person to contact</item>
+        <item quantity="other">%d people to contact</item>
+    </plurals>
+    <plurals name="en_dias">
+        <item quantity="one">in %d day</item>
+        <item quantity="other">in %d days</item>
+    </plurals>
 </resources>

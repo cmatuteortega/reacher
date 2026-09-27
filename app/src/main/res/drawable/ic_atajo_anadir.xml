@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono del atajo "Añadir persona": person_add de Material Symbols (Apache 2.0) en crema sobre marino, como el icono de la app. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/marino" />
+    <foreground>
+        <inset
+            android:inset="30%"
+            android:drawable="@drawable/ic_persona_anadir" />
+    </foreground>
+</adaptive-icon>

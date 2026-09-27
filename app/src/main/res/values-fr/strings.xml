@@ -199,4 +199,46 @@
         <item quantity="many">jours · glisse ↔</item>
         <item quantity="other">jours · glisse ↔</item>
     </plurals>
+
+    <!-- Plataforma: widget, atajo, circulos, notas, cumpleanos, opiniones -->
+    <string name="canal_grupo">Personnes</string>
+    <string name="canal_atrasados">Très en retard</string>
+    <string name="canal_atrasados_descripcion">Prévenir quand le moment de contacter quelqu\'un est largement passé</string>
+    <string name="canal_cumpleanos">Anniversaires</string>
+    <string name="canal_cumpleanos_descripcion">Prévenir le jour de l\'anniversaire de quelqu\'un de votre système</string>
+    <string name="cumpleanos_hoy">C\'est l\'anniversaire de %1$s !</string>
+    <string name="cumpleanos_felicita">Touchez pour lui souhaiter</string>
+    <string name="cumpleanos_corto">Anniversaire aujourd\'hui</string>
+    <string name="cumpleanos_es_hoy">Anniversaire aujourd\'hui !</string>
+    <string name="cumpleanos_el">Anniversaire le %1$s · %2$s</string>
+    <string name="widget_titulo">Aujourd\'hui</string>
+    <string name="widget_nadie">Personne aujourd\'hui. Profitez de la journée !</string>
+    <string name="widget_descripcion">Qui contacter aujourd\'hui, en un coup d\'œil</string>
+    <string name="anadir_persona_largo">Ajouter quelqu\'un depuis vos contacts</string>
+    <string name="elige_a_alguien">Choisissez quelqu\'un pour voir sa fiche</string>
+    <string name="cerrar">Fermer</string>
+    <string name="crear">Créer</string>
+    <string name="circulo">Cercle</string>
+    <string name="circulo_ninguno">Aucun</string>
+    <string name="circulo_nuevo">Nouveau cercle</string>
+    <string name="circulo_pista">Famille, amis, travail…</string>
+    <string name="circulo_todos">Tous</string>
+    <string name="notas">Notes</string>
+    <string name="notas_pista">À retenir : le prénom de ses enfants, ce dont vous avez parlé…</string>
+    <string name="opiniones">Avis</string>
+    <string name="opiniones_explicacion">Un problème ou une idée ? Écrivez-nous. Si l\'appli vous aide, une note sur Google Play aide d\'autres personnes à la trouver.</string>
+    <string name="enviar_opiniones">Envoyer un avis</string>
+    <string name="valorar_app">Noter sur Google Play</string>
+    <string name="opiniones_asunto">Avis sur %1$s</string>
+    <string name="sin_app_correo">Aucune appli de messagerie</string>
+    <plurals name="resumen_avisos">
+        <item quantity="one">%d personne à contacter</item>
+        <item quantity="many">%d personnes à contacter</item>
+        <item quantity="other">%d personnes à contacter</item>
+    </plurals>
+    <plurals name="en_dias">
+        <item quantity="one">dans %d jour</item>
+        <item quantity="many">dans %d jours</item>
+        <item quantity="other">dans %d jours</item>
+    </plurals>
 </resources>

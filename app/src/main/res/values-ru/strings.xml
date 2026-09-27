@@ -209,4 +209,48 @@
         <item quantity="many">дней · листай ↔</item>
         <item quantity="other">дня · листай ↔</item>
     </plurals>
+
+    <!-- Plataforma: widget, atajo, circulos, notas, cumpleanos, opiniones -->
+    <string name="canal_grupo">Люди</string>
+    <string name="canal_atrasados">Сильно просрочено</string>
+    <string name="canal_atrasados_descripcion">Уведомлять, когда время связаться с кем-то давно прошло</string>
+    <string name="canal_cumpleanos">Дни рождения</string>
+    <string name="canal_cumpleanos_descripcion">Уведомлять в день рождения человека из вашей системы</string>
+    <string name="cumpleanos_hoy">%1$s: сегодня день рождения!</string>
+    <string name="cumpleanos_felicita">Нажмите, чтобы поздравить</string>
+    <string name="cumpleanos_corto">День рождения сегодня</string>
+    <string name="cumpleanos_es_hoy">День рождения сегодня!</string>
+    <string name="cumpleanos_el">День рождения %1$s · %2$s</string>
+    <string name="widget_titulo">Сегодня</string>
+    <string name="widget_nadie">Сегодня никого. Хорошего дня!</string>
+    <string name="widget_descripcion">Кому пора позвонить сегодня — одним взглядом</string>
+    <string name="anadir_persona_largo">Добавить человека из контактов</string>
+    <string name="elige_a_alguien">Выберите человека, чтобы открыть карточку</string>
+    <string name="cerrar">Закрыть</string>
+    <string name="crear">Создать</string>
+    <string name="circulo">Круг</string>
+    <string name="circulo_ninguno">Нет</string>
+    <string name="circulo_nuevo">Новый круг</string>
+    <string name="circulo_pista">Семья, друзья, работа…</string>
+    <string name="circulo_todos">Все</string>
+    <string name="notas">Заметки</string>
+    <string name="notas_pista">Что запомнить: как зовут детей, о чём говорили…</string>
+    <string name="opiniones">Отзывы</string>
+    <string name="opiniones_explicacion">Что-то не работает или есть идея? Напишите нам. Если приложение помогает, оценка в Google Play поможет другим его найти.</string>
+    <string name="enviar_opiniones">Отправить отзыв</string>
+    <string name="valorar_app">Оценить в Google Play</string>
+    <string name="opiniones_asunto">%1$s: отзыв</string>
+    <string name="sin_app_correo">Нет почтового приложения</string>
+    <plurals name="resumen_avisos">
+        <item quantity="one">%d человек ждёт связи</item>
+        <item quantity="few">%d человека ждут связи</item>
+        <item quantity="many">%d человек ждут связи</item>
+        <item quantity="other">%d человека ждут связи</item>
+    </plurals>
+    <plurals name="en_dias">
+        <item quantity="one">через %d день</item>
+        <item quantity="few">через %d дня</item>
+        <item quantity="many">через %d дней</item>
+        <item quantity="other">через %d дня</item>
+    </plurals>
 </resources>

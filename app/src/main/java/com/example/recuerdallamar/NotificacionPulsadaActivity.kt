@@ -36,6 +36,7 @@ class NotificacionPulsadaActivity : ComponentActivity() {
         if (id >= 0) {
             // El boton no retira el aviso solo, como si hace el toque.
             Notificaciones.quitar(this, id)
+            Valoracion.contactoHecho(this)
             val app = application as App
             app.ambito.launch {
                 val ahora = LocalDateTime.now()

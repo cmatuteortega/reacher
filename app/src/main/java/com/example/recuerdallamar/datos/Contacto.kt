@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.MonthDay
 import java.time.temporal.ChronoUnit
 
 /**
@@ -15,6 +16,10 @@ import java.time.temporal.ChronoUnit
  * "Mas tarde" ([pospuestoHasta]) y hasta cuando no quiere avisos de esta
  * persona ([pausadoHasta]). Pausar no toca [ultimoContacto]: la urgencia sigue
  * creciendo y la burbuja se sigue haciendo grande.
+ *
+ * Y lo que se sabe de la persona: unas [notas] libres, su [cumpleanos] (dia y
+ * mes, leido de la agenda) y el [circulo] al que pertenece (familia, amigos...),
+ * uno como mucho, para filtrar Personas.
  */
 @Entity(tableName = "contactos")
 data class Contacto(
@@ -29,7 +34,24 @@ data class Contacto(
     val descartes: Int = 0,
     val pospuestoHasta: LocalDateTime? = null,
     val pausadoHasta: LocalDateTime? = null,
+    val notas: String = "",
+    val cumpleanos: MonthDay? = null,
+    val circulo: String? = null,
 ) {
+    /** Hoy es su cumpleanos. El 29 de febrero se celebra el 28 los anos que no es bisiesto. */
+    fun esCumpleanos(hoy: LocalDate = LocalDate.now()): Boolean {
+        val dia = cumpleanos ?: return false
+        return dia.atYear(hoy.year) == hoy
+    }
+
+    /** Dias hasta el proximo cumpleanos (0 hoy); null si no se sabe. */
+    fun diasHastaCumpleanos(hoy: LocalDate = LocalDate.now()): Long? {
+        val dia = cumpleanos ?: return null
+        var siguiente = dia.atYear(hoy.year)
+        if (siguiente.isBefore(hoy)) siguiente = dia.atYear(hoy.year + 1)
+        return ChronoUnit.DAYS.between(hoy, siguiente)
+    }
+
     /** Dia a partir del cual toca avisar. */
     fun proximoAviso(): LocalDate = ultimoContacto.plusDays(frecuenciaDias.toLong())
 

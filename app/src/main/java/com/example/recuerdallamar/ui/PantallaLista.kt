@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,9 +22,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -60,6 +65,9 @@ fun PantallaLista(
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
     onAjustes: () -> Unit,
+    circulos: List<String>,
+    filtro: String?,
+    onFiltrar: (String?) -> Unit,
     modifier: Modifier = Modifier,
     relevo: Relevo? = null,
 ) {
@@ -87,6 +95,7 @@ fun PantallaLista(
                     // La esquina de la izquierda es del sol.
                     title = {},
                     actions = {
+                        if (circulos.isNotEmpty()) FiltroCirculo(circulos, filtro, onFiltrar)
                         // Un solo boton que va pasando por las tres: burbujas, orbitas, lista.
                         val entradas = VistaPersonas.entries
                         val otra = entradas[(vista.ordinal + 1) % entradas.size]
@@ -201,7 +210,10 @@ private fun FilaContacto(
     }
     ListItem(
         modifier = modifier.clickable(onClick = onClick),
-        headlineContent = { Text(contacto.nombre) },
+        headlineContent = {
+            Text(if (contacto.esCumpleanos()) "🎂 ${contacto.nombre}" else contacto.nombre)
+        },
+        overlineContent = contacto.circulo?.let { { Text(it) } },
         supportingContent = {
             val recursos = LocalContext.current.resources
             Text(
@@ -221,4 +233,41 @@ private fun FilaContacto(
             }
         },
     )
+}
+
+/**
+ * Filtro por circulo, en la barra de arriba: una pastilla con el elegido (o
+ * "Todos") que despliega los demas. Solo aparece si alguien tiene circulo.
+ */
+@Composable
+private fun FiltroCirculo(circulos: List<String>, filtro: String?, onFiltrar: (String?) -> Unit) {
+    var abierto by remember { mutableStateOf(false) }
+    val activo = filtro != null && filtro in circulos
+    Box {
+        FilterChip(
+            selected = activo,
+            onClick = { abierto = true },
+            label = { Text(if (activo) filtro!! else stringResource(R.string.circulo_todos), maxLines = 1) },
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(18.dp)) },
+            modifier = Modifier.padding(end = 4.dp),
+        )
+        DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.circulo_todos)) },
+                onClick = {
+                    abierto = false
+                    onFiltrar(null)
+                },
+            )
+            circulos.forEach { circulo ->
+                DropdownMenuItem(
+                    text = { Text(circulo) },
+                    onClick = {
+                        abierto = false
+                        onFiltrar(circulo)
+                    },
+                )
+            }
+        }
+    }
 }

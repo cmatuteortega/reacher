@@ -167,6 +167,13 @@ internal class Simulacion {
         private set
 
     /**
+     * El choque mas fuerte del ultimo paso: la velocidad (px/s) con que se
+     * acercaban dos burbujas, o una y el borde. Para la vibracion.
+     */
+    var golpe = 0f
+        private set
+
+    /**
      * Pone las casas nuevas. Las burbujas que ya estaban van nadando a su
      * sitio; las nuevas nacen un poco mas abajo y suben, o salen de la
      * burbuja indicada en [salenDe] si esta existe (el grupo al abrirse).
@@ -235,6 +242,7 @@ internal class Simulacion {
 
     fun paso(dt: Float) {
         tiempo += dt
+        golpe = 0f
         val deriva = DERIVA * densidad
         val crecer = 1f - exp(-8f * dt)
         for (c in orden) {
@@ -292,6 +300,7 @@ internal class Simulacion {
                 // Choque blando: se quita la velocidad con que se acercan y un poco mas.
                 val acercamiento = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny
                 if (acercamiento < 0f) {
+                    golpe = max(golpe, -acercamiento)
                     val impulso = -(1f + REBOTE) * acercamiento
                     a.vx -= impulso * nx * pa
                     a.vy -= impulso * ny * pa
@@ -329,19 +338,33 @@ internal class Simulacion {
         val maxX = max(minX, ancho - c.radio - borde)
         val minY = c.radio + borde
         val maxY = max(minY, alto - bordeInferior - c.radio)
+        // Solo cuenta como golpe si no la lleva el dedo: arrastrarla contra el borde no vibra.
+        val suelto = !c.agarrado
         if (c.x < minX) {
             c.x = minX
-            if (c.vx < 0f) c.vx = -c.vx * REBOTE_PARED
+            if (c.vx < 0f) {
+                if (suelto) golpe = max(golpe, -c.vx)
+                c.vx = -c.vx * REBOTE_PARED
+            }
         } else if (c.x > maxX) {
             c.x = maxX
-            if (c.vx > 0f) c.vx = -c.vx * REBOTE_PARED
+            if (c.vx > 0f) {
+                if (suelto) golpe = max(golpe, c.vx)
+                c.vx = -c.vx * REBOTE_PARED
+            }
         }
         if (c.y < minY) {
             c.y = minY
-            if (c.vy < 0f) c.vy = -c.vy * REBOTE_PARED
+            if (c.vy < 0f) {
+                if (suelto) golpe = max(golpe, -c.vy)
+                c.vy = -c.vy * REBOTE_PARED
+            }
         } else if (c.y > maxY) {
             c.y = maxY
-            if (c.vy > 0f) c.vy = -c.vy * REBOTE_PARED
+            if (c.vy > 0f) {
+                if (suelto) golpe = max(golpe, c.vy)
+                c.vy = -c.vy * REBOTE_PARED
+            }
         }
     }
 

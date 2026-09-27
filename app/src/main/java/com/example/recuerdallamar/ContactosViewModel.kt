@@ -2,6 +2,7 @@ package com.example.recuerdallamar
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.avisos.RecordatorioWorker
@@ -9,6 +10,7 @@ import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.MedioContacto
 import com.example.recuerdallamar.datos.porUrgencia
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -16,56 +18,119 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 /** Pausa sin cambios en la ficha tras la que se reprograma el aviso. */
 private const val REPROGRAMAR_TRAS_MS = 800L
 
-class ContactosViewModel(app: Application) : AndroidViewModel(app) {
+/** Pausa al escribir las notas tras la que se guardan. */
+private const val GUARDAR_NOTAS_TRAS_MS = 500L
+
+/**
+ * Lo que no es de una sola pantalla: la gente, el alta a medias, el filtro por
+ * circulo y la persona elegida en tableta. Lo que tiene que sobrevivir a que
+ * Android cierre el proceso en segundo plano va en [estado] (SavedStateHandle).
+ */
+class ContactosViewModel(app: Application, private val estado: SavedStateHandle) : AndroidViewModel(app) {
     private val dao = BaseDatos.de(app).contactos()
 
-    /**
-     * Ordenados por urgencia, no por fecha de alta. null mientras carga, para no
-     * ensenar "lista vacia" un instante al abrir.
-     */
-    val contactos: StateFlow<List<Contacto>?> = dao.todos()
-        .map { it.porUrgencia() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    /** Circulo por el que se filtra Personas; null = todos. */
+    val filtro: StateFlow<String?> = estado.getStateFlow(FILTRO, null)
 
-    /**
-     * La ficha abierta (null = lista). Vive aqui y no en la composicion para
-     * que girar la pantalla no pierda un contacto recien elegido sin guardar.
-     */
-    private val _ficha = MutableStateFlow<Contacto?>(null)
-    val ficha: StateFlow<Contacto?> = _ficha.asStateFlow()
-
-    fun abrirFicha(contacto: Contacto) {
-        _ficha.value = contacto
+    fun filtrar(circulo: String?) {
+        estado[FILTRO] = circulo
     }
 
-    /** Desde el aviso: solo llega el id. Si ya no existe, se queda en la lista. */
-    fun abrirFichaDe(id: Long) {
-        viewModelScope.launch {
-            dao.buscar(id)?.let { _ficha.value = it }
-        }
+    val circulos: StateFlow<List<String>> = dao.circulos()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Ordenados por urgencia, no por fecha de alta, y solo los del circulo
+     * elegido. null mientras carga, para no ensenar "lista vacia" un instante al abrir.
+     */
+    val contactos: StateFlow<List<Contacto>?> = combine(dao.todos(), filtro) { todos, circulo ->
+        // Un filtro de un circulo que ya no existe (se vacio) no deja la pantalla en blanco.
+        val enCirculo = if (circulo == null || todos.none { it.circulo == circulo }) todos else todos.filter { it.circulo == circulo }
+        enCirculo.porUrgencia()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * Alguien recien elegido de la agenda y aun sin guardar. Se guarda campo a
+     * campo en [estado]: si Android cierra la app mientras se mira la agenda o
+     * se escribe, al volver la ficha sigue ahi.
+     */
+    private val _borrador = MutableStateFlow(
+        estado.get<String>(BORRADOR_NOMBRE)?.let { nombre ->
+            Contacto(
+                nombre = nombre,
+                telefono = estado[BORRADOR_TELEFONO] ?: "",
+                frecuenciaDias = estado[BORRADOR_FRECUENCIA] ?: 7,
+                medio = MedioContacto.desde(estado[BORRADOR_MEDIO]),
+            )
+        },
+    )
+    val borrador: StateFlow<Contacto?> = _borrador.asStateFlow()
+
+    /** Se ve al momento: la pantalla de alta se abre justo despues. */
+    fun empezarAlta(contacto: Contacto) {
+        estado[BORRADOR_NOMBRE] = contacto.nombre
+        estado[BORRADOR_TELEFONO] = contacto.telefono
+        estado[BORRADOR_FRECUENCIA] = contacto.frecuenciaDias
+        estado[BORRADOR_MEDIO] = contacto.medio.name
+        _borrador.value = contacto
     }
 
-    fun cerrarFicha() {
-        _ficha.value = null
+    fun descartarAlta() {
+        estado.remove<String>(BORRADOR_NOMBRE)
+        _borrador.value = null
+    }
+
+    private val _altaPedida = MutableStateFlow(false)
+
+    /** El atajo del icono o el + del widget piden abrir la agenda para anadir a alguien. */
+    val altaPedida: StateFlow<Boolean> = _altaPedida.asStateFlow()
+
+    fun pedirAlta() {
+        _altaPedida.value = true
+    }
+
+    fun altaAtendida() {
+        _altaPedida.value = false
+    }
+
+    /** Persona abierta al lado de la lista en pantallas anchas; null = ninguna. */
+    val seleccion: StateFlow<Long?> = estado.getStateFlow(SELECCION, null)
+
+    fun seleccionar(id: Long?) {
+        estado[SELECCION] = id
     }
 
     fun observar(id: Long): Flow<Contacto?> = dao.observar(id)
 
-    /** Da de alta a alguien nuevo y vuelve a la lista. */
-    fun anadir(borrador: Contacto, dias: Int, medio: MedioContacto) {
+    /** Da de alta a alguien nuevo, con el cumpleanos de la agenda si se puede leer. */
+    fun anadir(contacto: Contacto) {
+        descartarAlta()
         viewModelScope.launch {
-            val id = dao.insertar(borrador.copy(frecuenciaDias = dias, medio = medio, ultimoContacto = LocalDate.now()))
+            val cumpleanos = withContext(Dispatchers.IO) { CumpleanosAgenda.leer(getApplication(), contacto.telefono) }
+            val id = dao.insertar(contacto.copy(ultimoContacto = LocalDate.now(), cumpleanos = cumpleanos))
             RecordatorioWorker.programar(getApplication(), id)
         }
-        cerrarFicha()
+    }
+
+    /**
+     * Al abrir una ficha: si en la agenda ha aparecido (o cambiado) el
+     * cumpleanos, se apunta. Sin permiso no se toca lo que hubiera.
+     */
+    fun refrescarCumpleanos(contacto: Contacto) {
+        if (contacto.id == 0L) return
+        viewModelScope.launch {
+            val leido = withContext(Dispatchers.IO) { CumpleanosAgenda.leer(getApplication(), contacto.telefono) }
+            if (leido != null && leido != contacto.cumpleanos) dao.actualizarCumpleanos(contacto.id, leido)
+        }
     }
 
     private val reprogramaciones = mutableMapOf<Long, Job>()
@@ -85,12 +150,29 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private val escrituraNotas = mutableMapOf<Long, Job>()
+
+    /** Las notas se guardan al dejar de escribir, no con cada letra. */
+    fun cambiarNotas(id: Long, notas: String) {
+        escrituraNotas.remove(id)?.cancel()
+        escrituraNotas[id] = viewModelScope.launch {
+            delay(GUARDAR_NOTAS_TRAS_MS)
+            dao.actualizarNotas(id, notas.trim())
+            escrituraNotas.remove(id)
+        }
+    }
+
+    fun cambiarCirculo(id: Long, circulo: String?) {
+        viewModelScope.launch { dao.actualizarCirculo(id, circulo?.trim()?.takeIf { it.isNotEmpty() }) }
+    }
+
     /**
      * Pone el ultimo contacto a hoy. Reprograma el trabajo como al guardar, para
      * que el ciclo diario arranque desde ahora, y retira el aviso pendiente:
      * ya no dice nada cierto.
      */
     fun llamadoHoy(id: Long) {
+        Valoracion.contactoHecho(getApplication())
         viewModelScope.launch {
             dao.actualizarUltimoContacto(id, LocalDate.now())
             Notificaciones.quitar(getApplication(), id)
@@ -118,7 +200,7 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun eliminar(id: Long) {
-        cerrarFicha()
+        if (seleccion.value == id) seleccionar(null)
         viewModelScope.launch {
             RecordatorioWorker.cancelar(getApplication(), id)
             Notificaciones.quitar(getApplication(), id)
@@ -128,5 +210,14 @@ class ContactosViewModel(app: Application) : AndroidViewModel(app) {
 
     fun forzarNotificacion(id: Long) {
         RecordatorioWorker.forzar(getApplication(), id)
+    }
+
+    private companion object {
+        const val FILTRO = "filtro"
+        const val SELECCION = "seleccion"
+        const val BORRADOR_NOMBRE = "borrador_nombre"
+        const val BORRADOR_TELEFONO = "borrador_telefono"
+        const val BORRADOR_FRECUENCIA = "borrador_frecuencia"
+        const val BORRADOR_MEDIO = "borrador_medio"
     }
 }

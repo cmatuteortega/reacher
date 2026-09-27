@@ -1,13 +1,14 @@
 package com.example.recuerdallamar
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -16,13 +17,25 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
+import androidx.activity.viewModels
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,11 +45,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
+import androidx.navigation.toRoute
 import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.datos.Ajustes
 import com.example.recuerdallamar.datos.AlmacenAjustes
@@ -52,24 +78,47 @@ import com.example.recuerdallamar.ui.esOscuro
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
-    /** Contacto cuya ficha pide abrir el boton "Mas opciones" del aviso. */
-    private val fichaPedida = MutableStateFlow<Long?>(null)
+    private val vm: ContactosViewModel by viewModels()
+
+    /** Enlace llegado con la app ya abierta (aviso, widget, atajo), a la espera de la navegacion. */
+    private val enlacePedido = MutableStateFlow<Intent?>(null)
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(Idioma.envolver(newBase))
     }
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val arranque = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // El sol del arranque se queda hasta que la lista ha cargado: asi no se
+        // ve un instante la pantalla vacia antes de que lleguen las burbujas.
+        arranque.setKeepOnScreenCondition { vm.contactos.value == null }
+        arranque.setOnExitAnimationListener { salida ->
+            if (!ValueAnimator.areAnimatorsEnabled()) {
+                salida.remove()
+                return@setOnExitAnimationListener
+            }
+            salida.view.animate()
+                .alpha(0f)
+                .setDuration(250)
+                .withEndAction { salida.remove() }
+                .start()
+        }
         enableEdgeToEdge()
-        // Al recrear (p. ej. al girar) el intent sigue ahi, pero ya se atendio.
-        if (savedInstanceState == null) atender(intent)
+        // Navigation abre el enlace con el que arranca la actividad al montar el
+        // grafo. Sin NEW_TASK, que le haria reiniciar la actividad para
+        // rehacer la pila: la rehace en el sitio.
+        if (savedInstanceState == null) {
+            intent = prepararEnlace(intent)
+            if (Enlaces.esNuevo(intent?.data)) vm.pedirAlta()
+        }
         val almacen = AlmacenAjustes.de(this)
         val idiomaAlCrear = almacen.ajustes.value.idioma
         setContent {
             val ajustes by almacen.ajustes.collectAsStateWithLifecycle()
             // Otro idioma en Ajustes: se rehace la actividad para que lo coja
-            // todo; rememberSaveable deja al usuario en la misma pantalla.
+            // todo; Navigation deja al usuario en la misma pantalla.
             LaunchedEffect(ajustes.idioma) {
                 if (ajustes.idioma != idiomaAlCrear) {
                     Notificaciones.crearCanal(applicationContext)
@@ -89,12 +138,15 @@ class MainActivity : ComponentActivity() {
                 )
                 onDispose { }
             }
+            val ventana = calculateWindowSizeClass(this)
             TemaApp(modoOscuro = oscuro) {
                 AppRecuerda(
+                    vm = vm,
                     ajustes = ajustes,
                     cambiarAjustes = almacen::cambiar,
-                    fichaPedida = fichaPedida.collectAsStateWithLifecycle().value,
-                    onFichaAtendida = { fichaPedida.value = null },
+                    anchoAmplio = ventana.widthSizeClass == WindowWidthSizeClass.Expanded,
+                    enlacePedido = enlacePedido.collectAsStateWithLifecycle().value,
+                    onEnlaceAtendido = { enlacePedido.value = null },
                 )
             }
         }
@@ -102,19 +154,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        atender(intent)
+        val enlace = prepararEnlace(intent) ?: return
+        if (Enlaces.esNuevo(enlace.data)) vm.pedirAlta() else enlacePedido.value = enlace
     }
 
-    private fun atender(intent: Intent?) {
-        val id = intent?.getLongExtra(EXTRA_FICHA, -1) ?: -1
-        if (id < 0) return
-        // Los botones de un aviso no lo retiran solos.
-        Notificaciones.quitar(this, id)
-        fichaPedida.value = id
-    }
-
-    companion object {
-        const val EXTRA_FICHA = "abrir_ficha"
+    /**
+     * Quita NEW_TASK a los enlaces propios (ver onCreate) y retira el aviso de
+     * esa persona: los botones de un aviso no lo retiran solos.
+     */
+    private fun prepararEnlace(intent: Intent?): Intent? {
+        if (intent?.data?.scheme != Enlaces.ESQUEMA) return intent
+        Enlaces.idDeFicha(intent.data)?.let { Notificaciones.quitar(this, it) }
+        return Intent(intent).apply { flags = flags and Intent.FLAG_ACTIVITY_NEW_TASK.inv() }
     }
 }
 
@@ -122,30 +173,29 @@ class MainActivity : ComponentActivity() {
 private val ESTOR_CLARO = android.graphics.Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
 private val ESTOR_OSCURO = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
 
-/** Lo que ocupa la pantalla: la lista es la base y las demas se abren encima. */
-private sealed interface Pantalla {
-    data object Lista : Pantalla
-    data object Bienvenida : Pantalla
-    data object Ajustes : Pantalla
-    data class Ficha(val contacto: Contacto) : Pantalla
-}
-
 /** Frecuencia que se propone al elegir a alguien nuevo. */
 private const val FRECUENCIA_INICIAL = 7
 
+/** Ancho maximo del panel de la ficha junto a la lista. */
+private val ANCHO_PANEL = 520.dp
+
 @Composable
 private fun AppRecuerda(
+    vm: ContactosViewModel,
     ajustes: Ajustes,
     cambiarAjustes: ((Ajustes) -> Ajustes) -> Unit,
-    fichaPedida: Long?,
-    onFichaAtendida: () -> Unit,
-    vm: ContactosViewModel = viewModel(),
+    anchoAmplio: Boolean,
+    enlacePedido: Intent?,
+    onEnlaceAtendido: () -> Unit,
 ) {
     val context = LocalContext.current
+    val navegador = rememberNavController()
     val contactos by vm.contactos.collectAsStateWithLifecycle()
-    val ficha by vm.ficha.collectAsStateWithLifecycle()
+    val circulos by vm.circulos.collectAsStateWithLifecycle()
+    val filtro by vm.filtro.collectAsStateWithLifecycle()
+    val seleccion by vm.seleccion.collectAsStateWithLifecycle()
+    val altaPedida by vm.altaPedida.collectAsStateWithLifecycle()
 
-    var ajustesAbiertos by rememberSaveable { mutableStateOf(false) }
     var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
     // Para que el sol y la gente de la bienvenida sigan en la lista al acabarla.
     val relevo = remember { Relevo() }
@@ -160,13 +210,15 @@ private fun AppRecuerda(
         bienvenidaDecidida = true
         if (cargados.isNotEmpty() && !ajustes.bienvenidaHecha) {
             cambiarAjustes { it.copy(bienvenidaHecha = true) }
+            navegador.irAPersonas()
         }
     }
 
-    LaunchedEffect(fichaPedida) {
-        if (fichaPedida != null) {
-            vm.abrirFichaDe(fichaPedida)
-            onFichaAtendida()
+    // Enlace con la app abierta: Navigation rehace la pila hasta su pantalla.
+    LaunchedEffect(enlacePedido) {
+        if (enlacePedido != null) {
+            navegador.handleDeepLink(enlacePedido)
+            onEnlaceAtendido()
         }
     }
 
@@ -184,7 +236,7 @@ private fun AppRecuerda(
     val elegir = rememberLauncherForActivityResult(ElegirTelefono()) { uri ->
         val elegido = uri?.let { leerTelefono(context, it) } ?: return@rememberLauncherForActivityResult
         val (nombre, telefono) = elegido
-        vm.abrirFicha(
+        vm.empezarAlta(
             Contacto(
                 nombre = nombre,
                 telefono = telefono,
@@ -192,6 +244,7 @@ private fun AppRecuerda(
                 medio = ajustes.medioPorDefecto,
             ),
         )
+        navegador.navigate(Ruta.Nueva) { launchSingleTop = true }
     }
 
     val anadirDeLaAgenda = {
@@ -241,9 +294,10 @@ private fun AppRecuerda(
         if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
     }
     // Al abrir, salvo en la bienvenida: alli se piden al ir a la agenda. Si ya
-    // se pidieron alli, no se vuelve a preguntar nada mas acabarla.
+    // se pidieron alli, no se vuelve a preguntar nada mas acabarla. Si se
+    // abrio con el atajo de anadir, ya se piden ahi.
     LaunchedEffect(ajustes.bienvenidaHecha) {
-        if (ajustes.bienvenidaHecha && !permisosPedidos) pedirLoQueFalta()
+        if (ajustes.bienvenidaHecha && !permisosPedidos && !altaPedida) pedirLoQueFalta()
     }
 
     // Cada vez que se va a anadir a alguien, en la bienvenida o con el + de la
@@ -266,6 +320,14 @@ private fun AppRecuerda(
         }
     }
 
+    // Atajo del icono o "+" del widget (contacto://nuevo): a Personas y a la agenda.
+    LaunchedEffect(altaPedida) {
+        if (!altaPedida) return@LaunchedEffect
+        vm.altaAtendida()
+        if (ajustes.bienvenidaHecha) navegador.popBackStack(Ruta.Personas, inclusive = false)
+        anadirPidiendoPermisos()
+    }
+
     val pedirFotos = {
         if (fotosBloqueadas) {
             val ficheroApp = Uri.fromParts("package", context.packageName, null)
@@ -275,94 +337,261 @@ private fun AppRecuerda(
         }
     }
 
-    BackHandler(enabled = ficha != null) { vm.cerrarFicha() }
-    BackHandler(enabled = ficha == null && ajustesAbiertos) { ajustesAbiertos = false }
+    /** Ficha de alguien ya guardado: la misma en pantalla completa y en el panel. */
+    @Composable
+    fun Ficha(contacto: Contacto, enPanel: Boolean, onVolver: () -> Unit) {
+        PantallaFicha(
+            borrador = contacto,
+            observar = vm::observar,
+            circulos = circulos,
+            fotosPermitidas = fotosPermitidas,
+            onPedirFotos = pedirFotos,
+            onAnadir = {},
+            onActualizar = vm::actualizar,
+            onNotas = vm::cambiarNotas,
+            onCirculo = vm::cambiarCirculo,
+            onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
+            onLlamadoHoy = { id ->
+                vm.llamadoHoy(id)
+                Toast.makeText(context, context.getString(R.string.anotado_hoy), Toast.LENGTH_SHORT).show()
+            },
+            onPausar = { id, dias ->
+                vm.pausar(id, dias)
+                Toast.makeText(context, context.resources.getQuantityString(R.plurals.avisos_en_pausa, dias, dias), Toast.LENGTH_SHORT).show()
+            },
+            onReanudar = vm::reanudar,
+            onEliminar = { id ->
+                onVolver()
+                vm.eliminar(id)
+                Toast.makeText(context, context.getString(R.string.contacto_eliminado), Toast.LENGTH_SHORT).show()
+            },
+            onForzarNotificacion = { id ->
+                if (!Notificaciones.permitidas(context)) {
+                    Toast.makeText(context, context.getString(R.string.activa_notificaciones), Toast.LENGTH_LONG).show()
+                } else {
+                    vm.forzarNotificacion(id)
+                    Toast.makeText(context, context.getString(R.string.notificacion_prueba_enviada), Toast.LENGTH_SHORT).show()
+                }
+            },
+            onVolver = onVolver,
+            enPanel = enPanel,
+        )
+    }
 
-    val pantalla = ficha?.let { Pantalla.Ficha(it) }
-        ?: when {
-            !ajustes.bienvenidaHecha -> Pantalla.Bienvenida
-            ajustesAbiertos -> Pantalla.Ajustes
-            else -> Pantalla.Lista
-        }
-
-    // contentKey solo distingue el tipo de pantalla: cambiar de ficha a ficha no anima.
-    AnimatedContent(
-        targetState = pantalla,
-        contentKey = { it::class },
-        transitionSpec = {
-            if (initialState == Pantalla.Bienvenida) {
-                // Sin deslizar: el sol y los planetas siguen en su sitio y desde ahi
-                // se van al horizonte y a sus burbujas. Solo se funde lo demas.
-                fadeIn(tween(300)) togetherWith fadeOut(tween(200))
-            } else {
-                val entra = targetState != Pantalla.Lista
-                slideInHorizontally { if (entra) it else -it } togetherWith
-                    slideOutHorizontally { if (entra) -it else it }
+    NavHost(
+        navController = navegador,
+        startDestination = if (ajustes.bienvenidaHecha) Ruta.Personas else Ruta.Bienvenida,
+        // Lo que se abre entra por la derecha y al volver sale por donde vino;
+        // el gesto atras predictivo arrastra esta misma animacion.
+        enterTransition = { slideInHorizontally { it } },
+        exitTransition = { slideOutHorizontally { -it } },
+        popEnterTransition = { slideInHorizontally { -it } },
+        popExitTransition = { slideOutHorizontally { it } },
+    ) {
+        composable<Ruta.Bienvenida>(
+            // Sin deslizar: el sol y los planetas siguen en su sitio y desde ahi
+            // se van al horizonte y a sus burbujas. Solo se funde lo demas.
+            exitTransition = { if (targetState.es<Ruta.Personas>()) fadeOut(tween(200)) else slideOutHorizontally { -it } },
+        ) {
+            // Un enlace puede haber rehecho la pila con la bienvenida debajo
+            // cuando ya estaba hecha: entonces no se ensena, se va a Personas.
+            LaunchedEffect(ajustes.bienvenidaHecha) {
+                if (ajustes.bienvenidaHecha) navegador.irAPersonas()
             }
-        },
-        label = "pantalla",
-    ) { actual ->
-        when (actual) {
-            Pantalla.Lista -> PantallaLista(
-                contactos = contactos,
-                fotosPermitidas = fotosPermitidas,
-                vista = ajustes.vista,
-                onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
-                onAnadir = anadirPidiendoPermisos,
-                onAbrir = vm::abrirFicha,
-                onAjustes = { ajustesAbiertos = true },
-                relevo = relevo,
-            )
-            Pantalla.Ajustes -> PantallaAjustes(
-                ajustes = ajustes,
-                onCambiar = cambiarAjustes,
-                onVolver = { ajustesAbiertos = false },
-            )
-            Pantalla.Bienvenida -> PantallaBienvenida(
+            PantallaBienvenida(
                 paso = pasoBienvenida,
                 onPaso = { pasoBienvenida = it },
                 contactos = contactos.orEmpty(),
                 fotosPermitidas = fotosPermitidas,
                 onAnadir = anadirPidiendoPermisos,
-                onAbrir = vm::abrirFicha,
+                onAbrir = { navegador.navigate(Ruta.Ficha(it.id)) },
                 // Se acaba en la vista de burbujas, la que se acaba de ensenar.
                 onTerminar = {
                     relevo.sacarFoto()
                     cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) }
+                    navegador.irAPersonas()
                 },
                 relevo = relevo,
             )
-            is Pantalla.Ficha -> PantallaFicha(
-                borrador = actual.contacto,
-                observar = vm::observar,
-                fotosPermitidas = fotosPermitidas,
-                onPedirFotos = pedirFotos,
-                onAnadir = vm::anadir,
-                onActualizar = vm::actualizar,
-                onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
-                onLlamadoHoy = { id ->
-                    vm.llamadoHoy(id)
-                    Toast.makeText(context, context.getString(R.string.anotado_hoy), Toast.LENGTH_SHORT).show()
-                },
-                onPausar = { id, dias ->
-                    vm.pausar(id, dias)
-                    Toast.makeText(context, context.resources.getQuantityString(R.plurals.avisos_en_pausa, dias, dias), Toast.LENGTH_SHORT).show()
-                },
-                onReanudar = vm::reanudar,
-                onEliminar = { id ->
-                    vm.eliminar(id)
-                    Toast.makeText(context, context.getString(R.string.contacto_eliminado), Toast.LENGTH_SHORT).show()
-                },
-                onForzarNotificacion = { id ->
-                    if (!Notificaciones.permitidas(context)) {
-                        Toast.makeText(context, context.getString(R.string.activa_notificaciones), Toast.LENGTH_LONG).show()
-                    } else {
-                        vm.forzarNotificacion(id)
-                        Toast.makeText(context, context.getString(R.string.notificacion_prueba_enviada), Toast.LENGTH_SHORT).show()
+        }
+
+        composable<Ruta.Personas>(
+            deepLinks = listOf(navDeepLink { uriPattern = Enlaces.PERSONAS }),
+            enterTransition = { if (initialState.es<Ruta.Bienvenida>()) fadeIn(tween(300)) else slideInHorizontally { -it } },
+        ) {
+            // Pedir la valoracion de Play al volver aqui, si ya se ha usado lo bastante.
+            LifecycleResumeEffect(Unit) {
+                (context as? Activity)?.let(Valoracion::pedirSiToca)
+                onPauseOrDispose { }
+            }
+            // Al plegar la tableta (o estrechar la ventana) con alguien abierto
+            // al lado, su ficha pasa a pantalla completa.
+            LaunchedEffect(anchoAmplio, seleccion) {
+                val elegido = seleccion
+                if (!anchoAmplio && elegido != null) {
+                    vm.seleccionar(null)
+                    navegador.navigate(Ruta.Ficha(elegido))
+                }
+            }
+            val lista = @Composable { modifier: Modifier ->
+                PantallaLista(
+                    contactos = contactos,
+                    fotosPermitidas = fotosPermitidas,
+                    vista = ajustes.vista,
+                    onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
+                    onAnadir = anadirPidiendoPermisos,
+                    onAbrir = { if (anchoAmplio) vm.seleccionar(it.id) else navegador.navigate(Ruta.Ficha(it.id)) },
+                    onAjustes = { navegador.navigate(Ruta.Ajustes) },
+                    circulos = circulos,
+                    filtro = filtro,
+                    onFiltrar = vm::filtrar,
+                    modifier = modifier,
+                    relevo = relevo,
+                )
+            }
+            if (anchoAmplio) {
+                BackHandler(enabled = seleccion != null) { vm.seleccionar(null) }
+                Row(Modifier.fillMaxSize()) {
+                    lista(Modifier.weight(1f))
+                    VerticalDivider()
+                    Box(
+                        Modifier
+                            .widthIn(max = ANCHO_PANEL)
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    ) {
+                        PanelFicha(vm, seleccion) { contacto -> Ficha(contacto, enPanel = true) { vm.seleccionar(null) } }
                     }
-                },
-                onVolver = vm::cerrarFicha,
+                }
+            } else {
+                lista(Modifier)
+            }
+        }
+
+        composable<Ruta.Ajustes> { entrada ->
+            PantallaAjustes(
+                ajustes = ajustes,
+                onCambiar = cambiarAjustes,
+                onVolver = { navegador.volverDesde(entrada) },
             )
         }
+
+        composable<Ruta.Ficha>(
+            deepLinks = listOf(navDeepLink<Ruta.Ficha>(basePath = "${Enlaces.ESQUEMA}://ficha")),
+        ) { entrada ->
+            val id = entrada.toRoute<Ruta.Ficha>().id
+            val volver = { navegador.volverDesde(entrada) }
+            // En pantalla ancha, abierta sobre Personas (un enlace, o al
+            // desplegar el plegable): se pasa al panel de al lado.
+            LaunchedEffect(anchoAmplio) {
+                if (anchoAmplio && navegador.previousBackStackEntry?.destination?.hasRoute<Ruta.Personas>() == true) {
+                    vm.seleccionar(id)
+                    volver()
+                }
+            }
+            var contacto by remember { mutableStateOf<Contacto?>(null) }
+            LaunchedEffect(id) {
+                var primera = true
+                vm.observar(id).collect { leido ->
+                    // Ya no existe (borrado, o un enlace viejo): de vuelta.
+                    if (leido == null) {
+                        volver()
+                    } else {
+                        if (primera) vm.refrescarCumpleanos(leido)
+                        primera = false
+                        contacto = leido
+                    }
+                }
+            }
+            contacto?.let { Ficha(it, enPanel = false, onVolver = volver) }
+        }
+
+        composable<Ruta.Nueva> { entrada ->
+            val borrador by vm.borrador.collectAsStateWithLifecycle()
+            val volver = {
+                vm.descartarAlta()
+                navegador.volverDesde(entrada)
+            }
+            // Tras guardar, o si se perdio el borrador, no queda nada que ensenar.
+            LaunchedEffect(borrador) { if (borrador == null) navegador.volverDesde(entrada) }
+            borrador?.let { nuevo ->
+                PantallaFicha(
+                    borrador = nuevo,
+                    observar = vm::observar,
+                    circulos = circulos,
+                    fotosPermitidas = fotosPermitidas,
+                    onPedirFotos = pedirFotos,
+                    onAnadir = vm::anadir,
+                    onActualizar = { _, _, _ -> },
+                    onNotas = { _, _ -> },
+                    onCirculo = { _, _ -> },
+                    onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
+                    onLlamadoHoy = {},
+                    onPausar = { _, _ -> },
+                    onReanudar = {},
+                    onEliminar = {},
+                    onForzarNotificacion = {},
+                    onVolver = volver,
+                )
+            }
+        }
     }
+}
+
+/** Panel derecho en pantalla ancha: la ficha elegida o una invitacion a elegir. */
+@Composable
+private fun PanelFicha(vm: ContactosViewModel, seleccion: Long?, ficha: @Composable (Contacto) -> Unit) {
+    var contacto by remember(seleccion) { mutableStateOf<Contacto?>(null) }
+    LaunchedEffect(seleccion) {
+        val id = seleccion ?: return@LaunchedEffect
+        var primera = true
+        vm.observar(id).collect { leido ->
+            if (leido == null) {
+                vm.seleccionar(null)
+            } else {
+                if (primera) vm.refrescarCumpleanos(leido)
+                primera = false
+                contacto = leido
+            }
+        }
+    }
+    val actual = contacto
+    if (seleccion != null && actual != null) {
+        ficha(actual)
+    } else {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    stringResource(R.string.elige_a_alguien),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(32.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * De la bienvenida a Personas, sin dejarla debajo. singleTop: la piden a la
+ * vez el boton de acabar y la propia bienvenida al verse ya hecha, y solo
+ * debe quedar una.
+ */
+private fun NavHostController.irAPersonas() {
+    navigate(Ruta.Personas) {
+        popUpTo(Ruta.Bienvenida) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
+private inline fun <reified T : Any> NavBackStackEntry.es(): Boolean = destination.hasRoute<T>()
+
+/**
+ * Atras desde [entrada], solo si sigue siendo la de arriba: un boton pulsado
+ * dos veces, o borrar y a la vez ver que la fila ya no existe, no deben
+ * sacar tambien la pantalla de debajo.
+ */
+private fun NavHostController.volverDesde(entrada: NavBackStackEntry) {
+    if (currentBackStackEntry?.id == entrada.id) popBackStack()
 }

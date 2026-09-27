@@ -6,6 +6,7 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.MonthDay
 
 @Dao
 interface ContactoDao {
@@ -48,6 +49,24 @@ interface ContactoDao {
     /** null reanuda los avisos de esta persona. */
     @Query("UPDATE contactos SET pausadoHasta = :hasta WHERE id = :id")
     suspend fun pausar(id: Long, hasta: LocalDateTime?)
+
+    @Query("UPDATE contactos SET notas = :notas WHERE id = :id")
+    suspend fun actualizarNotas(id: Long, notas: String)
+
+    /** null lo saca de su circulo. */
+    @Query("UPDATE contactos SET circulo = :circulo WHERE id = :id")
+    suspend fun actualizarCirculo(id: Long, circulo: String?)
+
+    @Query("UPDATE contactos SET cumpleanos = :dia WHERE id = :id")
+    suspend fun actualizarCumpleanos(id: Long, dia: MonthDay?)
+
+    /** Para el trabajo diario de cumpleanos y el widget, sin flujo. */
+    @Query("SELECT * FROM contactos")
+    suspend fun lista(): List<Contacto>
+
+    /** Los circulos que hay, para proponerlos en la ficha y filtrar Personas. */
+    @Query("SELECT DISTINCT circulo FROM contactos WHERE circulo IS NOT NULL ORDER BY circulo COLLATE NOCASE")
+    fun circulos(): Flow<List<String>>
 
     @Query("DELETE FROM contactos WHERE id = :id")
     suspend fun borrar(id: Long)
