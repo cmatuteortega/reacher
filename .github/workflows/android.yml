@@ -8,8 +8,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # versionCode sube con cada ejecucion; versionName es la ultima etiqueta
+      # de git (v1.2.0 -> 1.2.0) mas lo que haya encima, o el commit si no hay.
+      VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Toda la historia y las etiquetas, para git describe.
+          fetch-depth: 0
+
+      - name: Version
+        run: echo "VERSION_NAME=$(git describe --tags --always | sed 's/^v//')" >> "$GITHUB_ENV"
 
       - uses: actions/setup-java@v4
         with:
@@ -19,13 +29,45 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Compilar APK de depuracion
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
 
       - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
+
+      # Solo con los secretos de la firma (no llegan a los PR desde forks).
+      - name: Preparar firma
+        id: firma
+        env:
+          KEYSTORE_BASE64: ${{ secrets.CONTACTO_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/subida.jks"
+            echo "CONTACTO_KEYSTORE=$RUNNER_TEMP/subida.jks" >> "$GITHUB_ENV"
+            echo "hay=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Sin CONTACTO_KEYSTORE_BASE64: no se compila la version publicada."
+          fi
+
+      - name: Compilar AAB de publicacion
+        if: steps.firma.outputs.hay == 'true'
+        env:
+          CONTACTO_KEYSTORE_PASSWORD: ${{ secrets.CONTACTO_KEYSTORE_PASSWORD }}
+          CONTACTO_KEY_ALIAS: ${{ secrets.CONTACTO_KEY_ALIAS }}
+          CONTACTO_KEY_PASSWORD: ${{ secrets.CONTACTO_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --stacktrace -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
+
+      # El mapping.txt de R8 va con el AAB: Play Console lo pide para leer las trazas.
+      - name: Subir AAB
+        if: steps.firma.outputs.hay == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ env.VERSION_NAME }}
+          path: |
+            app/build/outputs/bundle/release/*.aab
+            app/build/outputs/mapping/release/mapping.txt
 
       - name: Pruebas unitarias
         run: ./gradlew testDebugUnitTest

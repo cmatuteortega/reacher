@@ -5,3 +5,8 @@ local.properties
 *.iml
 .kotlin/
 captures/
+
+# Firma de la version publicada: nunca en el repositorio.
+keystore.properties
+*.jks
+*.keystore

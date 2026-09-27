@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Atajos del icono (mantener pulsado): "Añadir persona" abre la agenda por el
-  enlace contacto://nuevo. targetPackage tiene que ser el applicationId: si
+  enlace contacto://nuevo. targetPackage es el applicationId (targetClass sigue el namespace): si
   cambia en build.gradle.kts, cambiarlo aqui tambien.
 -->
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
@@ -15,6 +15,6 @@
             android:action="android.intent.action.VIEW"
             android:data="contacto://nuevo"
             android:targetClass="com.example.recuerdallamar.MainActivity"
-            android:targetPackage="com.example.recuerdallamar" />
+            android:targetPackage="com.cmatuteortega.contacto" />
     </shortcut>
 </shortcuts>

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -7,17 +9,37 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+/**
+ * Firma de la version publicada. Se lee de las variables de entorno (en CI,
+ * de los secretos del repositorio) o de keystore.properties en la raiz, que
+ * no se sube. Sin ellas, assembleRelease/bundleRelease salen sin firmar.
+ */
+val firma: Map<String, String?> = run {
+    val local = Properties().apply {
+        rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+    }
+    listOf("CONTACTO_KEYSTORE", "CONTACTO_KEYSTORE_PASSWORD", "CONTACTO_KEY_ALIAS", "CONTACTO_KEY_PASSWORD")
+        .associateWith { System.getenv(it) ?: local.getProperty(it) }
+}
+val hayFirma = firma.values.all { !it.isNullOrBlank() }
+
 android {
+    // El namespace (paquete del codigo y de R) se queda; lo que ve Google Play
+    // es el applicationId de abajo.
     namespace = "com.example.recuerdallamar"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.recuerdallamar"
+        // No puede cambiar nunca despues de la primera subida a Google Play.
+        // Va tambien en res/xml/atajos.xml (targetPackage).
+        applicationId = "com.cmatuteortega.contacto"
         // 26 para tener java.time sin desugaring y canales de notificacion siempre.
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        // Los pone CI (-Pcontacto.versionCode=<numero de ejecucion>,
+        // -Pcontacto.versionName=<etiqueta de git>); en local, 1 y "dev".
+        versionCode = (project.findProperty("contacto.versionCode") as String?)?.toInt() ?: 1
+        versionName = (project.findProperty("contacto.versionName") as String?) ?: "dev"
 
         // Direccion a la que va "Enviar opiniones" (Ajustes). Vacia = el correo
         // se abre sin destinatario. Se pone en gradle.properties o con
@@ -26,9 +48,23 @@ android {
         buildConfigField("String", "CORREO_OPINIONES", "\"$correo\"")
     }
 
+    signingConfigs {
+        if (hayFirma) {
+            create("publicacion") {
+                storeFile = rootProject.file(firma.getValue("CONTACTO_KEYSTORE")!!)
+                storePassword = firma["CONTACTO_KEYSTORE_PASSWORD"]
+                keyAlias = firma["CONTACTO_KEY_ALIAS"]
+                keyPassword = firma["CONTACTO_KEY_PASSWORD"]
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hayFirma) signingConfig = signingConfigs.getByName("publicacion")
         }
     }
     compileOptions {
