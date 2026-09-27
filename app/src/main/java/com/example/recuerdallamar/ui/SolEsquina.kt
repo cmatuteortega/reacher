@@ -70,12 +70,14 @@ internal val PUNTA_ESQUINA = 16.dp
 
 /**
  * Grados que gira la cabeza para asomar la cara por la esquina: a la derecha
- * y hacia abajo. Sus gestos se quedan en [GESTOS] de lo normal para que los
- * ojos no se salgan por arriba ni por la izquierda.
+ * y hacia abajo. Los ojos son [OJOS] de los de siempre, que la esfera es
+ * mucho mayor, y sus gestos se quedan en [GESTOS] de lo normal para que no
+ * se salgan por arriba ni por la izquierda ni se peguen al borde.
  */
-private const val GIRO_DERECHA = 48f
-private const val GIRO_ABAJO = 56f
-private const val GESTOS = 0.4f
+private const val GIRO_DERECHA = 24f
+private const val GIRO_ABAJO = 30f
+private const val OJOS = 0.5f
+private const val GESTOS = 0.25f
 
 /** Grados de mas hacia el + cuando se pulsa. */
 private const val MIRA_MAS = 14f
@@ -181,6 +183,7 @@ fun SolEsquina(
             val gestos = lerp(1f, GESTOS, e)
             val m = cara.muestra()
             val cabeza = m.girada(x = m.cabezaX * gestos, y = m.cabezaY * gestos, z = m.cabezaZ * gestos)
+                .conOjosDe(lerp(1f, OJOS, e))
             dibujarOjos(cabeza, cara.parpadeo(), centro, radio, esquema.onTertiary, mirada)
         }
 
@@ -250,4 +253,10 @@ fun SolEsquina(
             )
         }
     }
+}
+
+/** La misma cara con los ojos (y lo que los separa) a [k] de su tamano. */
+private fun Expresion.conOjosDe(k: Float): Expresion {
+    fun Ojo.menor() = copy(ancho = ancho * k, alto = alto * k, x = x * k, y = y * k)
+    return copy(izquierdo = izquierdo.menor(), derecho = derecho.menor(), separacion = separacion * k)
 }
