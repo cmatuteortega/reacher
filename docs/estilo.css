@@ -1,0 +1,11 @@
+:root { --fondo: #FFECD6; --texto: #0D2B45; --acento: #D08159; --borde: #8D697A; }
+@media (prefers-color-scheme: dark) {
+  :root { --fondo: #0D2B45; --texto: #FFECD6; --acento: #FFAA5E; --borde: #544E68; }
+}
+body { background: var(--fondo); color: var(--texto); font: 17px/1.6 system-ui, sans-serif; margin: 0; }
+main { max-width: 42rem; margin: 0 auto; padding: 2rem 16px 4rem; }
+h1 { font-size: 1.8rem; margin-bottom: 0.2rem; }
+h2 { font-size: 1.2rem; margin-top: 2rem; color: var(--acento); }
+a { color: var(--acento); }
+.fecha { opacity: 0.7; margin-top: 0; }
+nav { border-bottom: 1px solid var(--borde); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }

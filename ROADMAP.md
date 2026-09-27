@@ -8,22 +8,26 @@ Work through the phases in order.
 
 ## Phase 1 — Ship-blockers
 
-- [ ] **Application ID**: replace `com.example.recuerdallamar`. Google Play
+Done in code; the manual steps (keystore, CI secrets, GitHub Pages, contact
+email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
+
+- [x] **Application ID**: replace `com.example.recuerdallamar`. Google Play
       rejects `com.example` packages, and the ID can never change after the
       first upload.
-- [ ] **Release signing**: add a signing config (keystore via CI secrets).
-- [ ] **R8**: enable `isMinifyEnabled` and `isShrinkResources` for release, with
+- [x] **Release signing**: add a signing config (keystore via CI secrets).
+- [x] **R8**: enable `isMinifyEnabled` and `isShrinkResources` for release, with
       ProGuard rules for Room and WorkManager.
-- [ ] **Versioning**: derive `versionCode`/`versionName` automatically (e.g.
+- [x] **Versioning**: derive `versionCode`/`versionName` automatically (e.g.
       from git tags or the CI run number).
-- [ ] **Release in CI**: build and upload a signed release AAB, not only the
+- [x] **Release in CI**: build and upload a signed release AAB, not only the
       debug APK.
-- [ ] **Hide debug tools** in release builds: the "force notification" button
+- [x] **Hide debug tools** in release builds: the "force notification" button
       in the contact screen and *Settings › Debug › App language*.
-- [ ] **Privacy policy** and Play **Data Safety** form (the app reads
+- [x] **Privacy policy** and Play **Data Safety** form (the app reads
       contacts).
 - [ ] **Store listing**: localized description, screenshots and feature
-      graphic.
+      graphic. Texts are done (`fastlane/metadata`); screenshots and the
+      feature graphic are still to do.
 
 ## Phase 2 — Quality safety net
 

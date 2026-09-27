@@ -18,7 +18,9 @@ el SDK de Android instalado:
 minSdk 26, target/compileSdk 35, JDK 17+.
 
 Cada push compila en GitHub Actions (`.github/workflows/android.yml`); el APK
-de depuración queda como artefacto `app-debug` de la ejecución.
+de depuración queda como artefacto `app-debug` de la ejecución y, con los
+secretos de la firma, el `.aab` firmado para Google Play como
+`app-release-<versión>`. Cómo publicar: [PUBLICAR.md](PUBLICAR.md).
 
 ## Aspecto
 
@@ -163,7 +165,7 @@ flecha vuelven a Personas.
    *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado),
    *Pausar avisos* (N días sin avisos de esa persona; el último contacto no
    cambia, así que la burbuja sigue creciendo), *Eliminar contacto* (con
-   confirmación) y un botón de **depuración** que fuerza la notificación.
+   confirmación) y un botón de **depuración** que fuerza la notificación (solo en depuración).
    Además, el **círculo** de la persona (uno como mucho: se elige entre los
    que hay o se crea otro), unas **notas** libres (se guardan al dejar de
    escribir) y, si está en la agenda, su **cumpleaños** con los días que
@@ -184,7 +186,7 @@ interfaz como el worker.
 | Botón «Más tarde» del aviso    | Cuántas horas tarda en volver el aviso pospuesto (por defecto 2) |
 | Forma de contacto por defecto  | La que se propone al añadir a alguien; se cambia en su ficha    |
 | Apariencia                     | Sistema, claro u oscuro                                         |
-| Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones |
+| Depuración › Idioma de la app  | El del teléfono (por defecto) o uno fijo, para probar traducciones (solo en depuración) |
 
 El botón de depuración de la ficha ignora estos ajustes: siempre avisa.
 
