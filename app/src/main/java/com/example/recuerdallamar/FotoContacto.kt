@@ -19,8 +19,8 @@ import kotlinx.coroutines.withContext
  * asi que sirve tambien para los contactos ya guardados.
  *
  * La foto es otra fila del proveedor distinta de la que concede el selector,
- * asi que aqui si hace falta READ_CONTACTS. Se pide una vez al arrancar y,
- * si se deniega, desde la ficha; sin el simplemente no hay foto.
+ * asi que aqui si hace falta READ_CONTACTS. Se pide una vez al arrancar, cada
+ * vez que se anade a alguien mientras falte y desde la ficha; sin el no hay foto.
  */
 object FotoContacto {
 

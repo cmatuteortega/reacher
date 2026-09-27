@@ -202,8 +202,8 @@ private fun AppRecuerda(
         }
     }
 
-    // En la bienvenida los permisos se piden al ir a la agenda por primera
-    // vez; al contestar se sigue hasta la agenda.
+    // Al ir a la agenda con el + se pide lo que falte; al contestar se sigue
+    // hasta la agenda.
     var permisosPedidos by rememberSaveable { mutableStateOf(false) }
     var elegirTrasPermisos by rememberSaveable { mutableStateOf(false) }
 
@@ -227,8 +227,8 @@ private fun AppRecuerda(
     }
 
     // Lo que hace falta, en un solo paso: avisos siempre que falten, fotos solo
-    // la primera vez (luego se piden desde la ficha). Dice si ha preguntado.
-    val pedirLoQueFalta: () -> Boolean = {
+    // la primera vez (luego se piden desde la ficha o al anadir).
+    val pedirLoQueFalta = {
         val faltan = buildList {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
@@ -239,7 +239,6 @@ private fun AppRecuerda(
             }
         }
         if (faltan.isNotEmpty()) pedirPermisos.launch(faltan.toTypedArray())
-        faltan.isNotEmpty()
     }
     // Al abrir, salvo en la bienvenida: alli se piden al ir a la agenda. Si ya
     // se pidieron alli, no se vuelve a preguntar nada mas acabarla.
@@ -247,13 +246,23 @@ private fun AppRecuerda(
         if (ajustes.bienvenidaHecha && !permisosPedidos) pedirLoQueFalta()
     }
 
-    val anadirEnBienvenida: () -> Unit = {
-        if (permisosPedidos) {
+    // Cada vez que se va a anadir a alguien, en la bienvenida o con el + de la
+    // lista: mientras falten los avisos o las fotos se vuelven a pedir, que es
+    // justo cuando se ve para que sirven.
+    val anadirPidiendoPermisos: () -> Unit = {
+        val faltan = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            if (!FotoContacto.permitida(context)) add(Manifest.permission.READ_CONTACTS)
+        }
+        permisosPedidos = true
+        if (faltan.isEmpty()) {
             anadirDeLaAgenda()
         } else {
-            permisosPedidos = true
-            elegirTrasPermisos = pedirLoQueFalta()
-            if (!elegirTrasPermisos) anadirDeLaAgenda()
+            FotoContacto.marcarPreguntado(context)
+            elegirTrasPermisos = true
+            pedirPermisos.launch(faltan.toTypedArray())
         }
     }
 
@@ -299,7 +308,7 @@ private fun AppRecuerda(
                 fotosPermitidas = fotosPermitidas,
                 vista = ajustes.vista,
                 onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
-                onAnadir = anadirDeLaAgenda,
+                onAnadir = anadirPidiendoPermisos,
                 onAbrir = vm::abrirFicha,
                 onAjustes = { ajustesAbiertos = true },
                 relevo = relevo,
@@ -314,7 +323,7 @@ private fun AppRecuerda(
                 onPaso = { pasoBienvenida = it },
                 contactos = contactos.orEmpty(),
                 fotosPermitidas = fotosPermitidas,
-                onAnadir = anadirEnBienvenida,
+                onAnadir = anadirPidiendoPermisos,
                 onAbrir = vm::abrirFicha,
                 // Se acaba en la vista de burbujas, la que se acaba de ensenar.
                 onTerminar = {
