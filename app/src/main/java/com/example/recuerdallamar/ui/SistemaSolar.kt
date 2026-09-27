@@ -473,7 +473,8 @@ private fun PlanetaVista(
                 val s = planeta.escala * escala
                 scaleX = s
                 scaleY = s
-                alpha = planeta.escala.coerceIn(0f, 1f)
+                // Sin alpha: una capa translucida dibuja la sombra de la burbuja
+                // como un recuadro mientras dura. Basta con que crezca desde nada.
                 transformOrigin = TransformOrigin(0.5f, radio.toPx() / alto.toPx())
             },
     ) {
