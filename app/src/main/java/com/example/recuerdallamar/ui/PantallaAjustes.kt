@@ -65,6 +65,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.BuildConfig
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Ajustes
 import com.example.recuerdallamar.datos.IdiomaElegido
@@ -124,7 +125,7 @@ fun PantallaAjustes(
                             TarjetaMedio(ajustes, onCambiar)
                             TarjetaApariencia(ajustes, onCambiar)
                             TarjetaOpiniones()
-                            TarjetaDepuracion(ajustes, onCambiar)
+                            if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                         }
                     }
                 } else {
@@ -135,7 +136,7 @@ fun PantallaAjustes(
                         TarjetaMedio(ajustes, onCambiar)
                         TarjetaApariencia(ajustes, onCambiar)
                         TarjetaOpiniones()
-                        TarjetaDepuracion(ajustes, onCambiar)
+                        if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                     }
                 }
                 Spacer(Modifier.height(24.dp))
@@ -347,7 +348,8 @@ private fun TarjetaOpiniones() {
 
 /**
  * Idioma de la app, para probar las traducciones sin cambiar el del telefono.
- * Al elegir otro, MainActivity se rehace ya en ese idioma.
+ * Al elegir otro, MainActivity se rehace ya en ese idioma. Solo en depuracion:
+ * en la version publicada el idioma se cambia en los ajustes del sistema.
  */
 @Composable
 private fun TarjetaDepuracion(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {

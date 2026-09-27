@@ -111,6 +111,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
+import com.example.recuerdallamar.BuildConfig
 import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
@@ -322,7 +323,8 @@ fun PantallaFicha(
                         modifier = Modifier.padding(horizontal = 4.dp),
                     )
                 }
-                Depuracion(guardado) { onForzarNotificacion(actual.id) }
+                // Solo en depuracion: en la version publicada no se fuerzan avisos.
+                if (BuildConfig.DEBUG) Depuracion(guardado) { onForzarNotificacion(actual.id) }
             }
 
             Column(
