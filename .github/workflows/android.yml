@@ -28,6 +28,25 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # Lo primero: si una prueba o lint falla, no se compila ni se sube nada.
+      # Las pruebas corren en la JVM con Robolectric (base de datos,
+      # migraciones, workers y pantallas): no hace falta emulador.
+      - name: Pruebas
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Lint
+        run: ./gradlew lintDebug
+
+      - name: Informes de pruebas y lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informes
+          path: |
+            app/build/reports/tests/testDebugUnitTest/
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+
       - name: Compilar APK de depuracion
         run: ./gradlew assembleDebug --stacktrace -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
 
@@ -51,13 +70,24 @@ jobs:
             echo "::notice::Sin CONTACTO_KEYSTORE_BASE64: no se compila la version publicada."
           fi
 
+      # Las claves de Sentry y PostHog solo van en la version publicada: el APK
+      # de depuracion no manda nada. Con SENTRY_AUTH_TOKEN, el plugin de Sentry
+      # sube el mapping de R8 para que las trazas lleguen legibles.
       - name: Compilar AAB de publicacion
         if: steps.firma.outputs.hay == 'true'
         env:
           CONTACTO_KEYSTORE_PASSWORD: ${{ secrets.CONTACTO_KEYSTORE_PASSWORD }}
           CONTACTO_KEY_ALIAS: ${{ secrets.CONTACTO_KEY_ALIAS }}
           CONTACTO_KEY_PASSWORD: ${{ secrets.CONTACTO_KEY_PASSWORD }}
-        run: ./gradlew bundleRelease --stacktrace -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: >
+          ./gradlew bundleRelease --stacktrace
+          -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
+          -Pcontacto.sentryDsn="$SENTRY_DSN" -Pcontacto.posthogKey="$POSTHOG_API_KEY"
 
       # El mapping.txt de R8 va con el AAB: Play Console lo pide para leer las trazas.
       - name: Subir AAB
@@ -69,17 +99,3 @@ jobs:
             app/build/outputs/bundle/release/*.aab
             app/build/outputs/mapping/release/mapping.txt
 
-      - name: Pruebas unitarias
-        run: ./gradlew testDebugUnitTest
-
-      # Despues de subir el APK: un aviso de lint no debe dejarte sin instalable.
-      - name: Lint
-        run: ./gradlew lintDebug
-
-      - name: Informe de lint
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint
-          path: app/build/reports/lint-results-debug.html
-          if-no-files-found: ignore

@@ -292,4 +292,18 @@
         <item quantity="many">Экспортировано %d человек</item>
         <item quantity="other">Экспортировано %d человека</item>
     </plurals>
+
+    <!-- Ajustes > Privacidad y la pregunta de las estadisticas (Telemetria.kt). -->
+    <string name="privacidad_titulo">Конфиденциальность</string>
+    <string name="privacidad_fallos">Отправлять отчёты о сбоях</string>
+    <string name="privacidad_fallos_explicacion">Если приложение закроется или зависнет, оно отправит анонимный технический отчёт, чтобы проблему можно было исправить.</string>
+    <string name="privacidad_estadisticas">Делиться статистикой использования</string>
+    <string name="privacidad_estadisticas_explicacion">Анонимные подсчёты того, что используется, например как часто откладываются напоминания, чтобы понять, что улучшить.</string>
+    <string name="privacidad_nunca">Никогда не имена, номера или заметки: ваши люди остаются на вашем телефоне.</string>
+    <string name="privacidad_politica">Политика конфиденциальности</string>
+    <string name="estadisticas_pregunta_titulo">Поможете улучшить Contacto?</string>
+    <string name="estadisticas_pregunta_texto">Contacto может отправлять анонимную статистику использования, например какие экраны вы открываете или как часто откладываете напоминание. Никогда не имена, номера или заметки. Это можно изменить в любой момент в настройках.</string>
+    <string name="estadisticas_si">Делиться</string>
+    <string name="estadisticas_no">Нет, спасибо</string>
+    <string name="enlace_privacidad">https://cmatuteortega.github.io/reacher/privacy.html</string>
 </resources>

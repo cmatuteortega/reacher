@@ -3,6 +3,7 @@ package com.example.recuerdallamar.ui
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -237,7 +237,7 @@ fun SistemaSolar(
     LaunchedEffect(orbitas) {
         var antes = 0L
         while (true) {
-            withFrameNanos { ahora ->
+            withInfiniteAnimationFrameNanos { ahora ->
                 val dt = if (antes == 0L) 0f else ((ahora - antes) / 1e9f).coerceAtMost(1f / 30f)
                 orbitas.paso(dt, ahora / 1_000_000L)
                 antes = ahora

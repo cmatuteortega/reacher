@@ -37,6 +37,7 @@ class NotificacionPulsadaActivity : ComponentActivity() {
             // El boton no retira el aviso solo, como si hace el toque.
             Notificaciones.quitar(this, id)
             Valoracion.contactoHecho(this)
+            Telemetria.evento(Telemetria.Evento.CONTACTO_HECHO, "source" to "reminder", "method" to medio.name.lowercase())
             val app = application as App
             app.ambito.launch {
                 val ahora = LocalDateTime.now()

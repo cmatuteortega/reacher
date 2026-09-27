@@ -59,6 +59,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -76,6 +77,7 @@ import com.example.recuerdallamar.ui.PantallaAjustes
 import com.example.recuerdallamar.ui.PantallaBienvenida
 import com.example.recuerdallamar.ui.PantallaFicha
 import com.example.recuerdallamar.ui.PantallaLista
+import com.example.recuerdallamar.ui.PreguntaEstadisticas
 import com.example.recuerdallamar.ui.Relevo
 import com.example.recuerdallamar.ui.TemaApp
 import com.example.recuerdallamar.ui.esOscuro
@@ -134,6 +136,11 @@ class MainActivity : ComponentActivity() {
         val almacen = AlmacenAjustes.de(this)
         val idiomaAlCrear = almacen.ajustes.value.idioma
         val bienvenidaAlCrear = almacen.ajustes.value.bienvenidaHecha
+        // Una pregunta por sesion: si toca la de las estadisticas, la de la
+        // bateria espera a la proxima vez que se abra la app.
+        val preguntarEstadisticas = bienvenidaAlCrear &&
+            almacen.ajustes.value.estadisticas == null &&
+            BuildConfig.POSTHOG_KEY.isNotBlank()
         setContent {
             val ajustes by almacen.ajustes.collectAsStateWithLifecycle()
             // Otro idioma en Ajustes: se rehace la actividad para que lo coja
@@ -168,9 +175,10 @@ class MainActivity : ComponentActivity() {
                     enlacePedido = enlacePedido.collectAsStateWithLifecycle().value,
                     onEnlaceAtendido = { enlacePedido.value = null },
                 )
+                PreguntaEstadisticas(toca = preguntarEstadisticas, onCambiar = almacen::cambiar)
                 AvisoBateria(
                     hayGente = vm.contactos.collectAsStateWithLifecycle().value?.isNotEmpty() == true,
-                    bienvenidaYaHecha = bienvenidaAlCrear,
+                    bienvenidaYaHecha = bienvenidaAlCrear && !preguntarEstadisticas,
                 )
             }
         }
@@ -269,6 +277,15 @@ private fun AppRecuerda(
             cambiarAjustes { it.copy(bienvenidaHecha = true) }
             navegador.irAPersonas()
         }
+    }
+
+    // Cada pantalla a la que se llega, por su ruta ("Ficha", no "Ficha/12").
+    DisposableEffect(navegador) {
+        val oyente = NavController.OnDestinationChangedListener { _, destino, _ ->
+            destino.route?.substringBefore('/')?.substringBefore('?')?.substringAfterLast('.')?.let(Telemetria::pantalla)
+        }
+        navegador.addOnDestinationChangedListener(oyente)
+        onDispose { navegador.removeOnDestinationChangedListener(oyente) }
     }
 
     // Enlace con la app abierta: Navigation rehace la pila hasta su pantalla.
@@ -475,6 +492,7 @@ private fun AppRecuerda(
                 onTerminar = {
                     relevo.sacarFoto()
                     cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) }
+                    Telemetria.evento(Telemetria.Evento.BIENVENIDA_TERMINADA, "people" to contactos.orEmpty().size)
                     navegador.irAPersonas()
                 },
                 relevo = relevo,
@@ -504,7 +522,10 @@ private fun AppRecuerda(
                     contactos = contactos,
                     fotosPermitidas = fotosPermitidas,
                     vista = ajustes.vista,
-                    onCambiarVista = { vista -> cambiarAjustes { it.copy(vista = vista) } },
+                    onCambiarVista = { vista ->
+                        cambiarAjustes { it.copy(vista = vista) }
+                        Telemetria.evento(Telemetria.Evento.VISTA_CAMBIADA, "view" to vista.name.lowercase())
+                    },
                     onAnadir = anadirPidiendoPermisos,
                     onAbrir = { if (anchoAmplio) vm.seleccionar(it.id) else navegador.navigate(Ruta.Ficha(it.id)) },
                     onAjustes = { navegador.navigate(Ruta.Ajustes) },

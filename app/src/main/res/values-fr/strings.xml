@@ -278,4 +278,18 @@
         <item quantity="one">%d personne exportée</item>
         <item quantity="other">%d personnes exportées</item>
     </plurals>
+
+    <!-- Ajustes > Privacidad y la pregunta de las estadisticas (Telemetria.kt). -->
+    <string name="privacidad_titulo">Confidentialité</string>
+    <string name="privacidad_fallos">Envoyer les rapports de plantage</string>
+    <string name="privacidad_fallos_explicacion">Si l\'app plante ou se fige, elle envoie un rapport technique anonyme pour que le problème soit corrigé.</string>
+    <string name="privacidad_estadisticas">Partager les statistiques d\'utilisation</string>
+    <string name="privacidad_estadisticas_explicacion">Des décomptes anonymes de ce qui est utilisé, comme la fréquence des rappels reportés, pour savoir quoi améliorer.</string>
+    <string name="privacidad_nunca">Jamais de noms, de numéros ni de notes : vos proches restent sur votre téléphone.</string>
+    <string name="privacidad_politica">Politique de confidentialité</string>
+    <string name="estadisticas_pregunta_titulo">Aider à améliorer Contacto ?</string>
+    <string name="estadisticas_pregunta_texto">Contacto peut envoyer des statistiques d\'utilisation anonymes, comme les écrans que vous utilisez ou la fréquence à laquelle vous reportez un rappel. Jamais de noms, de numéros ni de notes. Vous pouvez changer d\'avis à tout moment dans les Réglages.</string>
+    <string name="estadisticas_si">Partager</string>
+    <string name="estadisticas_no">Non merci</string>
+    <string name="enlace_privacidad">https://cmatuteortega.github.io/reacher/privacy.html</string>
 </resources>

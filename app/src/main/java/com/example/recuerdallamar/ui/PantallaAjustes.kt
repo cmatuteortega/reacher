@@ -1,5 +1,7 @@
 package com.example.recuerdallamar.ui
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -138,6 +140,7 @@ fun PantallaAjustes(
                             TarjetaMedio(ajustes, onCambiar)
                             TarjetaApariencia(ajustes, onCambiar)
                             TarjetaCopia(onExportar, onImportar)
+                            TarjetaPrivacidad(ajustes, onCambiar)
                             TarjetaOpiniones()
                             if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                         }
@@ -151,6 +154,7 @@ fun PantallaAjustes(
                         TarjetaMedio(ajustes, onCambiar)
                         TarjetaApariencia(ajustes, onCambiar)
                         TarjetaCopia(onExportar, onImportar)
+                        TarjetaPrivacidad(ajustes, onCambiar)
                         TarjetaOpiniones()
                         if (BuildConfig.DEBUG) TarjetaDepuracion(ajustes, onCambiar)
                     }
@@ -433,6 +437,76 @@ private fun TarjetaCopia(
 }
 
 private const val TIPO_COPIA = "application/json"
+
+/**
+ * Lo que sale del telefono (ver Telemetria.kt): informes de fallos, activados
+ * por defecto, y estadisticas de uso, solo si se aceptan.
+ */
+@Composable
+private fun TarjetaPrivacidad(ajustes: Ajustes, onCambiar: ((Ajustes) -> Ajustes) -> Unit) {
+    val context = LocalContext.current
+    val enlace = stringResource(R.string.enlace_privacidad)
+    Tarjeta(stringResource(R.string.privacidad_titulo)) {
+        Interruptor(
+            titulo = stringResource(R.string.privacidad_fallos),
+            explicacion = stringResource(R.string.privacidad_fallos_explicacion),
+            activo = ajustes.informesFallos,
+            onCambio = { si -> onCambiar { it.copy(informesFallos = si) } },
+        )
+        Interruptor(
+            titulo = stringResource(R.string.privacidad_estadisticas),
+            explicacion = stringResource(R.string.privacidad_estadisticas_explicacion),
+            activo = ajustes.estadisticas == true,
+            onCambio = { si -> onCambiar { it.copy(estadisticas = si) } },
+        )
+        Explicacion(stringResource(R.string.privacidad_nunca))
+        TextButton(
+            onClick = {
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(enlace)))
+                } catch (e: ActivityNotFoundException) {
+                    // Sin navegador no hay donde ensenarla.
+                }
+            },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+        ) {
+            Text(stringResource(R.string.privacidad_politica))
+        }
+    }
+}
+
+/** Una fila que se pulsa entera, con su interruptor a la derecha. */
+@Composable
+private fun Interruptor(titulo: String, explicacion: String, activo: Boolean, onCambio: (Boolean) -> Unit) {
+    val vista = LocalView.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .toggleable(
+                value = activo,
+                role = Role.Switch,
+                onValueChange = { si ->
+                    vista.toque()
+                    onCambio(si)
+                },
+            )
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(titulo, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                explicacion,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.size(12.dp))
+        Switch(checked = activo, onCheckedChange = null)
+    }
+}
 
 /** Escribir al autor o valorar la app en Google Play. */
 @Composable

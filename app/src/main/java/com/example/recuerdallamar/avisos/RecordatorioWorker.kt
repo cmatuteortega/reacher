@@ -9,10 +9,14 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.example.recuerdallamar.Registro
+import com.example.recuerdallamar.Telemetria
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.widget.WidgetHoy
+import kotlinx.coroutines.CancellationException
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 /**
@@ -32,7 +36,18 @@ class RecordatorioWorker(
     params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result =
+        try {
+            comprobar()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Sin reintento: el trabajo diario vuelve a pasar manana. Pero que se sepa.
+            Registro.fallo("aviso", e, "id" to inputData.getLong(CLAVE_ID, -1))
+            Result.failure()
+        }
+
+    private suspend fun comprobar(): Result {
         // Corre al menos una vez al dia: el widget se entera de que ha cambiado la fecha.
         WidgetHoy.actualizar(applicationContext)
         val id = inputData.getLong(CLAVE_ID, -1)
@@ -53,6 +68,13 @@ class RecordatorioWorker(
             }
         }
         Notificaciones.mostrar(applicationContext, contacto)
+        if (!forzar) {
+            Telemetria.evento(
+                Telemetria.Evento.AVISO_MOSTRADO,
+                "dismissals" to contacto.descartes,
+                "days_overdue" to ChronoUnit.DAYS.between(contacto.proximoAviso(), LocalDate.now()),
+            )
+        }
         return Result.success()
     }
 

@@ -21,6 +21,12 @@
     -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!--
+      Solo para los informes de fallos (Sentry) y, si se aceptan, las
+      estadisticas de uso (PostHog). Ver Telemetria.kt y la politica de privacidad.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Vibraciones compuestas de las burbujas (choques con fuerza variable). -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -41,6 +47,16 @@
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.RecuerdaLlamar"
         tools:targetApi="33">
+
+        <!-- Macrobenchmark mide la version publicada: tiene que poder perfilarla. -->
+        <profileable
+            android:shell="true"
+            tools:targetApi="29" />
+
+        <!-- Sentry arranca en Telemetria, y solo si el usuario no apago los informes. -->
+        <meta-data
+            android:name="io.sentry.auto-init"
+            android:value="false" />
 
         <!--
           singleTop: los enlaces del aviso, el widget y el atajo reusan la app

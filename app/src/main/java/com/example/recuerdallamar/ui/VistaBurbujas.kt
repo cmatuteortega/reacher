@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -39,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,7 +73,6 @@ import androidx.compose.ui.zIndex
 import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
-import kotlinx.coroutines.delay
 import java.time.LocalDate
 import kotlin.math.PI
 import kotlin.math.abs
@@ -82,6 +81,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import kotlinx.coroutines.delay
 
 /** Clave de la burbuja que agrupa a los que van sobrados (los id de Room empiezan en 1). */
 private const val GRUPO = -1L
@@ -203,7 +203,7 @@ fun VistaBurbujas(
             var antes = 0L
             var ultimoGolpe = 0L
             while (true) {
-                withFrameNanos { ahora ->
+                withInfiniteAnimationFrameNanos { ahora ->
                     if (antes != 0L) sim.paso(((ahora - antes) / 1e9f).coerceAtMost(1f / 30f))
                     antes = ahora
                     fotograma.longValue = ahora

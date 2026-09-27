@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.example.recuerdallamar.App
+import com.example.recuerdallamar.Telemetria
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
 import kotlinx.coroutines.launch
@@ -30,10 +31,14 @@ class AccionesAviso : BroadcastReceiver() {
                         dao.posponer(id, LocalDateTime.now().plusHours(horas.toLong()))
                         Notificaciones.quitar(app, id)
                         RecordatorioWorker.aplazar(app, id, horas * 60L)
+                        Telemetria.evento(Telemetria.Evento.AVISO_POSPUESTO, "hours" to horas)
                     }
                     // Sin hacer nada mas: el trabajo diario lo vuelve a sacar
                     // manana mientras siga tocando.
-                    DESCARTADO -> dao.sumarDescarte(id)
+                    DESCARTADO -> {
+                        dao.sumarDescarte(id)
+                        Telemetria.evento(Telemetria.Evento.AVISO_DESCARTADO)
+                    }
                 }
             } finally {
                 resultado.finish()

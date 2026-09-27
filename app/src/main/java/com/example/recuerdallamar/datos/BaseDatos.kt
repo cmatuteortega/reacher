@@ -1,6 +1,7 @@
 package com.example.recuerdallamar.datos
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -16,14 +17,14 @@ abstract class BaseDatos : RoomDatabase() {
     companion object {
         // v2: forma de contacto preferida. Los contactos existentes siguen
         // abriendo el marcador, que es lo que hacian antes.
-        private val MIGRACION_1_2 = object : Migration(1, 2) {
+        val MIGRACION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE contactos ADD COLUMN medio TEXT NOT NULL DEFAULT 'MARCADOR'")
             }
         }
 
         // v3: descartes, "mas tarde" y pausa por persona. Todos empiezan sin nada.
-        private val MIGRACION_2_3 = object : Migration(2, 3) {
+        val MIGRACION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE contactos ADD COLUMN descartes INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE contactos ADD COLUMN pospuestoHasta TEXT")
@@ -48,6 +49,9 @@ abstract class BaseDatos : RoomDatabase() {
             }
         }
 
+        /** Todas, en orden. Las prueba MigracionesTest contra los esquemas de app/schemas. */
+        val MIGRACIONES = arrayOf(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5)
+
         @Volatile
         private var instancia: BaseDatos? = null
 
@@ -58,7 +62,16 @@ abstract class BaseDatos : RoomDatabase() {
                     context.applicationContext,
                     BaseDatos::class.java,
                     "contactos.db",
-                ).addMigrations(MIGRACION_1_2, MIGRACION_2_3, MIGRACION_3_4, MIGRACION_4_5).build().also { instancia = it }
+                ).addMigrations(*MIGRACIONES).build().also { instancia = it }
             }
+
+        /** Solo pruebas: cierra la base y la proxima llamada a [de] abre otra. */
+        @VisibleForTesting
+        fun olvidar() {
+            synchronized(this) {
+                instancia?.close()
+                instancia = null
+            }
+        }
     }
 }

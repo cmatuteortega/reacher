@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
+import com.example.recuerdallamar.Telemetria.Evento
 import com.example.recuerdallamar.avisos.Notificaciones
 import com.example.recuerdallamar.avisos.RecordatorioWorker
 import com.example.recuerdallamar.datos.AlmacenAjustes
@@ -131,6 +132,12 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
             }
             val id = dao.insertar(contacto.copy(ultimoContacto = LocalDate.now(), cumpleanos = cumpleanos))
             RecordatorioWorker.programar(getApplication(), id)
+            Telemetria.evento(
+                Evento.PERSONA_ANADIDA,
+                "frequency_days" to contacto.frecuenciaDias,
+                "method" to contacto.medio.name.lowercase(),
+                "has_birthday" to (cumpleanos != null),
+            )
         }
     }
 
@@ -191,6 +198,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
      */
     fun llamadoHoy(id: Long) {
         Valoracion.contactoHecho(getApplication())
+        Telemetria.evento(Evento.CONTACTO_HECHO, "source" to "app")
         viewModelScope.launch {
             dao.actualizarUltimoContacto(id, LocalDate.now())
             Notificaciones.quitar(getApplication(), id)
@@ -203,6 +211,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
      * la burbuja sigue creciendo mientras tanto.
      */
     fun pausar(id: Long, dias: Int) {
+        Telemetria.evento(Evento.PERSONA_PAUSADA, "days" to dias)
         viewModelScope.launch {
             dao.pausar(id, LocalDate.now().plusDays(dias.toLong()).atStartOfDay())
             Notificaciones.quitar(getApplication(), id)
@@ -211,6 +220,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
 
     /** Quita la pausa; si ya tocaba, el trabajo diario lo comprueba al momento. */
     fun reanudar(id: Long) {
+        Telemetria.evento(Evento.PERSONA_REANUDADA)
         viewModelScope.launch {
             dao.pausar(id, null)
             RecordatorioWorker.programar(getApplication(), id)
@@ -219,6 +229,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
 
     fun eliminar(id: Long) {
         if (seleccion.value == id) seleccionar(null)
+        Telemetria.evento(Evento.PERSONA_ELIMINADA)
         viewModelScope.launch {
             RecordatorioWorker.cancelar(getApplication(), id)
             Notificaciones.quitar(getApplication(), id)
@@ -244,8 +255,10 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
                     val texto = CopiaSeguridad.escribir(gente, AlmacenAjustes.de(app).ajustes.value)
                     val salida = app.contentResolver.openOutputStream(uri) ?: return@withContext ResultadoCopia.Fallo
                     salida.use { it.write(texto.toByteArray()) }
+                    Telemetria.evento(Evento.COPIA_EXPORTADA, "people" to gente.size)
                     ResultadoCopia.Exportada(gente.size)
                 } catch (e: Exception) {
+                    Registro.fallo("copia", e, "paso" to "exportar")
                     ResultadoCopia.Fallo
                 }
             }
@@ -267,8 +280,11 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
                     val entrada = app.contentResolver.openInputStream(uri) ?: return@withContext ResultadoCopia.Fallo
                     CopiaSeguridad.leer(entrada.use { it.readBytes().decodeToString() })
                 } catch (e: CopiaSeguridad.ArchivoNoValido) {
+                    // El archivo es del usuario, no un fallo de la app: solo se apunta.
+                    Registro.info("copia", "archivo no valido")
                     return@withContext ResultadoCopia.NoValida
                 } catch (e: Exception) {
+                    Registro.fallo("copia", e, "paso" to "leer")
                     return@withContext ResultadoCopia.Fallo
                 }
                 var nuevas = 0
@@ -305,6 +321,7 @@ class ContactosViewModel(app: Application, private val estado: SavedStateHandle)
                 }
                 AlmacenAjustes.de(app).cambiar { leido.aplicarA(it).copy(bienvenidaHecha = true) }
                 tocados.distinct().forEach { RecordatorioWorker.programar(app, it) }
+                Telemetria.evento(Evento.COPIA_IMPORTADA, "new" to nuevas, "updated" to actualizadas)
                 ResultadoCopia.Importada(nuevas, actualizadas)
             }
             alAcabar(resultado)

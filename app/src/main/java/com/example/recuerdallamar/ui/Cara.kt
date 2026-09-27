@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
@@ -13,7 +14,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -447,7 +447,7 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
 fun rememberEstadoCara(inicial: Expresion = Expresiones.neutral, semilla: Int = 0): EstadoCara {
     val estado = remember { EstadoCara(inicial, semilla) }
     LaunchedEffect(estado) {
-        while (true) withFrameNanos { estado.avanzar(it / 1_000_000L) }
+        while (true) withInfiniteAnimationFrameNanos { estado.avanzar(it / 1_000_000L) }
     }
     return estado
 }

@@ -11,12 +11,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class App : Application() {
+open class App : Application() {
     /**
      * Ambito que vive lo que el proceso. Lo usa el trampolin de la notificacion,
      * que se cierra al instante y no puede esperar a que acabe su escritura.
@@ -26,6 +28,7 @@ class App : Application() {
     @OptIn(FlowPreview::class)
     override fun onCreate() {
         super.onCreate()
+        Telemetria.iniciar(this, ambito)
         Notificaciones.crearCanal(this)
         CumpleanosWorker.programar(this)
         ambito.launch { RecordatorioWorker.programarQueFalten(this@App) }
@@ -36,6 +39,11 @@ class App : Application() {
             .drop(1)
             .debounce(300)
             .onEach { WidgetHoy.actualizar(this) }
+            .launchIn(ambito)
+        BaseDatos.de(this).contactos().todos()
+            .map { it.size }
+            .distinctUntilChanged()
+            .onEach(Telemetria::personas)
             .launchIn(ambito)
     }
 }

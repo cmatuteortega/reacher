@@ -7,6 +7,8 @@ plugins {
     id("com.google.devtools.ksp")
     // Rutas con tipo de Navigation Compose.
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("io.sentry.android.gradle")
+    id("androidx.baselineprofile")
 }
 
 /**
@@ -46,6 +48,16 @@ android {
         // -Pcontacto.correoOpiniones=... sin tocar el codigo.
         val correo = (project.findProperty("contacto.correoOpiniones") as String?).orEmpty()
         buildConfigField("String", "CORREO_OPINIONES", "\"$correo\"")
+
+        // Claves de Sentry (fallos) y PostHog (estadisticas de uso). Igual que
+        // el correo: gradle.properties, -P o, en CI, los secretos. Vacias, la
+        // app no envia nada y ni siquiera arranca esos SDK.
+        val sentryDsn = (project.findProperty("contacto.sentryDsn") as String?).orEmpty()
+        buildConfigField("String", "SENTRY_DSN", "\"$sentryDsn\"")
+        val posthogKey = (project.findProperty("contacto.posthogKey") as String?).orEmpty()
+        buildConfigField("String", "POSTHOG_KEY", "\"$posthogKey\"")
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -85,6 +97,46 @@ android {
             enableSplit = false
         }
     }
+
+    // Las pruebas corren en la JVM con Robolectric (base de datos, workers y
+    // pantallas incluidos): no hace falta emulador ni en local ni en CI.
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
+    // Las pruebas de migracion leen los esquemas de Room como assets. Solo en
+    // debug: la version publicada no los lleva.
+    sourceSets.getByName("debug").assets.srcDir("$projectDir/schemas")
+}
+
+/**
+ * Sentry: sin auth token (SENTRY_AUTH_TOKEN, SENTRY_ORG y SENTRY_PROJECT en
+ * CI) el mapping no se sube, y las trazas de la version publicada llegan
+ * ofuscadas, pero la compilacion no falla.
+ */
+sentry {
+    autoInstallation.enabled.set(false)
+    tracingInstrumentation.enabled.set(false)
+    includeSourceContext.set(false)
+    includeDependenciesReport.set(false)
+    telemetry.set(false)
+    includeProguardMapping.set(true)
+    autoUploadProguardMapping.set(
+        listOf("SENTRY_AUTH_TOKEN", "SENTRY_ORG", "SENTRY_PROJECT").all { !System.getenv(it).isNullOrBlank() },
+    )
+}
+
+/**
+ * El perfil lo genera el modulo :baselineprofile en un emulador (flujo
+ * "Rendimiento" de GitHub Actions, a mano) y se guarda en
+ * src/release/generated/baselineProfiles. No se genera en cada compilacion:
+ * necesita emulador y tarda.
+ */
+baselineProfile {
+    automaticGenerationDuringBuild = false
+    saveInSrc = true
 }
 
 // Esquemas de Room en el repositorio, para ver cada cambio y probar migraciones.
@@ -124,8 +176,26 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
 
+    // Instala el perfil de referencia en los telefonos que no lo reciben de Play.
+    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    baselineProfile(project(":baselineprofile"))
+
     // Dialogo de valoracion de Google Play dentro de la app.
     implementation("com.google.android.play:review-ktx:2.0.2")
 
+    // Informes de fallos (activados por defecto, se apagan en Ajustes) y
+    // estadisticas de uso anonimas (solo si el usuario acepta).
+    implementation("io.sentry:sentry-android:8.58.0")
+    implementation("com.posthog:posthog-android:3.71.1")
+
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core-ktx:1.6.1")
+    testImplementation("androidx.test.ext:junit-ktx:1.2.1")
+    testImplementation("androidx.room:room-testing:2.6.1")
+    testImplementation("androidx.work:work-testing:2.10.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(composeBom)
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

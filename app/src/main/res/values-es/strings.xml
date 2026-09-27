@@ -278,4 +278,18 @@
         <item quantity="one">%d persona exportada</item>
         <item quantity="other">%d personas exportadas</item>
     </plurals>
+
+    <!-- Ajustes > Privacidad y la pregunta de las estadisticas (Telemetria.kt). -->
+    <string name="privacidad_titulo">Privacidad</string>
+    <string name="privacidad_fallos">Enviar informes de fallos</string>
+    <string name="privacidad_fallos_explicacion">Si la app se cierra o se queda colgada, envía un informe técnico anónimo para poder arreglarlo.</string>
+    <string name="privacidad_estadisticas">Compartir estadísticas de uso</string>
+    <string name="privacidad_estadisticas_explicacion">Recuentos anónimos de lo que se usa, como cuántas veces se pospone un aviso, para saber qué mejorar.</string>
+    <string name="privacidad_nunca">Nunca nombres, números ni notas: tu gente se queda en tu teléfono.</string>
+    <string name="privacidad_politica">Política de privacidad</string>
+    <string name="estadisticas_pregunta_titulo">¿Nos ayudas a mejorar Contacto?</string>
+    <string name="estadisticas_pregunta_texto">Contacto puede enviar estadísticas de uso anónimas, como qué pantallas usas o cuántas veces pospones un aviso. Nunca nombres, números ni notas. Puedes cambiarlo cuando quieras en Ajustes.</string>
+    <string name="estadisticas_si">Compartir</string>
+    <string name="estadisticas_no">No, gracias</string>
+    <string name="enlace_privacidad">https://cmatuteortega.github.io/reacher/privacidad.html</string>
 </resources>

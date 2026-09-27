@@ -2,6 +2,7 @@ package com.example.recuerdallamar.datos
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.edit
 import com.example.recuerdallamar.R
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,13 @@ data class Ajustes(
     val idioma: IdiomaElegido = IdiomaElegido.SISTEMA,
     /** La bienvenida ya se vio (o se salto): no se vuelve a ensenar. */
     val bienvenidaHecha: Boolean = false,
+    /** Mandar informes de fallos anonimos (Sentry). Si por defecto; se apaga en Ajustes. */
+    val informesFallos: Boolean = true,
+    /**
+     * Mandar estadisticas de uso anonimas (PostHog). Solo si se acepta: null
+     * es que aun no se ha preguntado, y cuenta como no.
+     */
+    val estadisticas: Boolean? = null,
 ) {
     fun avisosEncendidos(hoy: LocalDate = LocalDate.now()): Boolean =
         avisosActivos || (pausaHasta != null && !hoy.isBefore(pausaHasta))
@@ -102,6 +110,8 @@ class AlmacenAjustes private constructor(context: Context) {
             putString(VISTA, nuevos.vista.name)
             putString(IDIOMA, nuevos.idioma.name)
             putBoolean(BIENVENIDA, nuevos.bienvenidaHecha)
+            putBoolean(FALLOS, nuevos.informesFallos)
+            if (nuevos.estadisticas == null) remove(ESTADISTICAS) else putBoolean(ESTADISTICAS, nuevos.estadisticas)
         }
         _ajustes.value = nuevos
     }
@@ -119,6 +129,8 @@ class AlmacenAjustes private constructor(context: Context) {
             vista = VistaPersonas.entries.firstOrNull { it.name == preferencias.getString(VISTA, null) } ?: defecto.vista,
             idioma = IdiomaElegido.entries.firstOrNull { it.name == preferencias.getString(IDIOMA, null) } ?: defecto.idioma,
             bienvenidaHecha = preferencias.getBoolean(BIENVENIDA, defecto.bienvenidaHecha),
+            informesFallos = preferencias.getBoolean(FALLOS, defecto.informesFallos),
+            estadisticas = if (preferencias.contains(ESTADISTICAS)) preferencias.getBoolean(ESTADISTICAS, false) else null,
         )
     }
 
@@ -133,6 +145,8 @@ class AlmacenAjustes private constructor(context: Context) {
         private const val VISTA = "vista_personas"
         private const val IDIOMA = "idioma"
         private const val BIENVENIDA = "bienvenida_hecha"
+        private const val FALLOS = "informes_fallos"
+        private const val ESTADISTICAS = "estadisticas"
 
         @Volatile
         private var instancia: AlmacenAjustes? = null
@@ -141,5 +155,11 @@ class AlmacenAjustes private constructor(context: Context) {
             instancia ?: synchronized(this) {
                 instancia ?: AlmacenAjustes(context.applicationContext).also { instancia = it }
             }
+
+        /** Solo pruebas: cada una empieza con su propia aplicacion y sus preferencias. */
+        @VisibleForTesting
+        fun olvidar() {
+            instancia = null
+        }
     }
 }
