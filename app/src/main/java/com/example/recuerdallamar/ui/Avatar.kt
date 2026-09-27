@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.Dp
 
 /** Foto de la agenda recortada en circulo o, si no hay, la inicial del nombre. */
 @Composable
-fun Avatar(nombre: String, foto: ImageBitmap?, tamano: Dp, estilo: TextStyle) {
-    val modificador = Modifier
+fun Avatar(nombre: String, foto: ImageBitmap?, tamano: Dp, estilo: TextStyle, modifier: Modifier = Modifier) {
+    val modificador = modifier
         .size(tamano)
         .clip(CircleShape)
     if (foto != null) {
