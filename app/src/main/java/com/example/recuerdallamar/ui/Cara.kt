@@ -469,7 +469,7 @@ fun Modifier.cara(
 
 private const val PUNTOS = 32
 
-private fun DrawScope.dibujarOjos(e: Expresion, parpadeo: Float, centro: Offset, radio: Float, color: Color, giro: Offset) {
+internal fun DrawScope.dibujarOjos(e: Expresion, parpadeo: Float, centro: Offset, radio: Float, color: Color, giro: Offset) {
     val rad = PI.toFloat() / 180f
     val cabezaY = (e.cabezaY + giro.x) * rad
     val cabezaX = (e.cabezaX - giro.y) * rad
