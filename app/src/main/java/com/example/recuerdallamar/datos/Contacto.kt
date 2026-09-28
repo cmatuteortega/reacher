@@ -83,3 +83,7 @@ data class Contacto(
 /** El orden de Personas, en lista y en burbujas: primero a quien mas le toca. */
 fun List<Contacto>.porUrgencia(hoy: LocalDate = LocalDate.now()): List<Contacto> =
     sortedWith(compareByDescending<Contacto> { it.urgencia(hoy) }.thenBy { it.nombre.lowercase() })
+
+/** El orden de los anillos de las orbitas: primero quien va mas a menudo. No cambia con los dias. */
+fun List<Contacto>.porFrecuencia(): List<Contacto> =
+    sortedWith(compareBy<Contacto> { it.frecuenciaDias }.thenBy { it.nombre.lowercase() }.thenBy { it.id })

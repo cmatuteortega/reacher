@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import android.graphics.Paint
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -43,7 +44,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -67,7 +71,9 @@ import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.porFrecuencia
 import java.time.LocalDate
+import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.asin
 import kotlin.math.atan2
@@ -81,12 +87,14 @@ import kotlin.math.sin
 
 /*
  * Personas en orbita alrededor del sol de la esquina: las burbujas de siempre
- * (mas grandes cuanto mas les toca), cada una en un anillo. El reparto es
- * sencillo: se ordenan por urgencia y cada anillo se queda con una parte fija
- * del total, de dentro afuera. Con los dias quien se acerca a su fecha pasa a
- * anillos mas cercanos al sol; al hablar con alguien, se va al de fuera. Los
- * anillos son cuartos de circulo con centro en la esquina, recortados para
- * que todo se vea sin desplazar.
+ * (mas grandes cuanto mas les toca), cada una en un anillo. La urgencia solo
+ * se ve en el tamano; el anillo es la frecuencia: se ordenan de la mas a
+ * menudo a la que menos y cada anillo se queda con una parte fija del total,
+ * de dentro afuera, sin partir a quienes van cada tantos dias iguales. Cada
+ * anillo lleva escrito "< X dias", con X la frecuencia mas larga de los suyos.
+ * Con los dias nadie cambia de anillo: solo crece; al hablar con alguien,
+ * encoge. Los anillos son cuartos de circulo con centro en la esquina,
+ * recortados para que todo se vea sin desplazar.
  */
 
 /** Parte de la gente en cada anillo, de dentro afuera, segun cuantos anillos hay. */
@@ -120,6 +128,9 @@ private val BORDE_ORBITA = 8.dp
 private val ANCHO_EXTRA_NOMBRE = 24.dp
 private val ALTO_NOMBRE = 22.dp
 
+/** Aire a cada lado del letrero de un anillo. */
+private val SEPARACION_LETRERO = 6.dp
+
 /** Con mucha gente las burbujas encogen hasta aqui antes de apretarse. */
 private val RADIO_SUELO = 16.dp
 
@@ -133,59 +144,75 @@ private const val VAIVEN_VELOCIDAD = 0.5f
 /** Segundos entre la salida de una burbuja del sol y la siguiente al abrir la vista. */
 private const val SALIDA_ESCALONADA = 0.04f
 
+/** Lo que el plano necesita de cada persona: cada cuantos dias toca y cuanto le toca ya. */
+internal class EnOrbita(val id: Long, val frecuencia: Int, val urgencia: Float)
+
 /** Donde descansa cada persona: anillo, angulo (0 a la derecha, PI/2 abajo) y radio de su burbuja. */
 internal class Puesto(val anillo: Int, val angulo: Float, val radio: Float)
+
+/** El letrero de un anillo: "< [dias] dias", empezando en [angulo]. */
+internal class Letrero(val dias: Int, val angulo: Float)
 
 internal class PlanoOrbitas(
     val radios: List<Float>,
     val puestos: Map<Long, Puesto>,
     /** Cuanto puede ir y venir cada anillo sin salirse ni pisar a nadie. */
     val vaivenes: List<Float>,
+    val letreros: List<Letrero>,
 )
 
 /**
- * Anillos y puestos de todos. [personas] van ordenadas por urgencia, con la
- * suya. El sol tiene centro en (0, [solY]) y radio [solRadio]; la zona libre
- * va de 0 a [ancho] y de 0 a [alto]. Si no caben con su tamano, encogen o
- * se anaden anillos (en horizontal cabe poca gente en cada uno); si ni asi,
- * el reparto cede y cada anillo se llena hasta donde cabe.
+ * Anillos y puestos de todos. [personas] van ordenadas por frecuencia, de la
+ * mas corta a la mas larga. El sol tiene centro en (0, [solY]) y radio
+ * [solRadio]; la zona libre va de 0 a [ancho] y de 0 a [alto]. Al principio
+ * de cada anillo quedan libres [largoLetrero] para su letrero.
+ *
+ * Quien va en cada anillo no depende de la urgencia, solo de cuantos son,
+ * sus frecuencias y el lienzo: se cuenta con burbujas de un tamano fijo. Si
+ * no caben, se anaden anillos (en horizontal cabe poca gente en cada uno) o
+ * se cuenta con burbujas mas pequenas; luego, si con su tamano de verdad no
+ * caben, encogen todas, y si ni asi, se pisan.
  */
 internal fun planearOrbitas(
-    personas: List<Pair<Long, Float>>,
+    personas: List<EnOrbita>,
     ancho: Float,
     alto: Float,
     solY: Float,
     solRadio: Float,
+    largoLetrero: Float,
     densidad: Density,
 ): PlanoOrbitas {
-    if (personas.isEmpty()) return PlanoOrbitas(emptyList(), emptyMap(), emptyList())
+    if (personas.isEmpty()) return PlanoOrbitas(emptyList(), emptyMap(), emptyList(), emptyList())
     val anillos = anillosPara(personas.size)..min(ANILLOS_MAX, max(anillosPara(personas.size), personas.size))
     return with(densidad) {
-        fun intentar(n: Int, regla: Reparto) = repartirEnAnillos(personas, n, regla, ancho, alto, solY, solRadio)
-        anillos.firstNotNullOfOrNull { intentar(it, Reparto.PORCENTAJE) }
-            ?: anillos.firstNotNullOfOrNull { intentar(it, Reparto.CAPACIDAD) }
-            ?: intentar(anillos.last, Reparto.APRETADOS)!!
+        fun intentar(n: Int, contando: Dp, aunqueNoQuepan: Boolean = false) =
+            repartirEnAnillos(personas, n, contando.toPx(), aunqueNoQuepan, ancho, alto, solY, solRadio, largoLetrero)
+        listOf(RADIO_MIN, RADIO_SUELO).firstNotNullOfOrNull { contando ->
+            anillos.firstNotNullOfOrNull { intentar(it, contando) }
+        } ?: intentar(anillos.last, RADIO_SUELO, aunqueNoQuepan = true)!!
     }
 }
 
 /**
- * Por [PORCENTAJE], lo que no cabe en un anillo pasa al siguiente; a
- * [CAPACIDAD], cada uno se llena lo que puede. [APRETADOS], si ni asi: lo
- * mas pequenas posible y cada anillo con gente segun su largo, pisandose.
+ * El plano con [anillosPedidos] anillos (o menos, si no hay tantas
+ * frecuencias distintas), contando cuantos caben en cada uno con burbujas
+ * de [contando] de radio. Null si al de fuera no le caben los suyos, salvo
+ * [aunqueNoQuepan].
  */
-private enum class Reparto { PORCENTAJE, CAPACIDAD, APRETADOS }
-
-/** El plano con [n] anillos, o null si en ese [regla] no caben. */
 private fun Density.repartirEnAnillos(
-    personas: List<Pair<Long, Float>>,
-    n: Int,
-    regla: Reparto,
+    personas: List<EnOrbita>,
+    anillosPedidos: Int,
+    contando: Float,
+    aunqueNoQuepan: Boolean,
     ancho: Float,
     alto: Float,
     solY: Float,
     solRadio: Float,
+    largoLetrero: Float,
 ): PlanoOrbitas? {
     val cuantos = personas.size
+    val grupos = cortesPorFrecuencia(personas.map { it.frecuencia }, PARTES[anillosPedidos - 1])
+    val n = grupos.size
     val margen = MARGEN_ORBITA.toPx()
     val borde = BORDE_ORBITA.toPx()
     val extraAncho = ANCHO_EXTRA_NOMBRE.toPx() / 2
@@ -206,12 +233,12 @@ private fun Density.repartirEnAnillos(
     val entre = separacion(interior)
     val radios = List(n) { interior + entre * it }
 
-    fun radiosBurbuja(escala: Float) = personas.map { (_, urgencia) ->
-        (radioPorUrgencia(urgencia, minimo, maximo) * escala).coerceAtLeast(suelo)
+    fun radiosBurbuja(escala: Float) = personas.map {
+        (radioPorUrgencia(it.urgencia, minimo, maximo) * escala).coerceAtLeast(suelo)
     }
 
     /** El trozo visible de cada anillo, en radianes, para burbujas de hasta [b] de radio. */
-    fun arco(r: Float, b: Float): Pair<Float, Float> {
+    fun visible(r: Float, b: Float): Pair<Float, Float> {
         val xMin = borde + b + extraAncho
         val xMax = ancho - xMin
         val yMin = borde + b - solY
@@ -221,91 +248,103 @@ private fun Density.repartirEnAnillos(
         return desde to max(desde, hasta)
     }
 
+    /** Lo que queda para las burbujas, pasado el letrero. */
+    fun arco(r: Float, b: Float): Pair<Float, Float> {
+        val (desde, hasta) = visible(r, b)
+        return min(desde + largoLetrero / r, hasta) to hasta
+    }
+
     fun largo(tamanos: List<Float>, desde: Int, hasta: Int): Float =
         if (hasta <= desde) 0f else (desde until hasta).sumOf { 2.0 * tamanos[it] + margen }.toFloat() - margen
 
-    val porcentaje = cortes(PARTES[n - 1], cuantos).runningReduce(Int::plus)
-
-    /** Cuantos van a cada anillo; null si al de fuera no le caben los suyos. */
-    fun repartir(tamanos: List<Float>, largos: List<Float>): IntArray? {
-        if (regla == Reparto.APRETADOS) return cortes(largos.toFloatArray(), cuantos)
-        val reparto = IntArray(n)
-        var inicio = 0
-        for (k in 0 until n) {
-            var fin = if (k == n - 1 || regla != Reparto.PORCENTAJE) cuantos else max(inicio, porcentaje[k])
-            if (k < n - 1) {
-                while (fin > inicio && largo(tamanos, inicio, fin) > largos[k] + 0.5f) fin--
-            } else if (regla != Reparto.APRETADOS && largo(tamanos, inicio, fin) > largos[k] + 0.5f) {
-                return null
-            }
-            reparto[k] = fin - inicio
-            inicio = fin
-        }
-        return reparto
+    // Cada anillo con los suyos; lo que no cabe pasa, en orden, al siguiente.
+    val reparto = IntArray(n)
+    var quedan = 0
+    for (k in 0 until n) {
+        quedan += grupos[k]
+        val (desde, hasta) = arco(radios[k], contando)
+        val caben = ((radios[k] * (hasta - desde) + margen) / (2 * contando + margen)).toInt()
+        if (k == n - 1 && caben < quedan && !aunqueNoQuepan) return null
+        reparto[k] = if (k == n - 1) quedan else min(caben, quedan)
+        quedan -= reparto[k]
     }
 
-    // Del tamano que les toca hacia abajo, hasta el suelo.
-    val escalas = if (regla == Reparto.APRETADOS) {
-        listOf(suelo / minimo)
-    } else {
-        generateSequence(1f) { it * 0.9f }.takeWhile { minimo * it >= suelo * 0.9f }.toList() + (suelo / minimo)
-    }
-    val (tamanos, arcos, reparto) = escalas.firstNotNullOfOrNull { escala ->
+    // Del tamano que les toca hacia abajo, hasta el suelo; si ni asi, se pisan.
+    val escalas = generateSequence(1f) { it * 0.9f }.takeWhile { minimo * it >= suelo * 0.9f }.toList() + (suelo / minimo)
+    fun caben(escala: Float): Pair<List<Float>, List<Pair<Float, Float>>>? {
         val tamanos = radiosBurbuja(escala)
         val arcos = radios.map { arco(it, tamanos.max()) }
-        val largos = radios.mapIndexed { k, r -> r * (arcos[k].second - arcos[k].first) }
-        repartir(tamanos, largos)?.let { Triple(tamanos, arcos, it) }
-    } ?: return null
+        var inicio = 0
+        for (k in 0 until n) {
+            if (largo(tamanos, inicio, inicio + reparto[k]) > radios[k] * (arcos[k].second - arcos[k].first) + 0.5f) return null
+            inicio += reparto[k]
+        }
+        return tamanos to arcos
+    }
+    val (tamanos, arcos) = escalas.firstNotNullOfOrNull { caben(it) }
+        ?: radiosBurbuja(escalas.last()).let { t -> t to radios.map { arco(it, t.max()) } }
 
     // En cada anillo, en orden, con el sitio que sobra repartido por igual
     // entre ellas y en los extremos.
     val puestos = HashMap<Long, Puesto>(cuantos)
     val vaivenes = MutableList(n) { 0f }
+    val letreros = ArrayList<Letrero>(n)
     var i = 0
     for (k in 0 until n) {
         val r = radios[k]
         val (desde, hasta) = arcos[k]
         val aqui = reparto[k]
+        // Todos los suyos van cada tantos dias o menos.
+        val dias = personas.subList(i, i + aqui).maxOfOrNull { it.frecuencia } ?: 0
+        letreros += Letrero(dias, visible(r, tamanos.max()).first)
         val sobra = r * (hasta - desde) - largo(tamanos, i, i + aqui)
         if (sobra >= 0f) {
             val hueco = sobra / (aqui + 1)
             var recorrido = desde * r + hueco
             repeat(aqui) {
                 val b = tamanos[i]
-                puestos[personas[i].first] = Puesto(k, (recorrido + b) / r, b)
+                puestos[personas[i].id] = Puesto(k, (recorrido + b) / r, b)
                 recorrido += 2 * b + margen + hueco
                 i++
             }
             vaivenes[k] = min(hueco / 2 / r, VAIVEN_MAX)
         } else {
-            // Apretadas: a distancias iguales de punta a punta.
+            // Apretadas: a distancias iguales de punta a punta, sin salirse
+            // del arco ni tapar el letrero.
+            val b = tamanos.subList(i, i + aqui).max() / r
+            val primero = min(desde + b, (desde + hasta) / 2)
+            val ultimo = max(hasta - b, primero)
             repeat(aqui) { j ->
                 val t = if (aqui == 1) 0.5f else j / (aqui - 1f)
-                puestos[personas[i].first] = Puesto(k, desde + (hasta - desde) * t, tamanos[i])
+                puestos[personas[i].id] = Puesto(k, primero + (ultimo - primero) * t, tamanos[i])
                 i++
             }
         }
     }
-    return PlanoOrbitas(radios, puestos, vaivenes)
+    return PlanoOrbitas(radios, puestos, vaivenes, letreros)
 }
 
 /**
- * Cuantos de [cuantos] van a cada anillo, en proporcion a [pesos]. Con al
- * menos uno por anillo, que ninguno quede vacio.
+ * Cuantos de [frecuencias] (ordenadas) van a cada anillo, en proporcion a
+ * [pesos], pero cortando solo donde cambia la frecuencia: cada corte va al
+ * cambio mas cercano al que le tocaba. Si no hay cambios para todos, salen
+ * menos anillos.
  */
-private fun cortes(pesos: FloatArray, cuantos: Int): IntArray {
-    val n = pesos.size
+private fun cortesPorFrecuencia(frecuencias: List<Int>, pesos: FloatArray): IntArray {
+    val cuantos = frecuencias.size
+    val cambios = (1 until cuantos).filter { frecuencias[it] != frecuencias[it - 1] }
     val total = pesos.sum().takeIf { it > 0f } ?: 1f
-    val reparto = IntArray(n)
+    val fines = ArrayList<Int>(pesos.size)
     var acumulado = 0f
-    var hasta = 0
-    for (k in 0 until n) {
+    for (k in 0 until pesos.size - 1) {
         acumulado += pesos[k] / total
-        val fin = if (k == n - 1) cuantos else (acumulado * cuantos).roundToInt().coerceIn(hasta + 1, cuantos - (n - 1 - k))
-        reparto[k] = fin - hasta
-        hasta = fin
+        val ideal = acumulado * cuantos
+        val antes = fines.lastOrNull() ?: 0
+        val corte = cambios.filter { it > antes }.minByOrNull { abs(it - ideal) } ?: break
+        fines += corte
     }
-    return reparto
+    fines += cuantos
+    return IntArray(fines.size) { fines[it] - (fines.getOrNull(it - 1) ?: 0) }
 }
 
 /** Una persona en su orbita: donde deberia estar y donde se ve ahora. */
@@ -340,6 +379,10 @@ internal class Orbitales {
     val opacidad = FloatArray(ANILLOS_MAX)
     private val vaivenes = FloatArray(ANILLOS_MAX)
     private val vaivenesVistos = FloatArray(ANILLOS_MAX)
+
+    /** Dias y angulo de inicio del letrero de cada anillo; 0 dias, sin letrero. */
+    val diasLetrero = IntArray(ANILLOS_MAX)
+    val anguloLetrero = FloatArray(ANILLOS_MAX)
     var solY = 0f
     private var anillos = 0
     private var t = 0f
@@ -354,6 +397,11 @@ internal class Orbitales {
             radios[k] = plano.radios.getOrElse(k) { plano.radios.lastOrNull() ?: 0f }
             if (radiosVistos[k] == 0f) radiosVistos[k] = radios[k]
             vaivenes[k] = plano.vaivenes.getOrElse(k) { 0f }
+            // Un anillo que se apaga conserva su letrero mientras se desvanece.
+            plano.letreros.getOrNull(k)?.let {
+                diasLetrero[k] = it.dias
+                anguloLetrero[k] = it.angulo
+            }
         }
         val primeraVez = satelites.isEmpty()
         val nuevos = LinkedHashMap<Long, Satelite>()
@@ -432,8 +480,8 @@ internal class Orbitales {
  * Personas en anillos alrededor del sol de la esquina, un circulo de
  * [solRadio] con centro [solArriba] por encima del lienzo, en su borde
  * izquierdo. Abajo se dejan libres [huecoInferior], para el +. [contactos]
- * llega ya ordenado por urgencia: los primeros, junto al sol. Con TalkBack
- * se recorren en ese orden, con [onHablado] como accion ademas de abrir.
+ * llega ya ordenado por urgencia; los anillos van por frecuencia, pero con
+ * TalkBack se recorren en ese orden, con [onHablado] como accion ademas de abrir.
  * Si [relevo] trae los planetas de la bienvenida, cada uno sale de donde
  * estaba y va a su anillo.
  */
@@ -472,12 +520,40 @@ fun VistaOrbitas(
 
         val hoy = remember(contactos) { LocalDate.now() }
         val urgencias = remember(contactos, hoy) { contactos.associate { it.id to it.urgencia(hoy) } }
-        val plano = remember(contactos, urgencias, ancho, alto, huecoInferior, solArriba, solRadio, densidad) {
+
+        // Los letreros de los anillos: "< 7 dias", del color de los trazos.
+        val recursos = LocalContext.current.resources
+        val esquema = MaterialTheme.colorScheme
+        val estilo = MaterialTheme.typography.labelSmall
+        val pincel = remember(esquema, estilo, densidad) {
+            Paint().apply {
+                isAntiAlias = true
+                color = esquema.onSurfaceVariant.toArgb()
+                textSize = with(densidad) { estilo.fontSize.toPx() }
+                letterSpacing = 0.04f
+            }
+        }
+        val letrero = { dias: Int -> "< " + recursos.dias(dias) }
+        val separacionLetrero = with(densidad) { SEPARACION_LETRERO.toPx() }
+        // Sitio para el mas largo, que ninguno pise a la primera burbuja.
+        val largoLetrero = remember(contactos, pincel) {
+            pincel.measureText(letrero(contactos.maxOfOrNull { it.frecuenciaDias } ?: 1)) + separacionLetrero * 2
+        }
+
+        val plano = remember(contactos, urgencias, ancho, alto, huecoInferior, solArriba, solRadio, largoLetrero, densidad) {
             with(densidad) {
                 val solY = -solArriba.toPx()
                 val sol = solRadio.toPx()
-                planearOrbitas(contactos.map { it.id to urgencias.getValue(it.id) }, ancho, alto - huecoInferior.toPx(), solY, sol, densidad)
-                    .also { orbitales.colocar(it, contactos.map { c -> c.id }, solY, sol * 0.5f) }
+                val porFrecuencia = contactos.porFrecuencia()
+                planearOrbitas(
+                    porFrecuencia.map { EnOrbita(it.id, it.frecuenciaDias, urgencias.getValue(it.id)) },
+                    ancho,
+                    alto - huecoInferior.toPx(),
+                    solY,
+                    sol,
+                    largoLetrero,
+                    densidad,
+                ).also { orbitales.colocar(it, porFrecuencia.map { c -> c.id }, solY, sol * 0.5f) }
             }
         }
 
@@ -493,16 +569,37 @@ fun VistaOrbitas(
             }
         }
 
-        // Los anillos, a trazos como en la bienvenida.
-        val esquema = MaterialTheme.colorScheme
+        // Los anillos, a trazos como en la bienvenida, con su letrero al
+        // principio, por fuera y siguiendo la curva.
+        val arco = remember { android.graphics.Path() }
         Canvas(Modifier.fillMaxSize().clipToBounds()) {
             fotograma.longValue
             val trazo = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 6.dp.toPx())))
             val centro = Offset(0f, orbitales.solY)
+            val opacidadTexto = pincel.alpha
             for (k in 0 until ANILLOS_MAX) {
                 val alfa = orbitales.opacidad[k]
                 if (alfa < 0.01f) continue
-                drawCircle(esquema.outlineVariant.copy(alpha = alfa), orbitales.radiosVistos[k], centro, style = trazo)
+                val r = orbitales.radiosVistos[k]
+                drawCircle(esquema.outlineVariant.copy(alpha = alfa), r, centro, style = trazo)
+                val dias = orbitales.diasLetrero[k]
+                if (dias <= 0 || r <= 0f) continue
+                // Al reves de las agujas del reloj: asi se lee de pie, por fuera.
+                val barrido = Math.toDegrees((largoLetrero / r).toDouble()).toFloat()
+                arco.reset()
+                arco.addArc(
+                    centro.x - r,
+                    centro.y - r,
+                    centro.x + r,
+                    centro.y + r,
+                    Math.toDegrees(orbitales.anguloLetrero[k].toDouble()).toFloat() + barrido,
+                    -barrido,
+                )
+                pincel.alpha = (opacidadTexto * alfa).roundToInt()
+                drawIntoCanvas {
+                    it.nativeCanvas.drawTextOnPath(letrero(dias), arco, separacionLetrero, -3.dp.toPx(), pincel)
+                }
+                pincel.alpha = opacidadTexto
             }
         }
 
