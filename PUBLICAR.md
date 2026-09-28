@@ -69,8 +69,10 @@ La versión publicada va minimizada y sin recursos sobrantes
 **En CI**: el flujo *Humo* (`.github/workflows/humo.yml`) instala la versión
 minimizada en un emulador y hace el recorrido principal (bienvenida, las tres
 vistas, ajustes, cerrar y volver a abrir) en cada push a `main` y en cada
-etiqueta `v*`; también se lanza a mano desde *Actions*. **No subir una versión
-cuyo Humo esté en rojo.**
+etiqueta `v*`; también se lanza a mano desde *Actions*. Corre en Android 14 y
+en Android 16, y deja una captura de cada pantalla en el informe
+(`humo-pixel6Api36`, carpeta `managed_device_android_test_additional_output`).
+**No subir una versión cuyo Humo esté en rojo.**
 
 **A mano, antes de cada subida**, lo que el emulador no puede hacer (elegir de
 la agenda, avisos de verdad), con el `.aab` o un `assembleRelease` en un
@@ -83,6 +85,11 @@ teléfono:
 - [ ] Widget en la pantalla de inicio y el atajo «Añadir persona».
 - [ ] Al día siguiente, llega el aviso de quien toca y «Más tarde» funciona
       (el botón de forzar solo existe en depuración).
+- [ ] En un teléfono con **Android 16** (o en las capturas de Humo en
+      Android 16): en cada pantalla (bienvenida, las tres vistas, ficha,
+      ajustes, diálogos) nada queda tapado por la barra de estado, la de
+      navegación o el recorte de la cámara, en claro y en oscuro. Edge-to-edge
+      ya no se puede apagar.
 
 Solo en depuración: el botón «Forzar notificación» de la ficha y *Ajustes ›
 Depuración › Idioma de la app* (en Android 13+ el idioma se cambia desde los
@@ -122,7 +129,9 @@ depuración no envían nada. Solo la versión publicada que compila CI las lleva
 
 Sin `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` y `SENTRY_PROJECT` la versión se compila
 igual, pero el mapping no se sube a Sentry y las trazas llegan ofuscadas (el
-`mapping.txt` sigue yendo con el AAB para Play Console).
+`mapping.txt` sigue yendo con el AAB para Play Console). Si hay `SENTRY_DSN`
+pero falta alguno de los tres, CI avisa en cada compilación y **falla en las
+etiquetas `v*`**, para que no salga a Play una versión con trazas ilegibles.
 
 Para probarlo en local: `-Pcontacto.sentryDsn=...` y
 `-Pcontacto.posthogKey=...` (o en `gradle.properties`, sin subirlo).
@@ -243,3 +252,13 @@ Cada versión nueva: actualizar las notas de la versión, etiquetar (`git tag v1
 a CI, descargar el `.aab` y el `mapping.txt` del artefacto y subirlos en la
 pista que toque. El `versionCode` sube solo. Los artefactos de GitHub caducan
 a los 90 días: guardar el `.aab` de lo que se publique.
+
+**Actualizaciones dentro de la app** (`Actualizacion.kt`): quien tenga la app
+de Play ve el ofrecimiento de la versión nueva a los 3 días de salir (una vez
+por versión); se baja mientras la usa y se instala al salir de la app. Para
+una versión que arregla algo grave, subirla con **prioridad 4 o 5** y la app
+se actualiza a pantalla completa antes de seguir; con prioridad 2 o 3 se
+ofrece sin esperar los 3 días. La prioridad **no se puede poner desde Play
+Console**: solo al subir con la API de Play (fastlane `supply
+--in_app_update_priority 5`), que es la subida desde CI de la fase 6 del
+roadmap. Hasta entonces todas van con prioridad 0 (la de los 3 días).

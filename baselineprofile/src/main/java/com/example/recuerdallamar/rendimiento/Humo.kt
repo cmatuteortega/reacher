@@ -35,6 +35,11 @@ private const val ESPERA_MS = 10_000L
  *     -Pandroid.testInstrumentationRunnerArguments.humo=true
  *
  * Busca los textos en ingles: el emulador de pruebas esta en ingles.
+ *
+ * Deja una captura de cada pantalla (en el informe del flujo, carpeta
+ * managed_device_android_test_additional_output), para revisar los bordes
+ * en Android 16, donde edge-to-edge ya no se puede apagar: nada tapado por
+ * la barra de estado ni por la de navegacion.
  */
 @RunWith(AndroidJUnit4::class)
 class Humo {
@@ -59,13 +64,15 @@ class Humo {
         abrir()
 
         // Bienvenida sin anadir a nadie.
+        capturar("1-bienvenida")
         pulsar(By.text("Get started"))
         pulsar(By.text("Not now"))
         pulsar(By.text("Got it"))
         cerrarDialogos()
 
         // Las tres vistas: burbujas, orbitas y lista (el boton pasa por todas).
-        repeat(3) {
+        repeat(3) { n ->
+            capturar("2-vista-$n")
             val vista = esperar(By.descStartsWith("Show as"))
             vista.click()
             device.waitForIdle()
@@ -75,11 +82,14 @@ class Humo {
         // Ajustes de arriba abajo, cambiando el tema y dejandolo como estaba.
         pulsar(By.desc("Settings"))
         esperar(By.text("Reminders"))
+        capturar("3-ajustes")
         bajarHasta(By.text("Dark")).click()
         device.waitForIdle()
+        capturar("4-ajustes-oscuro")
         bajarHasta(By.text("System")).click()
         device.waitForIdle()
         bajarHasta(By.text("Backup"))
+        capturar("5-ajustes-final")
         sigueViva()
         device.pressBack()
         esperar(By.desc("Settings"))
@@ -137,6 +147,16 @@ class Humo {
         val fallos = fallos()
         assertFalse("La app ha fallado:\n$fallos", fallos.contains(PAQUETE))
         assertTrue("La app ya no esta en pantalla", device.hasObject(By.pkg(PAQUETE)))
+    }
+
+    /**
+     * Captura en la carpeta que Gradle recoge del emulador al acabar
+     * (additionalTestOutputDir). Sin esa carpeta (a mano en un telefono), nada.
+     */
+    private fun capturar(nombre: String) {
+        val carpeta = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir") ?: return
+        device.waitForIdle()
+        device.takeScreenshot(java.io.File(carpeta, "humo-api${android.os.Build.VERSION.SDK_INT}-$nombre.png"))
     }
 
     private fun fallos(): String = device.executeShellCommand("logcat -b crash -d")

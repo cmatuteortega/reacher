@@ -45,6 +45,13 @@ android {
             // Con Google Play no se pueden generar perfiles: hace falta root.
             systemImageSource = "aosp"
         }
+        // Android 16: edge-to-edge ya no se puede apagar. Solo para Humo, que
+        // pasa por aqui tambien y deja capturas de cada pantalla.
+        create<com.android.build.api.dsl.ManagedVirtualDevice>("pixel6Api36") {
+            device = "Pixel 6"
+            apiLevel = 36
+            systemImageSource = "aosp"
+        }
     }
 }
 

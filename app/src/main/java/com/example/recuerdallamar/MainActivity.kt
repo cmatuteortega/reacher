@@ -92,6 +92,10 @@ class MainActivity : ComponentActivity() {
     /** Enlace llegado con la app ya abierta (aviso, widget, atajo), a la espera de la navegacion. */
     private val enlacePedido = MutableStateFlow<Intent?>(null)
 
+    /** Version nueva en Play: se ofrece al volver a la app y se instala al salir. */
+    @Suppress("unused")
+    private val actualizacion = Actualizacion(this)
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(Idioma.envolver(newBase))
     }

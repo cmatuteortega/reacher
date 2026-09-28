@@ -31,8 +31,14 @@ screenshots, closed testing) are in [PUBLICAR.md](PUBLICAR.md).
       feature graphic are still to do.
 - [x] **Target API 36**: Play requires new apps and updates to target the
       Android release from the year before (API 36 from 31 August 2026).
-      `compileSdk`/`targetSdk` 36 with AGP 8.9. Check the insets on every
-      screen on an Android 16 phone: edge-to-edge can no longer be turned off.
+      `compileSdk`/`targetSdk` 36 with AGP 8.9.
+- [ ] **Android 16 insets check**: edge-to-edge can no longer be turned off,
+      so check every screen (welcome, the three views, contact, settings,
+      dialogs), light and dark, for anything under the status bar, the
+      navigation bar or the camera cutout. *Humo* now also runs on an API 36
+      emulator and saves a screenshot of each screen in its report
+      (`humo-pixel6Api36`); still to do: look at them, and at a real Android
+      16 phone (checklist in `PUBLICAR.md`).
 - [ ] **Closed testing**: personal developer accounts need a closed test
       with at least 12 testers for 14 days before Play allows production.
 - [x] **Contact email** in `docs/privacy.html` and `docs/privacidad.html`:
@@ -138,6 +144,19 @@ Checked by `AccesibilidadTest`, `ContrasteTest` and `MovimientoReducidoTest`.
       with fastlane `supply` or the Play Developer API, instead of by hand.
 - [ ] **Staged rollouts** for production (e.g. 10% → 50% → 100%), watching
       Sentry before each step.
+- [ ] **Readable crash reports**: without `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`
+      and `SENTRY_PROJECT` in CI the R8 mapping isn't uploaded and release
+      traces arrive obfuscated, which makes the Sentry check before each
+      rollout step useless. Done in code: CI warns when there is a
+      `SENTRY_DSN` but the mapping can't be uploaded, and fails on `v*` tags.
+      Still to do: create the Sentry token and set the secret and variables
+      (`PUBLICAR.md`).
+- [x] **In-app updates** (Play `app-update`, `Actualizacion.kt`): a new
+      version is offered once, 3 days after release, downloads while the app
+      is in use and installs when the user leaves it; priority 4–5 forces an
+      immediate update, the way to get people off a broken release. Priority
+      can only be set when uploading through the Play API, so it needs
+      *Upload from CI* to be useful.
 - [x] **Release notes**: `fastlane/metadata/android/<lang>/changelogs/`
       (`default.txt`, or `<versionCode>.txt` for a specific build) in every
       language; CI checks every language has the same files and none is

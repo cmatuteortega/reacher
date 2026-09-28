@@ -96,6 +96,30 @@ jobs:
             echo "::notice::Sin CONTACTO_KEYSTORE_BASE64: no se compila la version publicada."
           fi
 
+      # Con Sentry pero sin lo necesario para subir el mapping de R8, las trazas
+      # de la version publicada llegan ofuscadas y no se ve donde falla. Aviso
+      # en cualquier rama; en una etiqueta v* (lo que va a Play), fallo.
+      - name: Comprobar mapping de Sentry
+        if: steps.firma.outputs.hay == 'true'
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          [ -n "$SENTRY_DSN" ] || exit 0
+          faltan=""
+          [ -n "$SENTRY_AUTH_TOKEN" ] || faltan="$faltan SENTRY_AUTH_TOKEN (secret)"
+          [ -n "$SENTRY_ORG" ] || faltan="$faltan SENTRY_ORG (variable)"
+          [ -n "$SENTRY_PROJECT" ] || faltan="$faltan SENTRY_PROJECT (variable)"
+          [ -z "$faltan" ] && exit 0
+          mensaje="Hay SENTRY_DSN pero faltan:$faltan. El mapping de R8 no se sube y las trazas llegan ofuscadas (ver PUBLICAR.md)."
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "::error::$mensaje"
+            exit 1
+          fi
+          echo "::warning::$mensaje"
+
       # Las claves de Sentry y PostHog solo van en la version publicada: el APK
       # de depuracion no manda nada. Con SENTRY_AUTH_TOKEN, el plugin de Sentry
       # sube el mapping de R8 para que las trazas lleguen legibles.

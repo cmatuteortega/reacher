@@ -189,6 +189,11 @@ dependencies {
 
     // Dialogo de valoracion de Google Play dentro de la app.
     implementation("com.google.android.play:review-ktx:2.0.2")
+    // Actualizaciones de Google Play dentro de la app (Actualizacion).
+    implementation("com.google.android.play:app-update:2.1.0")
+    // app-update trae Fragment 1.1.0, anterior a la API de resultados que usa
+    // Actualizacion (lint: InvalidFragmentVersionForActivityResult).
+    implementation("androidx.fragment:fragment:1.8.5")
 
     // Informes de fallos (activados por defecto, se apagan en Ajustes) y
     // estadisticas de uso anonimas (solo si el usuario acepta).
