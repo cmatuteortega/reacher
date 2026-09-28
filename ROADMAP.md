@@ -9,8 +9,8 @@ Work through the phases in order.
 
 ## Phase 1 — Ship-blockers
 
-Done in code; the manual steps (keystore, CI secrets, GitHub Pages, contact
-email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
+Done in code; the manual steps (keystore, CI secrets, GitHub Pages,
+screenshots, closed testing) are in [PUBLICAR.md](PUBLICAR.md).
 
 - [x] **Application ID**: replace `com.example.recuerdallamar`. Google Play
       rejects `com.example` packages, and the ID can never change after the
@@ -38,7 +38,7 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 - [x] **Contact email** in `docs/privacy.html` and `docs/privacidad.html`:
       `cmatuteortega@gmail.com`.
 
-## Phase 2 — Quality safety net
+## Phase 2 — Quality safety net ✅
 
 Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTest`.
 
