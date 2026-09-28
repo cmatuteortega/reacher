@@ -116,6 +116,8 @@ class FlujosTest {
         compose.waitForIdle()
 
         compose.onNodeWithContentDescription(texto(R.string.un_dia_mas)).performSemanticsAction(SemanticsActions.OnClick)
+        // El guardado sale de un LaunchedEffect: hace falta recomponer antes de esperar a la fila.
+        compose.waitForIdle()
         compose.waitUntil(5_000) { runBlocking { dao.buscar(id) }!!.frecuenciaDias == 8 }
 
         // Atras cierra la edicion, no la ficha.
