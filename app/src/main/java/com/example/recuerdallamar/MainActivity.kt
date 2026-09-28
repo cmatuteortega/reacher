@@ -341,6 +341,25 @@ private fun AppRecuerda(
         }
     }
 
+    // Los avisos se piden en la bienvenida, al empezar: con ellos se sigue a
+    // "Cuando y como"; sin ellos no hay horas que elegir y se salta a anadir
+    // gente con los ajustes de siempre.
+    var avisosPedidos by rememberSaveable { mutableStateOf(false) }
+    val pedirAvisos = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        if (!concedido) {
+            Toast.makeText(context, context.getString(R.string.sin_permiso_avisos), Toast.LENGTH_LONG).show()
+        }
+        pasoBienvenida = if (concedido) 1 else 2
+    }
+    val empezarBienvenida = {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || Notificaciones.permitidas(context)) {
+            pasoBienvenida = 1
+        } else {
+            avisosPedidos = true
+            pedirAvisos.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     // Al ir a la agenda con el + se pide lo que falte; al contestar se sigue
     // hasta la agenda.
     var permisosPedidos by rememberSaveable { mutableStateOf(false) }
@@ -365,11 +384,12 @@ private fun AppRecuerda(
         }
     }
 
-    // Lo que hace falta, en un solo paso: avisos siempre que falten, fotos solo
-    // la primera vez (luego se piden desde la ficha o al anadir).
+    // Lo que hace falta, en un solo paso: avisos siempre que falten (salvo si
+    // se acaban de pedir en la bienvenida), fotos solo la primera vez (luego
+    // se piden desde la ficha o al anadir).
     val pedirLoQueFalta = {
         val faltan = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !avisosPedidos && !Notificaciones.permitidas(context)) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
             }
             if (FotoContacto.preguntarAlArrancar(context)) {
@@ -388,10 +408,11 @@ private fun AppRecuerda(
 
     // Cada vez que se va a anadir a alguien, en la bienvenida o con el + de la
     // lista: mientras falten los avisos o las fotos se vuelven a pedir, que es
-    // justo cuando se ve para que sirven.
+    // justo cuando se ve para que sirven. En la bienvenida solo la agenda: los
+    // avisos ya se pidieron al empezar.
     val anadirPidiendoPermisos: () -> Unit = {
         val faltan = buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notificaciones.permitidas(context)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ajustes.bienvenidaHecha && !Notificaciones.permitidas(context)) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
             }
             if (!FotoContacto.permitida(context)) add(Manifest.permission.READ_CONTACTS)
@@ -492,6 +513,9 @@ private fun AppRecuerda(
             PantallaBienvenida(
                 paso = pasoBienvenida,
                 onPaso = { pasoBienvenida = it },
+                onEmpezar = empezarBienvenida,
+                // Sin avisos no hay horas que elegir: atras desde anadir vuelve al sol.
+                conAjustes = Notificaciones.permitidas(context),
                 contactos = contactos.orEmpty(),
                 fotosPermitidas = fotosPermitidas,
                 // Como en Ajustes: se guarda al momento y vale para quien se anada luego.

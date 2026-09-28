@@ -229,6 +229,9 @@
     <string name="circulo_nuevo">Círculo nuevo</string>
     <string name="circulo_pista">Familia, amigos, trabajo…</string>
     <string name="circulo_todos">Todos</string>
+    <string name="circulo_familia">Familia</string>
+    <string name="circulo_amigos">Amigos</string>
+    <string name="circulo_trabajo">Trabajo</string>
     <string name="notas">Notas</string>
     <string name="notas_pista">Cosas que recordar: cómo se llaman sus hijos, de qué hablasteis…</string>
     <string name="opiniones">Opiniones</string>

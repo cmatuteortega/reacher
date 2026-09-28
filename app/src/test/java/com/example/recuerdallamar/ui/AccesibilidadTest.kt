@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import android.Manifest
 import androidx.annotation.StringRes
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -29,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.time.LocalDate
 
@@ -121,6 +123,8 @@ class AccesibilidadTest {
     @Test
     fun bienvenidaAl200() {
         RuntimeEnvironment.setFontScale(2f)
+        // Con los avisos ya dados, para ver tambien el paso de las horas.
+        shadowOf(app).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         escenario = ActivityScenario.launch(MainActivity::class.java)
         compose.waitForIdle()
         revisarPulsables("bienvenida")

@@ -1,5 +1,7 @@
 package com.example.recuerdallamar.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
@@ -31,6 +33,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import java.time.LocalDate
 
 /**
@@ -67,6 +70,7 @@ class FlujosTest {
 
     @Test
     fun bienvenidaSinAnadirANadie() {
+        shadowOf(app).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         abrir()
         compose.onNodeWithText(texto(R.string.empezar)).performClick()
         compose.waitForIdle()
@@ -90,6 +94,34 @@ class FlujosTest {
         compose.onNodeWithText(texto(R.string.entendido)).performClick()
         compose.waitForIdle()
         compose.onNodeWithText(texto(R.string.listo_sin_gente)).assertDoesNotExist()
+    }
+
+    @Test
+    fun sinAvisosLaBienvenidaSeSaltaCuandoYComo() {
+        abrir()
+        compose.onNodeWithText(texto(R.string.empezar)).performClick()
+        compose.waitForIdle()
+
+        // Al empezar se piden los avisos, y solo ellos. Se niegan.
+        escenario!!.onActivity { actividad ->
+            val pedido = shadowOf(actividad).lastRequestedPermission
+            assertEquals(listOf(Manifest.permission.POST_NOTIFICATIONS), pedido.requestedPermissions.toList())
+            actividad.onRequestPermissionsResult(
+                pedido.requestCode,
+                pedido.requestedPermissions,
+                intArrayOf(PackageManager.PERMISSION_DENIED),
+            )
+        }
+        compose.waitForIdle()
+
+        // Derecho a anadir gente, con los ajustes de siempre.
+        compose.onNodeWithText(texto(R.string.cuando_y_como)).assertDoesNotExist()
+        compose.onNodeWithText(texto(R.string.elegir_de_la_agenda)).assertIsDisplayed()
+
+        // Atras vuelve al sol, no a las horas.
+        escenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        compose.waitForIdle()
+        compose.onNodeWithText(texto(R.string.empezar)).assertIsDisplayed()
     }
 
     @Test

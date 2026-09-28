@@ -55,7 +55,9 @@ const val PASOS_BIENVENIDA = 3
  * (tu), que se queda en su sitio entre paso y paso, y las personas que anades
  * entran en su orbita. Debajo cambia el texto de cada paso: que el sol eres
  * tu y la gente tu sistema; a que horas avisar y como contactar; y anadir al
- * menos a una persona (los permisos se piden al ir a la agenda). En el
+ * menos a una persona. Al empezar se piden los avisos: si se niegan, el
+ * segundo paso se salta y se sigue con los ajustes de siempre; la agenda se
+ * pide al ir a ella. En el
  * segundo el sol encoge y la esfera de horas lo rodea, con la forma de
  * contacto debajo; lo que se toca se guarda al momento en los ajustes. Al
  * pasar al tercero la esfera se va y aparece su orbita, vacia, esperando al
@@ -69,6 +71,8 @@ const val PASOS_BIENVENIDA = 3
 fun PantallaBienvenida(
     paso: Int,
     onPaso: (Int) -> Unit,
+    onEmpezar: () -> Unit,
+    conAjustes: Boolean,
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
     horaDesde: Int,
@@ -82,7 +86,7 @@ fun PantallaBienvenida(
     modifier: Modifier = Modifier,
     relevo: Relevo? = null,
 ) {
-    BackHandler(enabled = paso > 0) { onPaso(paso - 1) }
+    BackHandler(enabled = paso > 0) { onPaso(if (paso == 2 && !conAjustes) 0 else paso - 1) }
     val rueda by animateFloatAsState(if (paso == 1) 1f else 0f, tween(350), label = "rueda")
 
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -138,7 +142,7 @@ fun PantallaBienvenida(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     when (actual) {
-                        0 -> PasoSol(onEmpezar = { onPaso(1) })
+                        0 -> PasoSol(onEmpezar = onEmpezar)
                         1 -> PasoAjustes(
                             desde = horaDesde,
                             hasta = horaHasta,

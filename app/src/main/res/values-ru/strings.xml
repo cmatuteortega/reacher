@@ -239,6 +239,9 @@
     <string name="circulo_nuevo">Новый круг</string>
     <string name="circulo_pista">Семья, друзья, работа…</string>
     <string name="circulo_todos">Все</string>
+    <string name="circulo_familia">Семья</string>
+    <string name="circulo_amigos">Друзья</string>
+    <string name="circulo_trabajo">Работа</string>
     <string name="notas">Заметки</string>
     <string name="notas_pista">Что запомнить: как зовут детей, о чём говорили…</string>
     <string name="opiniones">Отзывы</string>

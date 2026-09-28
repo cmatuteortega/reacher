@@ -72,15 +72,18 @@ va a su anillo (hasta tres; los de dentro giran más deprisa), con su cara
 mirando hacia donde va. Solo cambia el texto de debajo:
 
 1. *Tú eres el sol*: la gente que te importa es tu sistema. *Empezar* pide
-   los permisos (avisos y fotos de la agenda), ya explicados; fuera de la
-   bienvenida se piden al abrir, como antes.
+   solo el permiso de los avisos. Si se da, se sigue a *Cuándo y cómo*; si
+   no, ese paso se salta y se va directo a añadir gente con los ajustes de
+   siempre (atrás vuelve al sol). Fuera de la bienvenida se piden al abrir,
+   como antes.
 2. *Cuándo y cómo*: el sol encoge al tamaño del paso siguiente y lo rodea la
    rueda de las horas de aviso (la de Ajustes, `ui/DialFranja.kt`, sin el
    resumen del centro); debajo, la forma de contacto para quien se añada.
    Se guarda al momento, como en Ajustes; *Continuar* sigue.
 3. *Crea tu sistema*: se va la rueda y aparece la órbita del sol, vacía, donde
    entrará el primero. *Elegir de la agenda* abre la ficha de siempre y al
-   darla de alta se vuelve aquí, con la persona ya en órbita; un toque en
+   darla de alta se vuelve aquí, con la persona ya en órbita (solo pide la
+   agenda: los avisos ya se pidieron al empezar); un toque en
    un planeta abre su ficha. *Continuar* (o *Ahora no*, sin nadie) acaba la
    bienvenida en la vista de órbitas, sin cortar: el sol sube y crece hasta
    la esquina de la pantalla principal y cada planeta va a su sitio en los
@@ -189,7 +192,8 @@ flecha vuelven a Personas.
    *Telegram*). El **lápiz** de arriba a la derecha (o tocar el resumen) abre
    **Editar**, con todo lo que se ajusta y se guarda solo: la frecuencia en
    días, la **forma de contacto** preferida (ver abajo), el **círculo** (uno
-   como mucho: se elige entre los que hay o se crea otro), el **cumpleaños**,
+   como mucho: *Familia*, *Amigos* y *Trabajo* están siempre, junto a los que
+   haya; el **+** crea otro), el **cumpleaños**,
    unas **notas** libres (se guardan al dejar de escribir), *Pausar avisos*
    (N días sin avisos de esa persona; el último contacto no cambia, así que la
    burbuja sigue creciendo), *Eliminar contacto* (con confirmación) y un botón

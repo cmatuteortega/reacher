@@ -229,6 +229,9 @@
     <string name="circulo_nuevo">Nouveau cercle</string>
     <string name="circulo_pista">Famille, amis, travail…</string>
     <string name="circulo_todos">Tous</string>
+    <string name="circulo_familia">Famille</string>
+    <string name="circulo_amigos">Amis</string>
+    <string name="circulo_trabajo">Travail</string>
     <string name="notas">Notes</string>
     <string name="notas_pista">À retenir : le prénom de ses enfants, ce dont vous avez parlé…</string>
     <string name="opiniones">Avis</string>

@@ -1051,14 +1051,20 @@ private fun Resources.atajo(d: Int): String = when (d) {
 
 /**
  * Circulo de la persona (familia, amigos, trabajo...): uno como mucho. Se
- * elige entre los que ya hay o se crea uno nuevo con su nombre.
+ * elige entre esos tres, que estan siempre, los que ya hay o uno nuevo que se
+ * crea con su nombre desde el +.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SelectorCirculo(circulo: String?, circulos: List<String>, onCambio: (String?) -> Unit) {
     val vista = LocalView.current
     var creando by rememberSaveable { mutableStateOf(false) }
-    val opciones = (circulos + listOfNotNull(circulo)).distinct()
+    val porDefecto = listOf(
+        stringResource(R.string.circulo_familia),
+        stringResource(R.string.circulo_amigos),
+        stringResource(R.string.circulo_trabajo),
+    )
+    val opciones = (porDefecto + circulos + listOfNotNull(circulo)).distinct()
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
             selected = circulo == null,
@@ -1081,8 +1087,9 @@ private fun SelectorCirculo(circulo: String?, circulos: List<String>, onCambio: 
         FilterChip(
             selected = false,
             onClick = { creando = true },
-            leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
-            label = { Text(stringResource(R.string.circulo_nuevo)) },
+            label = {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.circulo_nuevo), modifier = Modifier.size(18.dp))
+            },
         )
     }
     if (creando) {
