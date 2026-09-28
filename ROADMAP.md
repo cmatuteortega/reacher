@@ -28,6 +28,14 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
 - [ ] **Store listing**: localized description, screenshots and feature
       graphic. Texts are done (`fastlane/metadata`); screenshots and the
       feature graphic are still to do.
+- [x] **Target API 36**: Play requires new apps and updates to target the
+      Android release from the year before (API 36 from 31 August 2026).
+      `compileSdk`/`targetSdk` 36 with AGP 8.9. Check the insets on every
+      screen on an Android 16 phone: edge-to-edge can no longer be turned off.
+- [ ] **Closed testing**: personal developer accounts need a closed test
+      with at least 12 testers for 14 days before Play allows production.
+- [ ] **Placeholder contact email**: replace `CORREO_DE_CONTACTO` in
+      `docs/privacy.html` and `docs/privacidad.html`.
 
 ## Phase 2 — Quality safety net
 
@@ -55,6 +63,11 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
       `withInfiniteAnimationFrameNanos` and already stop in the background
       (Compose pauses the frame clock on `ON_STOP`); pausing the bubbles when
       they are at rest is still to do.
+- [ ] **Release build smoke test**: R8 is only checked by hand today
+      (`PUBLICAR.md`). Run the main flows against the minified build in CI,
+      or at least keep a written checklist before each upload.
+- [ ] **Translation coverage**: 5 languages; fail lint on
+      `MissingTranslation` so no string ships only in English.
 
 ## Phase 3 — Reminder reliability and user data
 
@@ -77,7 +90,7 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
 - [ ] **Font scaling**: verify layouts at 200% text size.
 - [ ] **Contrast**: check the palette (especially teja on crema) against
       WCAG AA in light and dark themes.
-- [ ] **Touch targets and labels**: audit the 12 `contentDescription = null`
+- [ ] **Touch targets and labels**: audit the 16 `contentDescription = null`
       icons and make sure every interactive element is at least 48dp.
 
 ## Phase 5 — Platform polish and product depth ✅
@@ -94,6 +107,17 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
 - [x] **Product features**: notes per person, birthdays from contacts,
       groups/circles.
 - [x] **In-app feedback** and rating prompt.
+
+## Phase 6 — Release process
+
+- [ ] **Upload from CI**: publish the signed AAB to an internal/closed track
+      with fastlane `supply` or the Play Developer API, instead of by hand.
+- [ ] **Staged rollouts** for production (e.g. 10% → 50% → 100%), watching
+      Sentry before each step.
+- [ ] **Release notes**: `fastlane/metadata/android/<lang>/changelogs/`, one
+      file per `versionCode`, in every language.
+- [ ] **Dependency updates**: Dependabot or Renovate for Gradle and GitHub
+      Actions, so SDKs and the target API don't fall behind again.
 
 ## Later
 

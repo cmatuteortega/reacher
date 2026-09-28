@@ -29,7 +29,7 @@ android {
     // El namespace (paquete del codigo y de R) se queda; lo que ve Google Play
     // es el applicationId de abajo.
     namespace = "com.example.recuerdallamar"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         // No puede cambiar nunca despues de la primera subida a Google Play.
@@ -37,7 +37,7 @@ android {
         applicationId = "com.cmatuteortega.contacto"
         // 26 para tener java.time sin desugaring y canales de notificacion siempre.
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         // Los pone CI (-Pcontacto.versionCode=<numero de ejecucion>,
         // -Pcontacto.versionName=<etiqueta de git>); en local, 1 y "dev".
         versionCode = (project.findProperty("contacto.versionCode") as String?)?.toInt() ?: 1
