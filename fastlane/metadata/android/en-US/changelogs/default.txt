@@ -1,0 +1,6 @@
+First release of Contacto:
+• Pick who you don't want to lose touch with and how often to talk.
+• One reminder a day, within your hours, with whoever is due; one tap opens a call, SMS, WhatsApp or Telegram.
+• Bubbles, orbits or a list.
+• Birthdays, circles and notes.
+• “Due today” widget and backup.

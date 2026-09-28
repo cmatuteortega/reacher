@@ -37,6 +37,32 @@ jobs:
       - name: Lint
         run: ./gradlew lintDebug
 
+      # Notas de la version para Play: en cada idioma los mismos ficheros
+      # (default.txt o <versionCode>.txt) y de 500 caracteres como mucho.
+      - name: Notas de la version
+        env:
+          LC_ALL: C.UTF-8
+        run: |
+          cd fastlane/metadata/android
+          referencia=$(ls en-US/changelogs | sort)
+          fallo=0
+          for idioma in */; do
+            idioma=${idioma%/}
+            if [ "$(ls "$idioma/changelogs" 2>/dev/null | sort)" != "$referencia" ]; then
+              echo "::error::$idioma/changelogs no tiene las mismas notas que en-US"
+              fallo=1
+            fi
+            for f in "$idioma"/changelogs/*.txt; do
+              [ -e "$f" ] || continue
+              n=$(wc -m < "$f")
+              if [ "$n" -gt 500 ]; then
+                echo "::error file=fastlane/metadata/android/$f::$n caracteres (Play admite 500)"
+                fallo=1
+              fi
+            done
+          done
+          exit $fallo
+
       - name: Informes de pruebas y lint
         if: always()
         uses: actions/upload-artifact@v4

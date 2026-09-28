@@ -42,6 +42,40 @@ class MovimientoReducidoTest {
     }
 
     @Test
+    fun enCalmaYQuietasDejanDePedirFotogramas() {
+        val sim = Simulacion().apply {
+            ancho = 1000f
+            alto = 2000f
+            calma = true
+        }
+        sim.colocar(listOf(Sitio(1L, 300f, 400f, 50f)))
+        val cuerpo = sim.cuerpos.getValue(1L)
+        assertTrue(sim.despertador.tryReceive().isSuccess)
+        sim.paso(1f / 60f)
+        assertTrue(sim.reposo())
+
+        // Un lanzamiento la despierta; al volver a casa, reposo otra vez.
+        sim.agarrar(cuerpo)
+        assertFalse(sim.reposo())
+        sim.soltar(cuerpo, 800f, 0f)
+        assertTrue(sim.despertador.tryReceive().isSuccess)
+        assertFalse(sim.reposo())
+        var pasos = 0
+        while (!sim.reposo() && pasos < 600) {
+            sim.paso(1f / 60f)
+            pasos++
+        }
+        assertTrue(sim.reposo())
+        assertEquals(300f, cuerpo.x, 0.5f)
+
+        // Sin movimiento reducido flotan: nunca estan en reposo.
+        sim.calma = false
+        assertTrue(sim.despertador.tryReceive().isSuccess)
+        sim.paso(1f / 60f)
+        assertFalse(sim.reposo())
+    }
+
+    @Test
     fun caraQuietaNoParpadeaNiSeMece() {
         // La cara guarda su reloj en estado de Compose: en una instantanea
         // propia, para no dejar cambios sin aplicar a la siguiente prueba.

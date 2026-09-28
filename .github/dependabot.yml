@@ -1,0 +1,42 @@
+# Actualizaciones de dependencias: un PR por grupo cada semana, para que los
+# SDK y el target de Android no se queden atras. CI (pruebas y lint) corre en
+# cada PR antes de aceptarlo.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      # Kotlin, el compilador de Compose, serializacion y KSP van de la mano:
+      # la version de KSP lleva la de Kotlin delante (2.1.0-1.0.29).
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+      android-gradle-plugin:
+        patterns:
+          - "com.android.*"
+      androidx:
+        patterns:
+          - "androidx.*"
+      telemetria:
+        patterns:
+          - "io.sentry*"
+          - "com.posthog*"
+      pruebas:
+        patterns:
+          - "junit:*"
+          - "org.robolectric:*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      acciones:
+        patterns:
+          - "*"

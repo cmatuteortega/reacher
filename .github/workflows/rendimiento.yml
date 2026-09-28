@@ -1,11 +1,16 @@
 name: Rendimiento
 
-# A mano (pestana Actions > Rendimiento > Run workflow): genera el perfil de
-# referencia de la app y mide el arranque en un emulador. Tarda y necesita
-# KVM, asi que no va en cada push. El perfil sale como artefacto: se copia a
-# app/src/release/generated/baselineProfiles/ y se sube con un commit.
+# A mano (pestana Actions > Rendimiento > Run workflow, eligiendo la rama):
+# genera el perfil de referencia de la app y mide el arranque en un emulador.
+# Tarda y necesita KVM, asi que no va en cada push. El perfil se sube solo
+# con un commit a la rama elegida (app/src/release/generated/baselineProfiles/)
+# y sale tambien como artefacto. Conviene repetirlo cuando cambien las
+# pantallas principales.
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   rendimiento:
@@ -42,8 +47,24 @@ jobs:
           name: perfil-de-referencia
           path: app/src/release/generated/baselineProfiles/
 
+      - name: Guardar perfil en la rama
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898296+github-actions[bot]@users.noreply.github.com"
+          git add app/src/release/generated/baselineProfiles/
+          if git diff --cached --quiet; then
+            echo "El perfil no ha cambiado."
+          else
+            git commit -m "Perfil de referencia generado en CI"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+
+      # En un emulador las mediciones no valen como cifras absolutas (de ahi
+      # suppressErrors), pero la diferencia con y sin perfil si se ve.
       - name: Medir arranque
-        run: ./gradlew :baselineprofile:pixel6Api34BenchmarkReleaseAndroidTest $GRADLE_EMULADOR --stacktrace
+        run: >
+          ./gradlew :baselineprofile:pixel6Api34BenchmarkReleaseAndroidTest $GRADLE_EMULADOR --stacktrace
+          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.suppressErrors=EMULATOR
 
       - name: Subir mediciones
         if: always()

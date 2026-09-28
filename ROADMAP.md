@@ -35,8 +35,8 @@ email, screenshots) are in [PUBLICAR.md](PUBLICAR.md).
       screen on an Android 16 phone: edge-to-edge can no longer be turned off.
 - [ ] **Closed testing**: personal developer accounts need a closed test
       with at least 12 testers for 14 days before Play allows production.
-- [ ] **Placeholder contact email**: replace `CORREO_DE_CONTACTO` in
-      `docs/privacy.html` and `docs/privacidad.html`.
+- [x] **Contact email** in `docs/privacy.html` and `docs/privacidad.html`:
+      `cmatuteortega@gmail.com`.
 
 ## Phase 2 — Quality safety net
 
@@ -58,17 +58,24 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
       structured logging (`Registro`); errors beyond `ActivityNotFoundException`
       (backup, worker, `SecurityException` when calling) are reported.
 - [x] **Product analytics** (PostHog EU, opt-in, anonymous events).
-- [ ] **Performance**: Baseline Profile and startup/frame benchmarks are set
-      up in `:baselineprofile` (manual *Rendimiento* workflow); **still to
-      run it once and commit the generated profile**. Infinite animations use
-      `withInfiniteAnimationFrameNanos` and already stop in the background
-      (Compose pauses the frame clock on `ON_STOP`); pausing the bubbles when
-      they are at rest is still to do.
-- [ ] **Release build smoke test**: R8 is only checked by hand today
-      (`PUBLICAR.md`). Run the main flows against the minified build in CI,
-      or at least keep a written checklist before each upload.
-- [ ] **Translation coverage**: 5 languages; fail lint on
-      `MissingTranslation` so no string ships only in English.
+- [ ] **Performance**: Baseline Profile and startup/frame benchmarks in
+      `:baselineprofile` (manual *Rendimiento* workflow, which now commits
+      the generated profile to the branch it runs on); **still to check the
+      first run and that the profile is in `app/src/release/generated/`**.
+      Infinite animations use `withInfiniteAnimationFrameNanos` and stop in
+      the background (Compose pauses the frame clock on `ON_STOP`). The
+      bubble physics stops asking for frames once everything is still
+      (`Simulacion.reposo()`) and wakes on a new layout, a drag or a throw;
+      with the normal gentle float that never happens by design, so today it
+      only saves work under reduced motion.
+- [x] **Release build smoke test**: the *Humo* workflow runs the main flows
+      (welcome, the three views, settings, reopen) on the R8-minified build
+      in an emulator on every push to `main` and every `v*` tag, and fails on
+      any crash. What an emulator can't do (contact picker, real reminders)
+      is a written checklist in `PUBLICAR.md`.
+- [x] **Translation coverage**: 5 languages; lint fails on
+      `MissingTranslation` (explicit in `app/build.gradle.kts`), so no
+      string ships only in English.
 
 ## Phase 3 — Reminder reliability and user data
 
@@ -130,10 +137,12 @@ Checked by `AccesibilidadTest`, `ContrasteTest` and `MovimientoReducidoTest`.
       with fastlane `supply` or the Play Developer API, instead of by hand.
 - [ ] **Staged rollouts** for production (e.g. 10% → 50% → 100%), watching
       Sentry before each step.
-- [ ] **Release notes**: `fastlane/metadata/android/<lang>/changelogs/`, one
-      file per `versionCode`, in every language.
-- [ ] **Dependency updates**: Dependabot or Renovate for Gradle and GitHub
-      Actions, so SDKs and the target API don't fall behind again.
+- [x] **Release notes**: `fastlane/metadata/android/<lang>/changelogs/`
+      (`default.txt`, or `<versionCode>.txt` for a specific build) in every
+      language; CI checks every language has the same files and none is
+      over Play's 500 characters.
+- [x] **Dependency updates**: Dependabot for Gradle (grouped: Kotlin+KSP,
+      AndroidX, AGP, telemetry, tests) and GitHub Actions, weekly.
 
 ## Later
 

@@ -1,0 +1,6 @@
+Erste Version von Contacto:
+• Wähle, wen du nicht aus den Augen verlieren willst und wie oft ihr sprecht.
+• Eine Erinnerung am Tag, zu deinen Zeiten, mit wem es fällig ist; ein Tipp öffnet Anruf, SMS, WhatsApp oder Telegram.
+• Blasen, Umlaufbahnen oder Liste.
+• Geburtstage, Kreise und Notizen.
+• Widget „Heute dran“ und Sicherung.

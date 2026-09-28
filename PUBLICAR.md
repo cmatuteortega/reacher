@@ -63,11 +63,26 @@ En local salen `1` y `dev`; se pueden forzar con
 ## R8
 
 La versión publicada va minimizada y sin recursos sobrantes
-(`app/proguard-rules.pro`). Antes de cada subida, instalar el `.aab` o un
-`assembleRelease` en un teléfono y dar una vuelta: bienvenida, añadir a
-alguien, ficha, ajustes, widget, y forzar un aviso esperando al día siguiente
-(el botón de forzar solo existe en depuración). Subir el `mapping.txt` a Play
-Console junto al `.aab` para leer las trazas de errores.
+(`app/proguard-rules.pro`). Subir el `mapping.txt` a Play Console junto al
+`.aab` para leer las trazas de errores.
+
+**En CI**: el flujo *Humo* (`.github/workflows/humo.yml`) instala la versión
+minimizada en un emulador y hace el recorrido principal (bienvenida, las tres
+vistas, ajustes, cerrar y volver a abrir) en cada push a `main` y en cada
+etiqueta `v*`; también se lanza a mano desde *Actions*. **No subir una versión
+cuyo Humo esté en rojo.**
+
+**A mano, antes de cada subida**, lo que el emulador no puede hacer (elegir de
+la agenda, avisos de verdad), con el `.aab` o un `assembleRelease` en un
+teléfono:
+
+- [ ] Bienvenida y añadir a alguien desde la agenda (con su foto).
+- [ ] Ficha: cambiar la frecuencia, el medio y las notas; «He llamado hoy».
+- [ ] Llamar o escribir desde la ficha (se abre la app que toca).
+- [ ] Ajustes: exportar la copia y volver a importarla.
+- [ ] Widget en la pantalla de inicio y el atajo «Añadir persona».
+- [ ] Al día siguiente, llega el aviso de quien toca y «Más tarde» funciona
+      (el botón de forzar solo existe en depuración).
 
 Solo en depuración: el botón «Forzar notificación» de la ficha y *Ajustes ›
 Depuración › Idioma de la app* (en Android 13+ el idioma se cambia desde los
@@ -77,9 +92,8 @@ ajustes del sistema).
 
 En `docs/` (español e inglés). Activar GitHub Pages: *Settings › Pages ›
 Deploy from a branch*, rama `main`, carpeta `/docs`. La URL para Play Console
-será `https://cmatuteortega.github.io/reacher/privacy.html`. **Antes de
-publicar**, cambiar `CORREO_DE_CONTACTO` en las dos páginas por un correo de
-contacto real.
+será `https://cmatuteortega.github.io/reacher/privacy.html`. El correo de
+contacto de las dos páginas es `cmatuteortega@gmail.com`.
 
 ## Informes de fallos y estadísticas (Sentry y PostHog)
 
@@ -154,6 +168,12 @@ Textos en `fastlane/metadata/android/<idioma>/` (título ≤ 30, descripción
 corta ≤ 80, completa ≤ 4000) para es-ES, en-US, fr-FR, de-DE y ru-RU. Se
 pueden copiar a mano en Play Console o subir con `fastlane supply`.
 
+**Notas de la versión** en `changelogs/` de cada idioma: `default.txt` vale
+para cualquier versión; para una concreta, `<versionCode>.txt` (el número de
+ejecución de CI que la compiló). CI comprueba que todos los idiomas tengan los
+mismos ficheros y que ninguno pase de 500 caracteres, el límite de Play.
+Actualizar `default.txt` en los cinco idiomas antes de cada versión.
+
 Falta, a mano, en cada `images/`:
 
 - `phoneScreenshots/`: de 2 a 8 capturas del teléfono (1080×1920 o similar):
@@ -201,7 +221,25 @@ Falta, a mano, en cada `images/`:
    revisión (de horas a varios días la primera vez). Mejor un lanzamiento
    escalonado (p. ej. 20 %) y subirlo si no llegan errores.
 
-Cada versión nueva: etiquetar (`git tag v1.1.0 && git push --tags`), esperar
+## Rendimiento
+
+El perfil de referencia (`app/src/release/generated/baselineProfiles/`) lo
+genera el flujo *Rendimiento*, a mano: *Actions › Rendimiento › Run workflow*
+eligiendo la rama. Lo sube solo con un commit a esa rama y después mide el
+arranque con y sin perfil (artefacto `mediciones`). Repetirlo cuando cambien
+las pantallas principales.
+
+## Dependencias
+
+Dependabot (`.github/dependabot.yml`) abre cada lunes PR agrupados para
+Gradle (Kotlin y KSP juntos, AndroidX, el plugin de Android, Sentry y
+PostHog, pruebas) y para las GitHub Actions. CI los prueba; aceptarlos si
+pasa, y dar una vuelta a mano cuando suba `compileSdk`/`targetSdk` o el
+plugin de Android.
+
+## Cada versión
+
+Cada versión nueva: actualizar las notas de la versión, etiquetar (`git tag v1.1.0 && git push --tags`), esperar
 a CI, descargar el `.aab` y el `mapping.txt` del artefacto y subirlos en la
 pista que toque. El `versionCode` sube solo. Los artefactos de GitHub caducan
 a los 90 días: guardar el `.aab` de lo que se publique.

@@ -98,6 +98,13 @@ android {
         }
     }
 
+    // Ninguna cadena sale solo en ingles: si falta una traduccion en alguno de
+    // los idiomas, lint (y con el, CI) falla antes de compilar nada.
+    lint {
+        error += "MissingTranslation"
+        abortOnError = true
+    }
+
     // Las pruebas corren en la JVM con Robolectric (base de datos, workers y
     // pantallas incluidos): no hace falta emulador ni en local ni en CI.
     testOptions {

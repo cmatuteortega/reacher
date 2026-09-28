@@ -208,20 +208,24 @@ fun VistaBurbujas(
         val fotograma = remember { mutableLongStateOf(0L) }
         val vista = LocalView.current
         LaunchedEffect(sim) {
-            var antes = 0L
             var ultimoGolpe = 0L
             while (true) {
-                withInfiniteAnimationFrameNanos { ahora ->
-                    if (antes != 0L) sim.paso(((ahora - antes) / 1e9f).coerceAtMost(1f / 30f))
-                    antes = ahora
-                    fotograma.longValue = ahora
-                    // Cada choque se siente, con mas fuerza cuanto mas deprisa iban.
-                    val golpe = sim.golpe / densidad.density - GOLPE_MINIMO
-                    if (golpe > 0f && ahora - ultimoGolpe > ENTRE_GOLPES_NS) {
-                        ultimoGolpe = ahora
-                        vista.choque(golpe / GOLPE_PLENO)
+                var antes = 0L
+                do {
+                    withInfiniteAnimationFrameNanos { ahora ->
+                        if (antes != 0L) sim.paso(((ahora - antes) / 1e9f).coerceAtMost(1f / 30f))
+                        antes = ahora
+                        fotograma.longValue = ahora
+                        // Cada choque se siente, con mas fuerza cuanto mas deprisa iban.
+                        val golpe = sim.golpe / densidad.density - GOLPE_MINIMO
+                        if (golpe > 0f && ahora - ultimoGolpe > ENTRE_GOLPES_NS) {
+                            ultimoGolpe = ahora
+                            vista.choque(golpe / GOLPE_PLENO)
+                        }
                     }
-                }
+                } while (!sim.reposo())
+                // Todo quieto (movimiento reducido): sin fotogramas hasta que algo se mueva.
+                sim.despertador.receive()
             }
         }
 

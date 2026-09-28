@@ -11,7 +11,9 @@ plugins {
  *   ./gradlew :app:generateReleaseBaselineProfile
  *   ./gradlew :baselineprofile:pixel6Api34BenchmarkReleaseAndroidTest
  *
- * En CI, el flujo "Rendimiento" (a mano, desde la pestana Actions).
+ * En CI, el flujo "Rendimiento" (a mano, desde la pestana Actions). El
+ * flujo "Humo" pasa [Humo] por la misma version minimizada en cada push a
+ * main y en cada etiqueta.
  */
 android {
     namespace = "com.example.recuerdallamar.rendimiento"
@@ -32,6 +34,9 @@ android {
     }
 
     targetProjectPath = ":app"
+    // Las pruebas corren en su propio proceso y no en el de la app: pueden
+    // borrar sus datos (pm clear) y verla cascar sin caerse con ella.
+    experimentalProperties["android.experimental.self-instrumenting"] = true
 
     testOptions.managedDevices.devices {
         create<com.android.build.api.dsl.ManagedVirtualDevice>("pixel6Api34") {

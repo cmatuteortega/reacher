@@ -1,0 +1,6 @@
+Primera versión de Contacto:
+• Elige a quién no quieres perder de vista y cada cuántos días hablar.
+• Un aviso al día, en tu horario, con quien toca; un toque abre la llamada, SMS, WhatsApp o Telegram.
+• Burbujas, órbitas o lista.
+• Cumpleaños, círculos y notas.
+• Widget «Hoy toca» y copia de seguridad.

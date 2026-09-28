@@ -1,5 +1,6 @@
 package com.example.recuerdallamar.ui
 
+import kotlinx.coroutines.channels.Channel
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -166,6 +167,10 @@ internal class Simulacion {
 
     /** Movimiento reducido: el reposo es quieto y las nuevas nacen ya en su sitio. */
     var calma = false
+        set(valor) {
+            if (field != valor) despertar()
+            field = valor
+        }
     var tiempo = 0f
         private set
 
@@ -175,6 +180,34 @@ internal class Simulacion {
      */
     var golpe = 0f
         private set
+
+    /**
+     * Avisa de que algo se mueve otra vez (casas nuevas, un dedo, un
+     * lanzamiento) a quien dejo de pedir fotogramas porque estaba todo en
+     * [reposo]. Solo guarda un aviso: varios seguidos valen por uno.
+     */
+    val despertador = Channel<Unit>(Channel.CONFLATED)
+
+    private fun despertar() {
+        despertador.trySend(Unit)
+    }
+
+    /**
+     * Todas quietas en su casa, con su tamano y sin nadie en el dedo: otro
+     * paso no cambiaria nada, asi que no hace falta pedir mas fotogramas hasta
+     * que llegue un aviso al [despertador]. Solo con [calma]: si no, el
+     * reposo flota y nunca esta quieto.
+     */
+    fun reposo(): Boolean {
+        if (!calma) return false
+        val quieto = QUIETO * densidad
+        return orden.all { c ->
+            !c.agarrado &&
+                abs(c.vx) < quieto && abs(c.vy) < quieto &&
+                abs(c.x - c.casaX) < CERCA_DE_CASA && abs(c.y - c.casaY) < CERCA_DE_CASA &&
+                abs(c.radio - c.radioObjetivo) < CERCA_DE_CASA
+        }
+    }
 
     /**
      * Pone las casas nuevas. Las burbujas que ya estaban van nadando a su
@@ -200,6 +233,7 @@ internal class Simulacion {
         cuerpos.clear()
         cuerpos.putAll(nuevos)
         orden = nuevos.values.toTypedArray()
+        despertar()
     }
 
     /**
@@ -218,6 +252,7 @@ internal class Simulacion {
         cuerpo.agarrado = true
         cuerpo.vx = 0f
         cuerpo.vy = 0f
+        despertar()
     }
 
     /** Sigue al dedo. */
@@ -241,6 +276,7 @@ internal class Simulacion {
         cuerpo.vy = vy * factor
         cuerpo.agarrado = false
         cuerpo.soltadoEn = tiempo
+        despertar()
     }
 
     fun paso(dt: Float) {
@@ -390,5 +426,11 @@ internal class Simulacion {
         const val DERIVA = 3f
         const val VELOCIDAD_MAXIMA = 1800f
         const val NACER_DESDE = 36f
+
+        /** Por debajo de esto (dp/s) una burbuja ya no se mueve a la vista. */
+        const val QUIETO = 1f
+
+        /** Pixeles de su casa y de su tamano a los que ya cuenta como llegada. */
+        const val CERCA_DE_CASA = 0.5f
     }
 }

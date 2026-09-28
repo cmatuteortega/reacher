@@ -1,0 +1,6 @@
+Première version de Contacto :
+• Choisissez qui vous ne voulez pas perdre de vue et à quelle fréquence vous parler.
+• Un rappel par jour, dans vos horaires, avec qui c'est le tour ; un geste ouvre l'appel, le SMS, WhatsApp ou Telegram.
+• Bulles, orbites ou liste.
+• Anniversaires, cercles et notes.
+• Widget « Aujourd'hui » et sauvegarde.
