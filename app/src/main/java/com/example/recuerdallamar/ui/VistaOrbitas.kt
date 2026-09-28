@@ -48,11 +48,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -338,6 +341,9 @@ internal class Orbitales {
     private var anillos = 0
     private var t = 0f
 
+    /** Movimiento reducido: los anillos no se mecen. */
+    var calma = false
+
     fun colocar(plano: PlanoOrbitas, orden: List<Long>, solY: Float, nacerEn: Float) {
         this.solY = solY
         anillos = plano.radios.size
@@ -378,7 +384,7 @@ internal class Orbitales {
             radiosVistos[k] += (radios[k] - radiosVistos[k]) * suave
             val visible = if (k < anillos) 1f else 0f
             opacidad[k] += (visible - opacidad[k]) * crecer
-            vaivenesVistos[k] += (vaivenes[k] - vaivenesVistos[k]) * suave
+            vaivenesVistos[k] += ((if (calma) 0f else vaivenes[k]) - vaivenesVistos[k]) * suave
             val sentido = if (k % 2 == 0) 1f else -1f
             vaivenAhora[k] = vaivenesVistos[k] * sentido * sin(t * VAIVEN_VELOCIDAD / (1f + k * 0.3f) + k * 1.3f)
         }
@@ -408,13 +414,15 @@ internal class Orbitales {
  * Personas en anillos alrededor del sol de la esquina, un circulo de
  * [solRadio] con centro [solArriba] por encima del lienzo, en su borde
  * izquierdo. Abajo se dejan libres [huecoInferior], para el +. [contactos]
- * llega ya ordenado por urgencia: los primeros, junto al sol.
+ * llega ya ordenado por urgencia: los primeros, junto al sol. Con TalkBack
+ * se recorren en ese orden, con [onHablado] como accion ademas de abrir.
  */
 @Composable
 fun VistaOrbitas(
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
     onAbrir: (Contacto) -> Unit,
+    onHablado: (Contacto) -> Unit,
     huecoInferior: Dp,
     solArriba: Dp,
     solRadio: Dp,
@@ -422,6 +430,7 @@ fun VistaOrbitas(
 ) {
     val densidad = LocalDensity.current
     val orbitales = remember { Orbitales() }
+    orbitales.calma = LocalMovimientoReducido.current
     BoxWithConstraints(modifier.fillMaxSize()) {
         val ancho = constraints.maxWidth.toFloat()
         val alto = constraints.maxHeight.toFloat()
@@ -462,9 +471,9 @@ fun VistaOrbitas(
             }
         }
 
-        contactos.forEach { contacto ->
-            val satelite = orbitales.satelites[contacto.id] ?: return@forEach
-            val puesto = plano.puestos[contacto.id] ?: return@forEach
+        contactos.forEachIndexed { orden, contacto ->
+            val satelite = orbitales.satelites[contacto.id] ?: return@forEachIndexed
+            val puesto = plano.puestos[contacto.id] ?: return@forEachIndexed
             key(contacto.id) {
                 BurbujaOrbita(
                     contacto = contacto,
@@ -473,7 +482,9 @@ fun VistaOrbitas(
                     radio = with(densidad) { puesto.radio.toDp() },
                     satelite = satelite,
                     fotograma = fotograma,
+                    orden = orden,
                     onToque = { onAbrir(contacto) },
+                    onHablado = { onHablado(contacto) },
                 )
             }
         }
@@ -489,13 +500,26 @@ private fun BurbujaOrbita(
     radio: Dp,
     satelite: Satelite,
     fotograma: MutableLongState,
+    orden: Int,
     onToque: () -> Unit,
+    onHablado: () -> Unit,
 ) {
     val alToque by rememberUpdatedState(onToque)
+    val hablado by rememberUpdatedState(onHablado)
+    val abrir = stringResource(R.string.abrir)
+    val heLlamado = stringResource(R.string.he_llamado_hoy)
+    val acciones = remember(heLlamado) {
+        listOf(
+            CustomAccessibilityAction(heLlamado) {
+                hablado()
+                true
+            },
+        )
+    }
     val toca = urgencia >= 1f
     val esquema = MaterialTheme.colorScheme
     val anillo = when {
-        toca -> esquema.tertiary
+        toca -> esquema.acentoLegible
         urgencia >= CERCA -> esquema.primary
         else -> esquema.outlineVariant
     }
@@ -533,6 +557,17 @@ private fun BurbujaOrbita(
                 )
             }
             .size(anchoCaja, altoCaja)
+            // Un solo nodo para TalkBack, con el nombre, en orden de urgencia.
+            .clearAndSetSemantics {
+                contentDescription = descripcion
+                role = Role.Button
+                traversalIndex = orden.toFloat()
+                onClick(label = abrir) {
+                    alToque()
+                    true
+                }
+                customActions = acciones
+            }
             .graphicsLayer {
                 fotograma.longValue
                 val s = satelite.escala * escala * (satelite.tam / satelite.radioBurbuja.coerceAtLeast(1f))
@@ -568,14 +603,6 @@ private fun BurbujaOrbita(
                 .shadow(3.dp, CircleShape)
                 .border(if (toca) 3.dp else 2.dp, anillo, CircleShape)
                 .clip(CircleShape)
-                .semantics {
-                    contentDescription = descripcion
-                    role = Role.Button
-                    onClick {
-                        alToque()
-                        true
-                    }
-                }
                 .pointerInput(satelite) {
                     detectTapGestures(
                         onPress = {

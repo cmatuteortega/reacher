@@ -95,6 +95,8 @@
     <string name="nuevo_contacto">Nuevo contacto</string>
     <string name="ultimo_contacto_hoy">Último contacto: hoy</string>
     <string name="manten_para_anotar">Mantén para anotar: he llamado hoy</string>
+    <!-- Lo que dice TalkBack al tocar dos veces una burbuja: "toca dos veces para abrir". -->
+    <string name="abrir">abrir</string>
     <string name="he_llamado_hoy">He llamado hoy</string>
     <string name="anotar_llamada_hoy">Anotar llamada de hoy</string>
     <string name="cada_cuanto">Cada cuánto</string>

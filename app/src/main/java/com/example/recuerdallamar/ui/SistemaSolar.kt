@@ -152,6 +152,9 @@ internal class Orbitas {
     var ahoraMs = 0L
         private set
 
+    /** Movimiento reducido: los anillos no giran; los planetas solo van a su puesto. */
+    var calma = false
+
     fun colocar(ids: List<Long>, radiosAnillo: List<Float>, reparto: List<Int>, nacerEn: Float) {
         anillos = radiosAnillo.size
         for (k in 0 until ANILLOS_MAX) {
@@ -192,13 +195,13 @@ internal class Orbitas {
         val suave = 1f - exp(-2.2f * dt)
         val crecer = 1f - exp(-4f * dt)
         for (k in 0 until ANILLOS_MAX) {
-            giro[k] = (giro[k] + velocidad(k) * dt) % (2f * PI.toFloat())
+            if (!calma) giro[k] = (giro[k] + velocidad(k) * dt) % (2f * PI.toFloat())
             radiosVistos[k] += (radios[k] - radiosVistos[k]) * suave
             val visible = if (k < anillos) 1f else 0f
             opacidad[k] += (visible - opacidad[k]) * crecer
         }
         for (p in planetas.values) {
-            p.angulo += velocidad(p.anillo) * dt
+            if (!calma) p.angulo += velocidad(p.anillo) * dt
             var diferencia = (objetivo(p.anillo, p.puesto, p.deCuantos) - p.angulo) % (2f * PI.toFloat())
             if (diferencia > PI) diferencia -= 2f * PI.toFloat()
             if (diferencia < -PI) diferencia += 2f * PI.toFloat()
@@ -233,6 +236,7 @@ fun SistemaSolar(
 ) {
     val densidad = LocalDensity.current
     val orbitas = remember { Orbitas() }
+    orbitas.calma = LocalMovimientoReducido.current
     val fotograma = remember { mutableLongStateOf(0L) }
     LaunchedEffect(orbitas) {
         var antes = 0L
@@ -406,7 +410,7 @@ private fun Sol(radio: Dp, orbitas: Orbitas, cuantos: Int) {
                 )
             },
     ) {
-        val t = cara.ahora / 1000f
+        val t = cara.reloj
         val r = radio.toPx()
         dibujarSol(center, r, respirar(HONDURA, t), PUNTAS.toFloat(), t, esquema.tertiary)
 

@@ -95,6 +95,8 @@
     <string name="nuevo_contacto">Nouveau contact</string>
     <string name="ultimo_contacto_hoy">Dernier contact : aujourd\'hui</string>
     <string name="manten_para_anotar">Maintiens pour noter : appelé aujourd\'hui</string>
+    <!-- Lo que dice TalkBack al tocar dos veces una burbuja: "toca dos veces para abrir". -->
+    <string name="abrir">ouvrir</string>
     <string name="he_llamado_hoy">J\'ai appelé aujourd\'hui</string>
     <string name="anotar_llamada_hoy">Noter l\'appel du jour</string>
     <string name="cada_cuanto">À quelle fréquence</string>

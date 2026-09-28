@@ -169,7 +169,7 @@ fun SolEsquina(
     BoxWithConstraints(modifier.fillMaxSize().onGloballyPositioned { origen = it.positionInWindow() }) {
         val radioSol = radioSolEsquina(maxWidth) + estado
         Canvas(Modifier.fillMaxSize()) {
-            val t = cara.ahora / 1000f
+            val t = cara.reloj
             val e = llegada.value
             val radioFin = radioSol.toPx() - ENCOGERSE.toPx() * encogido
             // En la misma esquina de la ventana, salga donde salga este lienzo.
@@ -268,7 +268,7 @@ fun SolEsquina(
             Icon(
                 Icons.Filled.Add,
                 contentDescription = null,
-                tint = esquema.tertiary,
+                tint = esquema.acentoLegible,
                 modifier = Modifier.size(TAMANO_MAS),
             )
         }

@@ -163,6 +163,9 @@ internal class Simulacion {
 
     /** Circulos fijos que las burbujas no pueden pisar (el sol de la esquina). */
     var obstaculos: List<Sitio> = emptyList()
+
+    /** Movimiento reducido: el reposo es quieto y las nuevas nacen ya en su sitio. */
+    var calma = false
     var tiempo = 0f
         private set
 
@@ -186,7 +189,7 @@ internal class Simulacion {
                 if (origen != null) {
                     Cuerpo(sitio.clave, origen.x, origen.y, sitio.radio)
                 } else {
-                    Cuerpo(sitio.clave, sitio.x, sitio.y + NACER_DESDE * densidad, sitio.radio)
+                    Cuerpo(sitio.clave, sitio.x, sitio.y + if (calma) 0f else NACER_DESDE * densidad, sitio.radio)
                 }
             }
             cuerpo.casaX = sitio.x
@@ -243,7 +246,7 @@ internal class Simulacion {
     fun paso(dt: Float) {
         tiempo += dt
         golpe = 0f
-        val deriva = DERIVA * densidad
+        val deriva = if (calma) 0f else DERIVA * densidad
         val crecer = 1f - exp(-8f * dt)
         for (c in orden) {
             c.radio += (c.radioObjetivo - c.radio) * crecer

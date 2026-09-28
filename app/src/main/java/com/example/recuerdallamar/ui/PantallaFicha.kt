@@ -372,7 +372,7 @@ private fun Cabecera(
         spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
         label = "anilloFicha",
     )
-    val colorAnillo by animateColorAsState(if (urgencia >= 1f) colores.tertiary else colores.primary, label = "colorAnillo")
+    val colorAnillo by animateColorAsState(if (urgencia >= 1f) colores.acentoLegible else colores.primary, label = "colorAnillo")
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -412,7 +412,7 @@ private fun Cabecera(
                     )
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (faltan == 0L) colores.tertiary else colores.onSurfaceVariant,
+                color = if (faltan == 0L) colores.acentoLegible else colores.onSurfaceVariant,
             )
         }
         if (guardado) {

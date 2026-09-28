@@ -95,6 +95,8 @@
     <string name="nuevo_contacto">Новый контакт</string>
     <string name="ultimo_contacto_hoy">Последний контакт: сегодня</string>
     <string name="manten_para_anotar">Удерживай, чтобы отметить звонок</string>
+    <!-- Lo que dice TalkBack al tocar dos veces una burbuja: "toca dos veces para abrir". -->
+    <string name="abrir">открыть</string>
     <string name="he_llamado_hoy">Сегодня созвонились</string>
     <string name="anotar_llamada_hoy">Отметить сегодняшний звонок</string>
     <string name="cada_cuanto">Как часто</string>

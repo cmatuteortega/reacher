@@ -58,11 +58,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -146,12 +149,16 @@ private const val VELOCIDAD_LANZAR = 700f
  * lienzo, en su borde izquierdo. Si [relevo]
  * trae los planetas de la bienvenida, cada uno sale de su orbita, desde
  * donde estaba, y cae a su sitio.
+ *
+ * Con TalkBack cada burbuja es un solo elemento (nombre y plazo), en orden de
+ * urgencia aunque floten, con la accion [onHablado] ademas de abrir.
  */
 @Composable
 fun VistaBurbujas(
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
     onAbrir: (Contacto) -> Unit,
+    onHablado: (Contacto) -> Unit,
     huecoInferior: Dp,
     solArriba: Dp,
     solRadio: Dp,
@@ -162,6 +169,7 @@ fun VistaBurbujas(
     var grupoAbierto by rememberSaveable { mutableStateOf(false) }
     val scroll = rememberScrollState()
     val sim = remember { Simulacion() }
+    sim.calma = LocalMovimientoReducido.current
     val llegadas = remember { relevo?.tomarPlanetas()?.toMutableMap() }
     val llegan = remember { llegadas?.keys?.toSet().orEmpty() }
 
@@ -269,6 +277,7 @@ fun VistaBurbujas(
                                 orden = orden,
                                 llegando = contacto.id in llegan,
                                 onToque = { onAbrir(contacto) },
+                                onHablado = { onHablado(contacto) },
                             )
                         }
                     }
@@ -326,11 +335,12 @@ private fun BurbujaPersona(
     orden: Int,
     llegando: Boolean,
     onToque: () -> Unit,
+    onHablado: () -> Unit,
 ) {
     val toca = urgencia >= 1f
     val esquema = MaterialTheme.colorScheme
     val anillo = when {
-        toca -> esquema.tertiary
+        toca -> esquema.acentoLegible
         urgencia >= CERCA -> esquema.primary
         else -> esquema.outlineVariant
     }
@@ -350,6 +360,16 @@ private fun BurbujaPersona(
         fontSize = with(LocalDensity.current) { (radio * 0.8f).toSp() },
     )
     val animo = animoPara(urgencia, atenuada)
+    val hablado by rememberUpdatedState(onHablado)
+    val heLlamado = stringResource(R.string.he_llamado_hoy)
+    val acciones = remember(heLlamado) {
+        listOf(
+            CustomAccessibilityAction(heLlamado) {
+                hablado()
+                true
+            },
+        )
+    }
     Burbuja(
         cuerpo = cuerpo,
         sim = sim,
@@ -363,6 +383,7 @@ private fun BurbujaPersona(
         anillo = anillo,
         latido = toca,
         onToque = onToque,
+        acciones = acciones,
     ) { pulsada, agarrada ->
         CaraBurbuja(animo, pulsada, agarrada, cuerpo.clave.toInt(), fotograma) { Offset(cuerpo.vx, cuerpo.vy) }
         // La foto va en una chapita abajo a la derecha: la cara es la burbuja.
@@ -496,6 +517,7 @@ private fun Burbuja(
     anillo: Color,
     latido: Boolean,
     onToque: () -> Unit,
+    acciones: List<CustomAccessibilityAction> = emptyList(),
     contenido: @Composable BoxScope.(pulsada: Boolean, agarrada: Boolean) -> Unit,
 ) {
     val alToque by rememberUpdatedState(onToque)
@@ -525,6 +547,7 @@ private fun Burbuja(
     val sombra by animateDpAsState(if (agarrada) 14.dp else 3.dp, label = "sombra")
     // Escala total con que se ve: hace falta para que la burbuja siga al dedo exacta.
     fun escalaVista() = aparicion.value * escala * (cuerpo.radio / cuerpo.radioObjetivo)
+    val abrir = stringResource(R.string.abrir)
 
     Box(
         Modifier
@@ -537,6 +560,18 @@ private fun Burbuja(
             }
             .zIndex(if (agarrada) 1f else 0f)
             .size(anchoCaja, altoCaja)
+            // Un solo nodo para TalkBack, burbuja y nombre juntos, en orden de
+            // urgencia: por posicion saltaria de una a otra segun floten.
+            .clearAndSetSemantics {
+                contentDescription = descripcion
+                role = Role.Button
+                traversalIndex = orden.toFloat()
+                onClick(label = abrir) {
+                    alToque()
+                    true
+                }
+                if (acciones.isNotEmpty()) customActions = acciones
+            }
             .graphicsLayer {
                 fotograma.longValue
                 val s = escalaVista()
@@ -584,14 +619,6 @@ private fun Burbuja(
                 .shadow(sombra, CircleShape)
                 .border(if (latido) 3.dp else 2.dp, anillo, CircleShape)
                 .clip(CircleShape)
-                .semantics {
-                    contentDescription = descripcion
-                    role = Role.Button
-                    onClick {
-                        alToque()
-                        true
-                    }
-                }
                 .pointerInput(cuerpo) {
                     detectTapGestures(
                         onPress = {

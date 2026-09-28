@@ -29,6 +29,7 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.color.ColorProvider
 import androidx.glance.material3.ColorProviders
 import androidx.glance.semantics.contentDescription
 import androidx.glance.semantics.semantics
@@ -41,6 +42,7 @@ import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
 import com.example.recuerdallamar.datos.porUrgencia
+import com.example.recuerdallamar.ui.acentoLegible
 import com.example.recuerdallamar.ui.claro
 import com.example.recuerdallamar.ui.oscuro
 import java.time.LocalDate
@@ -48,6 +50,15 @@ import java.time.temporal.ChronoUnit
 
 /** Los colores de la app, en claro y oscuro segun el sistema. */
 private val colores = ColorProviders(light = claro, dark = oscuro)
+
+/**
+ * El fondo de las tarjetas de la app. El de Glance por defecto
+ * (secondaryContainer) deja el texto claro del modo oscuro por debajo de 4.5:1.
+ */
+private val fondo = ColorProvider(day = claro.surfaceContainer, night = oscuro.surfaceContainer)
+
+/** Quien ya va tarde, en teja legible (ver acentoLegible). */
+private val colorTarde = ColorProvider(day = claro.acentoLegible, night = oscuro.acentoLegible)
 
 /**
  * Widget "Hoy toca": a quien le toca hoy (o ya se paso), por urgencia, y quien
@@ -87,7 +98,7 @@ private fun Contenido(textos: Context, gente: List<Contacto>, hoy: LocalDate) {
     Column(
         GlanceModifier
             .fillMaxSize()
-            .background(GlanceTheme.colors.widgetBackground)
+            .background(fondo)
             .cornerRadius(24.dp)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
@@ -153,7 +164,7 @@ private fun Fila(textos: Context, contacto: Contacto, hoy: LocalDate) {
             detalle,
             maxLines = 1,
             style = TextStyle(
-                color = if (tarde > 0 && !cumple) GlanceTheme.colors.tertiary else GlanceTheme.colors.onSurfaceVariant,
+                color = if (tarde > 0 && !cumple) colorTarde else GlanceTheme.colors.onSurfaceVariant,
                 fontSize = 13.sp,
             ),
         )

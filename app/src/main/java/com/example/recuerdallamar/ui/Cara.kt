@@ -260,6 +260,19 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
 
     val enPausa: Boolean get() = pausadaEn >= 0
 
+    /**
+     * Movimiento reducido: sin parpadeo ni vaiven, y las animaciones en bucle
+     * se quedan en su primer gesto. Lo que dura una vez (reirse al tocarla)
+     * si se hace: responde al dedo.
+     */
+    var quieta = false
+
+    /**
+     * Segundos para lo que se mueve solo alrededor de la cara (el sol que
+     * respira y gira). Quieta, siempre 0.
+     */
+    val reloj: Float get() = if (quieta) 0f else ahora / 1000f
+
     /** La expresion hacia la que va. */
     val expresion: Expresion get() = hacia
 
@@ -330,6 +343,7 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
             inicioFase += duracion
         }
         val anim = animacion ?: return
+        if (quieta && anim.modo != Modo.UNA_VEZ) return
         var vueltas = 0
         while (!enTransicion && vueltas++ <= anim.pasos.size * 2) {
             val fin = inicioFase + anim.pasos[paso].esperaMs
@@ -372,7 +386,7 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
 
     private fun parpadear(t: Long) {
         val p = animacion?.parpadeo ?: Parpadeo()
-        if (!p.activo) {
+        if (!p.activo || quieta) {
             parpadeoDesde = -1
             return
         }
@@ -396,6 +410,7 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
     internal fun muestra(): Expresion {
         val t = ahora
         val e = postura(t)
+        if (quieta) return e
         val s = t / 1000f
         val f = semilla * 0.37f
         var x = e.cabezaX
@@ -446,6 +461,7 @@ class EstadoCara internal constructor(inicial: Expresion, private val semilla: I
 @Composable
 fun rememberEstadoCara(inicial: Expresion = Expresiones.neutral, semilla: Int = 0): EstadoCara {
     val estado = remember { EstadoCara(inicial, semilla) }
+    estado.quieta = LocalMovimientoReducido.current
     LaunchedEffect(estado) {
         while (true) withInfiniteAnimationFrameNanos { estado.avanzar(it / 1_000_000L) }
     }

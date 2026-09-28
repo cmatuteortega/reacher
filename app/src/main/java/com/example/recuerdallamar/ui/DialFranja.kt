@@ -185,7 +185,7 @@ fun DialFranja(
                 }
             }
 
-            drawCircle(colores.tertiary, 3.dp.toPx(), punto(centro, anillo.radio + anillo.grosor / 2f + 8.dp.toPx(), ahora))
+            drawCircle(colores.acentoLegible, 3.dp.toPx(), punto(centro, anillo.radio + anillo.grosor / 2f + 8.dp.toPx(), ahora))
 
             val asaDesde = { asa(medidor, centro, anillo, desde, escalaDesde, colores.primary, colores.onPrimary, colores.surface, estiloAsa) }
             val asaHasta = { asa(medidor, centro, anillo, hasta, escalaHasta, colores.tertiary, colores.onTertiary, colores.surface, estiloAsa) }

@@ -263,6 +263,12 @@ private fun AppRecuerda(
     val seleccion by vm.seleccion.collectAsStateWithLifecycle()
     val altaPedida by vm.altaPedida.collectAsStateWithLifecycle()
 
+    // Desde la ficha o, con TalkBack, desde la burbuja. El aviso lo lee TalkBack.
+    val anotarHoy = { id: Long ->
+        vm.llamadoHoy(id)
+        Toast.makeText(context, context.getString(R.string.anotado_hoy), Toast.LENGTH_SHORT).show()
+    }
+
     var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
 
     // Quien ya tenia gente guardada de antes de que hubiera bienvenida no la
@@ -426,10 +432,7 @@ private fun AppRecuerda(
             onCirculo = vm::cambiarCirculo,
             onCumpleanos = vm::ponerCumpleanos,
             onContactar = { telefono, medio -> Contactar.abrir(context, telefono, medio) },
-            onLlamadoHoy = { id ->
-                vm.llamadoHoy(id)
-                Toast.makeText(context, context.getString(R.string.anotado_hoy), Toast.LENGTH_SHORT).show()
-            },
+            onLlamadoHoy = { id -> anotarHoy(id) },
             onPausar = { id, dias ->
                 vm.pausar(id, dias)
                 Toast.makeText(context, context.resources.getQuantityString(R.plurals.avisos_en_pausa, dias, dias), Toast.LENGTH_SHORT).show()
@@ -528,6 +531,7 @@ private fun AppRecuerda(
                     },
                     onAnadir = anadirPidiendoPermisos,
                     onAbrir = { if (anchoAmplio) vm.seleccionar(it.id) else navegador.navigate(Ruta.Ficha(it.id)) },
+                    onHablado = { anotarHoy(it.id) },
                     onAjustes = { navegador.navigate(Ruta.Ajustes) },
                     circulos = circulos,
                     filtro = filtro,

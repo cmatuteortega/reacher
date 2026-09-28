@@ -143,7 +143,10 @@ class RecordatorioWorkerTest {
         val hasta = runBlocking { dao.buscar(id) }!!.pospuestoHasta!!
         assertTrue(hasta.isAfter(LocalDateTime.now().plusHours(2).plusMinutes(59)))
         esperarA { avisoDe(id) == null }
-        val aplazado = WorkManager.getInstance(app).getWorkInfosForUniqueWork("aplazado-$id").get().single()
+        // El trabajo se encola justo despues de quitar el aviso, en el mismo hilo del receiver.
+        val trabajos = { WorkManager.getInstance(app).getWorkInfosForUniqueWork("aplazado-$id").get() }
+        esperarA { trabajos().isNotEmpty() }
+        val aplazado = trabajos().single()
         assertEquals(WorkInfo.State.ENQUEUED, aplazado.state)
     }
 

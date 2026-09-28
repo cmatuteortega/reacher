@@ -64,6 +64,7 @@ fun PantallaLista(
     onCambiarVista: (VistaPersonas) -> Unit,
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
+    onHablado: (Contacto) -> Unit,
     onAjustes: () -> Unit,
     circulos: List<String>,
     filtro: String?,
@@ -147,6 +148,7 @@ fun PantallaLista(
                                 contactos = contactos,
                                 fotosPermitidas = fotosPermitidas,
                                 onAbrir = onAbrir,
+                                onHablado = onHablado,
                                 huecoInferior = hueco,
                                 solArriba = arriba,
                                 solRadio = radioSol,
@@ -157,6 +159,7 @@ fun PantallaLista(
                                 contactos = contactos,
                                 fotosPermitidas = fotosPermitidas,
                                 onAbrir = onAbrir,
+                                onHablado = onHablado,
                                 huecoInferior = hueco,
                                 solArriba = arriba,
                                 solRadio = radioSol,
@@ -228,7 +231,7 @@ private fun FilaContacto(
                 Icon(
                     Icons.Filled.Notifications,
                     contentDescription = stringResource(R.string.toca_llamar),
-                    tint = MaterialTheme.colorScheme.tertiary,
+                    tint = MaterialTheme.colorScheme.acentoLegible,
                 )
             }
         },

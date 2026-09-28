@@ -81,17 +81,32 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
       (`dataExtractionRules` / `fullBackupContent`), plus JSON export/import
       for switching phones.
 
-## Phase 4 — Accessibility
+## Phase 4 — Accessibility ✅
 
-- [ ] **TalkBack in the bubble view**: expose each person as an accessible
-      node with name, urgency and actions (open, mark as contacted).
-- [ ] **Reduced motion**: respect the system "Remove animations" setting and
-      calm the ambient animations (faces, halos, sun, physics).
-- [ ] **Font scaling**: verify layouts at 200% text size.
-- [ ] **Contrast**: check the palette (especially teja on crema) against
-      WCAG AA in light and dark themes.
-- [ ] **Touch targets and labels**: audit the 16 `contentDescription = null`
-      icons and make sure every interactive element is at least 48dp.
+Checked by `AccesibilidadTest`, `ContrasteTest` and `MovimientoReducidoTest`.
+
+- [x] **TalkBack in the bubble view**: each person (bubbles and orbits) is one
+      node with name and urgency, read in urgency order even while floating,
+      with "open" and an "I called today" custom action.
+- [x] **Reduced motion**: with the system "Remove animations" setting, faces
+      stop blinking and swaying, the sun stops breathing and turning, the
+      bubbles float still and the orbits stop turning. Dragging and throwing
+      still move; Compose animations follow the system scale on their own.
+- [x] **Font scaling**: every screen checked at 200% (list, bubbles, orbits,
+      contact, settings, welcome); every tap target stays at least 48dp.
+      Bubble names under the circle are cut with "…" by design; TalkBack
+      reads the full name.
+- [x] **Contrast**: every text/background pair passes WCAG AA in both themes.
+      Teja stays for the sun and halos, with a darker `acentoLegible`
+      (#A4562E) for text and icons in light; dark `secondaryContainer`
+      darkened a little; the widget uses the card colour as background.
+      Still below 3:1: the teja "until" handle of the reminder-hours dial
+      against the light background (2.8:1), kept for the brand; it has its
+      hour inside and a TalkBack alternative.
+- [x] **Touch targets and labels**: the 16 `contentDescription = null` icons
+      are all decorative (next to a text label or inside a node that already
+      has one). A test walks list, contact, settings and welcome and fails on
+      any tappable element without a name or under 48dp.
 
 ## Phase 5 — Platform polish and product depth ✅
 

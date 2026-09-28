@@ -22,7 +22,7 @@ class AccionesAviso : BroadcastReceiver() {
         if (id < 0) return
         val app = context.applicationContext as App
         val dao = BaseDatos.de(app).contactos()
-        val resultado = goAsync()
+        val resultado: PendingResult? = goAsync()
         app.ambito.launch {
             try {
                 when (intent.action) {
@@ -41,7 +41,8 @@ class AccionesAviso : BroadcastReceiver() {
                     }
                 }
             } finally {
-                resultado.finish()
+                // Nulo si se llama a onReceive a mano (las pruebas), fuera de un broadcast.
+                resultado?.finish()
             }
         }
     }

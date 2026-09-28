@@ -1,11 +1,14 @@
 package com.example.recuerdallamar.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.example.recuerdallamar.datos.TemaElegido
 
 // Paleta de la app, de oscuro a claro. La misma del icono.
@@ -18,10 +21,14 @@ private val Naranja = Color(0xFFFFAA5E) // naranja: acentos en oscuro
 private val Melocoton = Color(0xFFFFD4A3) // melocoton: burbujas en claro
 private val Crema = Color(0xFFFFECD6) // crema: tarjetas y texto sobre oscuro
 
+/** La teja oscurecida hasta 4.5:1 sobre el fondo y las tarjetas claras: para texto e iconos. */
+internal val TejaLegible = Color(0xFFA4562E)
+
 /*
  * Los tonos intermedios salen de mezclar la paleta entre si. Sobre la teja y
  * el naranja el texto va en Noche y no en crema: la crema no llega al
- * contraste minimo.
+ * contraste minimo. Cada pareja texto/fondo pasa WCAG AA (4.5:1); lo
+ * comprueba ContrasteTest.
  */
 internal val claro = lightColorScheme(
     primary = Marino,
@@ -58,7 +65,8 @@ internal val oscuro = darkColorScheme(
     onPrimaryContainer = Crema,
     secondary = Color(0xFFD9B4C0),
     onSecondary = Noche,
-    secondaryContainer = Malva,
+    // La malva un poco mas oscura: con la de la paleta la crema se queda en 4.1:1.
+    secondaryContainer = Color(0xFF846272),
     onSecondaryContainer = Crema,
     tertiary = Naranja,
     onTertiary = Noche,
@@ -79,6 +87,14 @@ internal val oscuro = darkColorScheme(
     outlineVariant = Color(0xFF4A4A66),
 )
 
+/**
+ * El acento para texto e iconos pequenos. En claro la teja se queda en 2.8:1
+ * sobre el fondo, bien para el sol y los halos pero no para leer; en oscuro
+ * el naranja pasa de sobra.
+ */
+val ColorScheme.acentoLegible: Color
+    get() = if (surface.luminance() > 0.5f) TejaLegible else tertiary
+
 /** Si toca pintar en oscuro: lo elegido en ajustes, o lo del sistema. */
 @Composable
 fun TemaElegido.esOscuro(): Boolean = when (this) {
@@ -92,6 +108,12 @@ fun TemaElegido.esOscuro(): Boolean = when (this) {
  * Android 12+ taparia la paleta con los colores del fondo de pantalla.
  */
 @Composable
-fun TemaApp(modoOscuro: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (modoOscuro) oscuro else claro, content = content)
+fun TemaApp(
+    modoOscuro: Boolean = isSystemInDarkTheme(),
+    movimientoReducido: Boolean = rememberMovimientoReducido(),
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(LocalMovimientoReducido provides movimientoReducido) {
+        MaterialTheme(colorScheme = if (modoOscuro) oscuro else claro, content = content)
+    }
 }
