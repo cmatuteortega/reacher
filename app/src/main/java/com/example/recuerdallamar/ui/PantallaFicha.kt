@@ -163,6 +163,11 @@ fun PantallaFicha(
     onVolver: () -> Unit,
     /** Junto a la lista en pantalla ancha: la flecha de volver pasa a ser una X que la cierra. */
     enPanel: Boolean = false,
+    /**
+     * Alta en la bienvenida: solo lo esencial (cada cuanto, como y circulo).
+     * Cumpleanos y notas quedan para luego, tras el lapiz de la ficha.
+     */
+    sencilla: Boolean = false,
 ) {
     val guardado = borrador.id != 0L
     // Quien llama ya lo lee en vivo: si se pulsa su notificacion con la ficha
@@ -257,7 +262,6 @@ fun PantallaFicha(
                     )
                 }
             },
-            // Prueba lo elegido aunque aun no se haya guardado.
             onContactar = { onContactar(actual.telefono, medio) },
         )
     }
@@ -289,18 +293,20 @@ fun PantallaFicha(
         TarjetaFicha(stringResource(R.string.circulo)) {
             SelectorCirculo(circulo, circulos, onCambio = { circulo = it })
         }
-        TarjetaFicha(stringResource(R.string.cumpleanos_titulo)) {
-            Cumpleanos(cumpleanos, cumpleanosManual, onPoner = ponerCumpleanos)
-        }
-        TarjetaFicha(stringResource(R.string.notas)) {
-            OutlinedTextField(
-                value = notas,
-                onValueChange = { notas = it },
-                placeholder = { Text(stringResource(R.string.notas_pista)) },
-                minLines = 3,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
-            )
+        if (!sencilla) {
+            TarjetaFicha(stringResource(R.string.cumpleanos_titulo)) {
+                Cumpleanos(cumpleanos, cumpleanosManual, onPoner = ponerCumpleanos)
+            }
+            TarjetaFicha(stringResource(R.string.notas)) {
+                OutlinedTextField(
+                    value = notas,
+                    onValueChange = { notas = it },
+                    placeholder = { Text(stringResource(R.string.notas_pista)) },
+                    minLines = 3,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
         if (guardado) {
             PausaYBorrado(
@@ -888,20 +894,19 @@ private fun BarraAcciones(medio: MedioContacto, onAnadir: (() -> Unit)?, onConta
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            // Sin nada que anadir, Contactar es la accion principal y va en el color fuerte.
-            val colores = if (onAnadir == null) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
-            Button(
-                onClick = onContactar,
-                colors = colores,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp),
-            ) {
-                Icon(medio.icono(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(medio.boton))
-            }
-            if (onAnadir != null) {
+            // Al dar de alta solo se anade; contactar queda para cuando ya esta guardado.
+            if (onAnadir == null) {
+                Button(
+                    onClick = onContactar,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                ) {
+                    Icon(medio.icono(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(stringResource(medio.boton))
+                }
+            } else {
                 Button(
                     onClick = onAnadir,
                     modifier = Modifier

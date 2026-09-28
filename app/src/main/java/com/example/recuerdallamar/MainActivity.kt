@@ -636,6 +636,7 @@ private fun AppRecuerda(
                     onEliminar = {},
                     onForzarNotificacion = {},
                     onVolver = volver,
+                    sencilla = !ajustes.bienvenidaHecha,
                 )
             }
         }

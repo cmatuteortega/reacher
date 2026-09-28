@@ -191,7 +191,9 @@ flecha vuelven a Personas.
    burbuja sigue creciendo), *Eliminar contacto* (con confirmación) y un botón
    de **depuración** que fuerza la notificación (solo en depuración). *Atrás*
    vuelve de Editar a la ficha. Al dar de alta a alguien nuevo todo va en una
-   sola pantalla, con *Añadir* junto a *Contactar*.
+   sola pantalla, con solo *Añadir* abajo (sin *Contactar*). Durante la
+   bienvenida esa pantalla se queda en lo esencial: frecuencia, forma de
+   contacto y círculo; cumpleaños y notas se ponen luego desde Editar.
    La ficha entra ya pintada: se abre con la persona que ya estaba en la lista
    (luego se lee en vivo de la base de datos) y con su foto de la caché, así
    que no se monta a mitad del deslizamiento.
