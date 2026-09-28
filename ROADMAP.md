@@ -58,10 +58,11 @@ Tests run on the JVM with Robolectric (no emulator): `./gradlew testDebugUnitTes
       structured logging (`Registro`); errors beyond `ActivityNotFoundException`
       (backup, worker, `SecurityException` when calling) are reported.
 - [x] **Product analytics** (PostHog EU, opt-in, anonymous events).
-- [ ] **Performance**: Baseline Profile and startup/frame benchmarks in
-      `:baselineprofile` (manual *Rendimiento* workflow, which now commits
-      the generated profile to the branch it runs on); **still to check the
-      first run and that the profile is in `app/src/release/generated/`**.
+- [x] **Performance**: Baseline Profile and startup/frame benchmarks in
+      `:baselineprofile` (manual *Rendimiento* workflow, which commits the
+      generated profile to the branch it runs on). The first profile is in
+      `app/src/release/generated/baselineProfiles/`; rerun it when the main
+      screens change.
       Infinite animations use `withInfiniteAnimationFrameNanos` and stop in
       the background (Compose pauses the frame clock on `ON_STOP`). The
       bubble physics stops asking for frames once everything is still

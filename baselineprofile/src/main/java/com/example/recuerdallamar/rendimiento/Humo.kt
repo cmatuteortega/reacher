@@ -16,6 +16,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.regex.Pattern
 
 private const val ESPERA_MS = 10_000L
 
@@ -43,10 +44,12 @@ class Humo {
     @Before
     fun desdeCero() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("humo") == "true")
-        // Como recien instalada: sale la bienvenida. Las notificaciones, ya
-        // concedidas, para que el dialogo del sistema no tape nada.
+        // Como recien instalada: sale la bienvenida. Avisos y agenda, ya
+        // concedidos: al acabar la bienvenida la app los pide y el dialogo del
+        // sistema taparia la pantalla principal.
         device.executeShellCommand("pm clear $PAQUETE")
         device.executeShellCommand("pm grant $PAQUETE android.permission.POST_NOTIFICATIONS")
+        device.executeShellCommand("pm grant $PAQUETE android.permission.READ_CONTACTS")
         device.executeShellCommand("logcat -b crash -c")
         device.pressHome()
     }
@@ -96,9 +99,14 @@ class Humo {
         assertTrue("No se abre", device.wait(Until.hasObject(By.pkg(PAQUETE).depth(0)), ESPERA_MS))
     }
 
-    /** La pregunta de estadisticas y el aviso de bateria salen segun el telefono: fuera si estan. */
+    /**
+     * La pregunta de estadisticas y el aviso de bateria salen segun el
+     * telefono, y un permiso del sistema si falta alguno: fuera si estan.
+     */
     private fun cerrarDialogos() {
         device.waitForIdle()
+        device.wait(Until.findObject(By.res(Pattern.compile("com\\.android\\.permissioncontroller:id/permission_allow.*"))), 1_500L)
+            ?.click()
         listOf("No thanks", "Not now").forEach { texto ->
             device.wait(Until.findObject(By.text(texto)), 1_500L)?.click()
         }
@@ -106,7 +114,7 @@ class Humo {
 
     private fun esperar(selector: BySelector) =
         device.wait(Until.findObject(selector), ESPERA_MS)
-            ?: throw AssertionError("No aparece $selector\n${fallos()}")
+            ?: throw AssertionError("No aparece $selector\n${fallos()}\n${pantalla()}")
 
     /** Baja por la pantalla hasta que aparece [selector]. */
     private fun bajarHasta(selector: BySelector): UiObject2 {
@@ -132,4 +140,7 @@ class Humo {
     }
 
     private fun fallos(): String = device.executeShellCommand("logcat -b crash -d")
+
+    /** Lo que hay en pantalla, para saber que tapaba lo que no aparece. */
+    private fun pantalla(): String = java.io.ByteArrayOutputStream().also { device.dumpWindowHierarchy(it) }.toString()
 }
