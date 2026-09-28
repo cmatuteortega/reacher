@@ -173,18 +173,25 @@ flecha vuelven a Personas.
 
    Si alguien tiene **círculo**, arriba aparece un filtro («Todos»,
    «Familia»...) que vale para las tres vistas.
-2. **Ficha** — foto de la agenda (o la inicial si no tiene), nombre y número del
-   elegido, campo de frecuencia en días, la
-   **forma de contacto** preferida (ver abajo), *Guardar*, un botón que
-   contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o *Telegram*),
-   *He llamado hoy* (pone el último contacto a hoy; solo si ya está guardado),
-   *Pausar avisos* (N días sin avisos de esa persona; el último contacto no
-   cambia, así que la burbuja sigue creciendo), *Eliminar contacto* (con
-   confirmación) y un botón de **depuración** que fuerza la notificación (solo en depuración).
-   Además, el **círculo** de la persona (uno como mucho: se elige entre los
-   que hay o se crea otro), unas **notas** libres (se guardan al dejar de
-   escribir) y, si está en la agenda, su **cumpleaños** con los días que
-   faltan.
+2. **Ficha** — de alguien ya guardado, solo para leer y actuar: foto de la
+   agenda (o la inicial si no tiene), nombre, número, cumpleaños con los días
+   que faltan, cuándo toca, *He llamado hoy* (pone el último contacto a hoy),
+   las fechas, un resumen de lo elegido (frecuencia, forma de contacto,
+   círculo y notas), *Reanudar avisos* si están en pausa y, pegado abajo, el
+   botón que contacta ya por esa vía (*Llamar*, *WhatsApp*, *Mensaje* o
+   *Telegram*). El **lápiz** de arriba a la derecha (o tocar el resumen) abre
+   **Editar**, con todo lo que se ajusta y se guarda solo: la frecuencia en
+   días, la **forma de contacto** preferida (ver abajo), el **círculo** (uno
+   como mucho: se elige entre los que hay o se crea otro), el **cumpleaños**,
+   unas **notas** libres (se guardan al dejar de escribir), *Pausar avisos*
+   (N días sin avisos de esa persona; el último contacto no cambia, así que la
+   burbuja sigue creciendo), *Eliminar contacto* (con confirmación) y un botón
+   de **depuración** que fuerza la notificación (solo en depuración). *Atrás*
+   vuelve de Editar a la ficha. Al dar de alta a alguien nuevo todo va en una
+   sola pantalla, con *Añadir* junto a *Contactar*.
+   La ficha entra ya pintada: se abre con la persona que ya estaba en la lista
+   (luego se lee en vivo de la base de datos) y con su foto de la caché, así
+   que no se monta a mitad del deslizamiento.
 3. Al guardar se vuelve a Personas; el contacto nuevo, sin urgencia, entra al
    final: en la lista aparece fundido y el resto se recoloca con un muelle
    (`Modifier.animateItem`); en burbujas nace pequeña y sube a su sitio.

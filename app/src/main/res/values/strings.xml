@@ -122,6 +122,7 @@
     <string name="cada">every</string>
     <string name="cada_dia">Every day</string>
     <string name="guardado">Saved</string>
+    <string name="editar">Edit</string>
     <string name="anadir">Add</string>
     <string name="avisos_de">Reminders for %1$s</string>
     <string name="en_pausa_burbuja">Paused: back on %1$s. Meanwhile, the bubble keeps growing.</string>

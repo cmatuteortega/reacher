@@ -49,6 +49,13 @@ object FotoContacto {
     }
 
     /**
+     * La foto si ya esta en la cache, sin ir a la agenda: para pintarla en el
+     * primer fotograma de una pantalla que entra en vez de la inicial.
+     */
+    fun enCache(telefono: String, miniatura: Boolean = false): ImageBitmap? =
+        if (telefono.isBlank()) null else cache.get("$miniatura|$telefono")
+
+    /**
      * null si no hay permiso, no se encuentra el numero o no tiene foto.
      * [miniatura] para la lista: la foto pequena de la agenda, sin decodificar
      * la grande para pintarla a 40dp.
@@ -68,10 +75,28 @@ object FotoContacto {
                     .query(busqueda, arrayOf(columna), null, null, null)
                     ?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
                     ?: return@runCatching null
-                context.contentResolver.openInputStream(Uri.parse(foto))
-                    ?.use { BitmapFactory.decodeStream(it) }
+                val uri = Uri.parse(foto)
+                // La foto grande de la agenda puede pasar de 1000 px y se pinta a
+                // 124dp como mucho: se lee a menos resolucion, que pesa menos en
+                // memoria y tarda menos en subir a la GPU al abrir la ficha.
+                val opciones = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opciones) }
+                opciones.inSampleSize = muestreo(opciones.outWidth, opciones.outHeight)
+                opciones.inJustDecodeBounds = false
+                context.contentResolver.openInputStream(uri)
+                    ?.use { BitmapFactory.decodeStream(it, null, opciones) }
                     ?.asImageBitmap()
             }.getOrNull()
         }?.also { cache.put(clave, it) }
+    }
+
+    /** Lado maximo en pixeles: 124dp en la densidad mas alta. */
+    private const val LADO_MAXIMO = 512
+
+    /** Potencia de dos que deja el lado mas corto en LADO_MAXIMO o poco mas. */
+    private fun muestreo(ancho: Int, alto: Int): Int {
+        var n = 1
+        while (minOf(ancho, alto) / (n * 2) >= LADO_MAXIMO) n *= 2
+        return n
     }
 }

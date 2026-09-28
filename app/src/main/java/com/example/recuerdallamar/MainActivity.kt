@@ -426,7 +426,6 @@ private fun AppRecuerda(
     fun Ficha(contacto: Contacto, enPanel: Boolean, onVolver: () -> Unit) {
         PantallaFicha(
             borrador = contacto,
-            observar = vm::observar,
             circulos = circulos,
             fotosPermitidas = fotosPermitidas,
             onPedirFotos = pedirFotos,
@@ -555,7 +554,7 @@ private fun AppRecuerda(
                             .weight(1f)
                             .fillMaxHeight(),
                     ) {
-                        PanelFicha(vm, seleccion) { contacto -> Ficha(contacto, enPanel = true) { vm.seleccionar(null) } }
+                        PanelFicha(vm, seleccion, contactos) { contacto -> Ficha(contacto, enPanel = true) { vm.seleccionar(null) } }
                     }
                 }
             } else {
@@ -586,7 +585,10 @@ private fun AppRecuerda(
                     volver()
                 }
             }
-            var contacto by remember { mutableStateOf<Contacto?>(null) }
+            // Desde Personas ya esta en la lista: la ficha se pinta en el primer
+            // fotograma del deslizamiento, sin esperar a la base de datos y
+            // montarse de golpe a mitad de la animacion.
+            var contacto by remember { mutableStateOf(contactos?.find { it.id == id }) }
             LaunchedEffect(id) {
                 var primera = true
                 vm.observar(id).collect { leido ->
@@ -614,7 +616,6 @@ private fun AppRecuerda(
             borrador?.let { nuevo ->
                 PantallaFicha(
                     borrador = nuevo,
-                    observar = vm::observar,
                     circulos = circulos,
                     fotosPermitidas = fotosPermitidas,
                     onPedirFotos = pedirFotos,
@@ -638,8 +639,14 @@ private fun AppRecuerda(
 
 /** Panel derecho en pantalla ancha: la ficha elegida o una invitacion a elegir. */
 @Composable
-private fun PanelFicha(vm: ContactosViewModel, seleccion: Long?, ficha: @Composable (Contacto) -> Unit) {
-    var contacto by remember(seleccion) { mutableStateOf<Contacto?>(null) }
+private fun PanelFicha(
+    vm: ContactosViewModel,
+    seleccion: Long?,
+    contactos: List<Contacto>?,
+    ficha: @Composable (Contacto) -> Unit,
+) {
+    // Como la ficha en pantalla completa: la de la lista mientras llega la de la base de datos.
+    var contacto by remember(seleccion) { mutableStateOf(contactos?.find { it.id == seleccion }) }
     LaunchedEffect(seleccion) {
         val id = seleccion ?: return@LaunchedEffect
         var primera = true

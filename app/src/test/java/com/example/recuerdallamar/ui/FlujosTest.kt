@@ -104,6 +104,28 @@ class FlujosTest {
     }
 
     @Test
+    fun laFichaSoloSeEditaTrasElLapiz() {
+        val (id) = conGente(Contacto(nombre = "Ana", telefono = "600", frecuenciaDias = 7))
+        abrir()
+        compose.onNodeWithText("Ana").performClick()
+        compose.waitForIdle()
+
+        // A la vista, solo para leer: nada que cambiar la frecuencia.
+        compose.onNodeWithContentDescription(texto(R.string.un_dia_mas)).assertDoesNotExist()
+        compose.onNodeWithContentDescription(texto(R.string.editar)).performClick()
+        compose.waitForIdle()
+
+        compose.onNodeWithContentDescription(texto(R.string.un_dia_mas)).performSemanticsAction(SemanticsActions.OnClick)
+        compose.waitUntil(5_000) { runBlocking { dao.buscar(id) }!!.frecuenciaDias == 8 }
+
+        // Atras cierra la edicion, no la ficha.
+        escenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription(texto(R.string.editar)).assertIsDisplayed()
+        compose.onNodeWithContentDescription(texto(R.string.un_dia_mas)).assertDoesNotExist()
+    }
+
+    @Test
     fun ajustesDePrivacidad() {
         conGente(Contacto(nombre = "Ana", telefono = "600", frecuenciaDias = 7))
         abrir()

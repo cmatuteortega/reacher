@@ -116,6 +116,7 @@
     <string name="cada">cada</string>
     <string name="cada_dia">Cada día</string>
     <string name="guardado">Guardado</string>
+    <string name="editar">Editar</string>
     <string name="anadir">Añadir</string>
     <string name="avisos_de">Avisos de %1$s</string>
     <string name="en_pausa_burbuja">En pausa: vuelven el %1$s. Mientras, la burbuja sigue creciendo.</string>

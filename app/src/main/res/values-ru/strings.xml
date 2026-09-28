@@ -116,6 +116,7 @@
     <string name="cada">раз в</string>
     <string name="cada_dia">Каждый день</string>
     <string name="guardado">Сохранено</string>
+    <string name="editar">Изменить</string>
     <string name="anadir">Добавить</string>
     <string name="avisos_de">Напоминания: %1$s</string>
     <string name="en_pausa_burbuja">На паузе: вернутся %1$s. А пузырь тем временем растёт.</string>

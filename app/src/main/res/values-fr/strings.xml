@@ -116,6 +116,7 @@
     <string name="cada">tous les</string>
     <string name="cada_dia">Tous les jours</string>
     <string name="guardado">Enregistré</string>
+    <string name="editar">Modifier</string>
     <string name="anadir">Ajouter</string>
     <string name="avisos_de">Rappels pour %1$s</string>
     <string name="en_pausa_burbuja">En pause : reprise le %1$s. En attendant, la bulle continue de grandir.</string>

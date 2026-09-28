@@ -116,6 +116,7 @@
     <string name="cada">alle</string>
     <string name="cada_dia">Jeden Tag</string>
     <string name="guardado">Gespeichert</string>
+    <string name="editar">Bearbeiten</string>
     <string name="anadir">Hinzufügen</string>
     <string name="avisos_de">Erinnerungen für %1$s</string>
     <string name="en_pausa_burbuja">Pausiert: wieder ab %1$s. Bis dahin wächst die Blase weiter.</string>

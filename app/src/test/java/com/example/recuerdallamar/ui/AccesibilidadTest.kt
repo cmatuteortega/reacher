@@ -95,8 +95,12 @@ class AccesibilidadTest {
         revisarPulsables("personas")
         compose.onNodeWithText("Ana").performClick()
         revisarPulsables("ficha")
-        escenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-        compose.waitForIdle()
+        compose.onNodeWithContentDescription(texto(R.string.editar)).performClick()
+        revisarPulsables("ficha, editar")
+        repeat(2) {
+            escenario!!.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+            compose.waitForIdle()
+        }
         compose.onNodeWithContentDescription(texto(R.string.ajustes)).performClick()
         revisarPulsables("ajustes")
     }

@@ -1,6 +1,7 @@
 package com.example.recuerdallamar.ui
 
 import android.content.res.Resources
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -13,7 +14,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
@@ -30,6 +33,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +56,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -75,7 +80,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -89,10 +93,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -110,6 +115,7 @@ import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.BuildConfig
 import com.example.recuerdallamar.FotoContacto
@@ -125,8 +131,6 @@ import java.time.temporal.ChronoUnit
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 /** Tope de dias de frecuencia: el mismo de antes con el campo de texto. */
@@ -138,8 +142,8 @@ private val ANCHO_DOS_COLUMNAS = 600.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaFicha(
+    /** Alguien ya guardado llega en vivo de la base de datos; uno nuevo, el borrador del alta. */
     borrador: Contacto,
-    observar: (Long) -> Flow<Contacto?>,
     circulos: List<String>,
     fotosPermitidas: Boolean,
     onPedirFotos: () -> Unit,
@@ -161,11 +165,9 @@ fun PantallaFicha(
     enPanel: Boolean = false,
 ) {
     val guardado = borrador.id != 0L
-
-    // Un contacto ya guardado se lee en vivo: si se pulsa su notificacion con
-    // la ficha abierta, la marca aparece sin salir y volver a entrar.
-    val flujo = remember(borrador.id) { if (guardado) observar(borrador.id) else flowOf(borrador) }
-    val actual = flujo.collectAsState(initial = borrador).value ?: borrador
+    // Quien llama ya lo lee en vivo: si se pulsa su notificacion con la ficha
+    // abierta, la marca aparece sin salir y volver a entrar.
+    val actual = borrador
 
     var frecuencia by rememberSaveable(borrador.id) { mutableIntStateOf(borrador.frecuenciaDias.coerceIn(1, FRECUENCIA_MAXIMA)) }
     var medio by rememberSaveable(borrador.id) { mutableStateOf(borrador.medio) }
@@ -214,142 +216,281 @@ fun PantallaFicha(
     val context = LocalContext.current
 
     // Sin permiso de contactos no hay foto: se ve la inicial y un boton para pedirlo.
-    var foto by remember { mutableStateOf<ImageBitmap?>(null) }
+    // La de la cache si ya se vio en la lista, para no pintar la inicial y luego cambiarla.
+    var foto by remember { mutableStateOf(FotoContacto.enCache(actual.telefono)) }
     LaunchedEffect(actual.telefono, fotosPermitidas) {
         foto = FotoContacto.cargar(context, actual.telefono)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (guardado) "" else stringResource(R.string.nuevo_contacto)) },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
-                        if (enPanel) {
-                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cerrar))
-                        } else {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
-                        }
-                    }
-                },
-                actions = { if (guardado) AvisoGuardado(guardadoHace) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-            )
-        },
-        bottomBar = {
-            BarraAcciones(
-                medio = medio,
-                // Solo al dar de alta: lo que ya existe se guarda solo.
-                onAnadir = if (guardado) {
-                    null
-                } else {
-                    {
-                        onAnadir(
-                            actual.copy(
-                                frecuenciaDias = frecuencia,
-                                medio = medio,
-                                notas = notas.trim(),
-                                circulo = circulo,
-                                cumpleanos = cumpleanos,
-                                cumpleanosManual = cumpleanosManual,
-                            ),
-                        )
-                    }
-                },
-                // Prueba lo elegido aunque aun no se haya guardado.
-                onContactar = { onContactar(actual.telefono, medio) },
-            )
-        },
-    ) { relleno ->
-        BoxWithConstraints(
-            contentAlignment = Alignment.TopCenter,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(relleno),
-        ) {
-            val dosColumnas = maxWidth >= ANCHO_DOS_COLUMNAS
-            val cabecera: @Composable ColumnScope.() -> Unit = {
-                Cabecera(vistaPrevia, guardado, foto, fotosPermitidas, onPedirFotos)
-                if (guardado) {
-                    val yaHoy = actual.ultimoContacto == LocalDate.now()
-                    BotonMantener(
-                        texto = stringResource(if (yaHoy) R.string.ultimo_contacto_hoy else R.string.manten_para_anotar),
-                        habilitado = !yaHoy,
-                        onConfirmar = { onLlamadoHoy(actual.id) },
-                    )
-                    Fechas(vistaPrevia)
-                }
-            }
-            val ajustes: @Composable ColumnScope.() -> Unit = {
-                TarjetaFicha(stringResource(R.string.cada_cuanto)) {
-                    SelectorFrecuencia(frecuencia, onCambio = { frecuencia = it })
-                }
-                TarjetaFicha(stringResource(R.string.al_tocar_aviso)) {
-                    SelectorMedio(medio = medio, onCambio = { medio = it })
-                    Text(
-                        stringResource(medio.etiqueta),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                    )
-                }
-                TarjetaFicha(stringResource(R.string.circulo)) {
-                    SelectorCirculo(circulo, circulos, onCambio = { circulo = it })
-                }
-                TarjetaFicha(stringResource(R.string.cumpleanos_titulo)) {
-                    Cumpleanos(cumpleanos, cumpleanosManual, onPoner = ponerCumpleanos)
-                }
-                TarjetaFicha(stringResource(R.string.notas)) {
-                    OutlinedTextField(
-                        value = notas,
-                        onValueChange = { notas = it },
-                        placeholder = { Text(stringResource(R.string.notas_pista)) },
-                        minLines = 3,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                if (guardado) {
-                    PausaYBorrado(
-                        contacto = actual,
-                        onPausar = { dias -> onPausar(actual.id, dias) },
-                        onReanudar = { onReanudar(actual.id) },
-                        onEliminar = { onEliminar(actual.id) },
-                    )
-                } else {
-                    Text(
-                        stringResource(R.string.se_guardara_hoy),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 4.dp),
-                    )
-                }
-                // Solo en depuracion: en la version publicada no se fuerzan avisos.
-                if (BuildConfig.DEBUG) Depuracion(guardado) { onForzarNotificacion(actual.id) }
-            }
+    // Alguien que ya existe se ve solo con lo que hace falta para contactarle;
+    // lo que se ajusta de el va aparte, tras el lapiz de arriba. Asi la ficha
+    // que entra al tocar una burbuja es ligera y se monta sin tirones.
+    var editando by rememberSaveable(borrador.id) { mutableStateOf(false) }
+    BackHandler(enabled = guardado && editando) { editando = false }
 
-            Column(
-                Modifier
-                    .widthIn(max = 960.dp)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                if (dosColumnas) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp), content = cabecera)
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp), content = ajustes)
-                    }
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        cabecera()
-                        ajustes()
-                    }
+    val navegacion: @Composable () -> Unit = {
+        IconButton(onClick = onVolver) {
+            if (enPanel) {
+                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cerrar))
+            } else {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
+            }
+        }
+    }
+    val barraAcciones: @Composable () -> Unit = {
+        BarraAcciones(
+            medio = medio,
+            // Solo al dar de alta: lo que ya existe se guarda solo.
+            onAnadir = if (guardado) {
+                null
+            } else {
+                {
+                    onAnadir(
+                        actual.copy(
+                            frecuenciaDias = frecuencia,
+                            medio = medio,
+                            notas = notas.trim(),
+                            circulo = circulo,
+                            cumpleanos = cumpleanos,
+                            cumpleanosManual = cumpleanosManual,
+                        ),
+                    )
                 }
-                Spacer(Modifier.height(16.dp))
+            },
+            // Prueba lo elegido aunque aun no se haya guardado.
+            onContactar = { onContactar(actual.telefono, medio) },
+        )
+    }
+    val cabecera: @Composable ColumnScope.() -> Unit = {
+        Cabecera(vistaPrevia, guardado, foto, fotosPermitidas, onPedirFotos)
+        if (guardado) {
+            val yaHoy = actual.ultimoContacto == LocalDate.now()
+            BotonMantener(
+                texto = stringResource(if (yaHoy) R.string.ultimo_contacto_hoy else R.string.manten_para_anotar),
+                habilitado = !yaHoy,
+                onConfirmar = { onLlamadoHoy(actual.id) },
+            )
+            Fechas(vistaPrevia)
+        }
+    }
+    val ajustes: @Composable ColumnScope.() -> Unit = {
+        TarjetaFicha(stringResource(R.string.cada_cuanto)) {
+            SelectorFrecuencia(frecuencia, onCambio = { frecuencia = it })
+        }
+        TarjetaFicha(stringResource(R.string.al_tocar_aviso)) {
+            SelectorMedio(medio = medio, onCambio = { medio = it })
+            Text(
+                stringResource(medio.etiqueta),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
+        TarjetaFicha(stringResource(R.string.circulo)) {
+            SelectorCirculo(circulo, circulos, onCambio = { circulo = it })
+        }
+        TarjetaFicha(stringResource(R.string.cumpleanos_titulo)) {
+            Cumpleanos(cumpleanos, cumpleanosManual, onPoner = ponerCumpleanos)
+        }
+        TarjetaFicha(stringResource(R.string.notas)) {
+            OutlinedTextField(
+                value = notas,
+                onValueChange = { notas = it },
+                placeholder = { Text(stringResource(R.string.notas_pista)) },
+                minLines = 3,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        if (guardado) {
+            PausaYBorrado(
+                contacto = actual,
+                onPausar = { dias -> onPausar(actual.id, dias) },
+                onReanudar = { onReanudar(actual.id) },
+                onEliminar = { onEliminar(actual.id) },
+            )
+        } else {
+            Text(
+                stringResource(R.string.se_guardara_hoy),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
+        // Solo en depuracion: en la version publicada no se fuerzan avisos.
+        if (BuildConfig.DEBUG) Depuracion(guardado) { onForzarNotificacion(actual.id) }
+    }
+
+    if (!guardado) {
+        // Alta: todo a la vista, que hay que elegirlo antes de anadir.
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.nuevo_contacto)) },
+                    navigationIcon = navegacion,
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                )
+            },
+            bottomBar = barraAcciones,
+        ) { relleno -> Columnas(relleno, cabecera, ajustes) }
+        return
+    }
+
+    // Entra por la derecha y vuelve por donde vino, como las pantallas de la app.
+    AnimatedContent(
+        targetState = editando,
+        transitionSpec = {
+            if (targetState) {
+                slideInHorizontally { it } togetherWith slideOutHorizontally { -it / 3 } + fadeOut()
+            } else {
+                slideInHorizontally { -it / 3 } + fadeIn() togetherWith slideOutHorizontally { it }
+            }
+        },
+        label = "editarFicha",
+    ) { enEdicion ->
+        if (enEdicion) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.editar)) },
+                        navigationIcon = {
+                            IconButton(onClick = { editando = false }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.volver))
+                            }
+                        },
+                        actions = { AvisoGuardado(guardadoHace) },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                    )
+                },
+            ) { relleno -> Columnas(relleno, ajustes, ancho = ANCHO_EDICION) }
+        } else {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {},
+                        navigationIcon = navegacion,
+                        actions = {
+                            IconButton(onClick = { editando = true }) {
+                                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.editar))
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                    )
+                },
+                bottomBar = barraAcciones,
+            ) { relleno ->
+                Columnas(relleno, cabecera, {
+                    Resumen(actual, onEditar = { editando = true })
+                    actual.pausadoHasta?.takeIf { actual.pausado() }?.let { hasta ->
+                        EnPausa(hasta.toLocalDate(), onReanudar = { onReanudar(actual.id) })
+                    }
+                })
             }
         }
     }
 }
+
+/** Ancho maximo de la pagina de editar: una columna de tarjetas. */
+private val ANCHO_EDICION = 600.dp
+
+/**
+ * Cuerpo desplazable de la ficha: [izquierda] y [derecha] lado a lado desde
+ * 600 dp de ancho, una debajo de otra si no caben.
+ */
+@Composable
+private fun Columnas(
+    relleno: PaddingValues,
+    izquierda: @Composable ColumnScope.() -> Unit,
+    derecha: (@Composable ColumnScope.() -> Unit)? = null,
+    ancho: Dp = 960.dp,
+) {
+    BoxWithConstraints(
+        contentAlignment = Alignment.TopCenter,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(relleno),
+    ) {
+        val dosColumnas = derecha != null && maxWidth >= ANCHO_DOS_COLUMNAS
+        Column(
+            Modifier
+                .widthIn(max = ancho)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            if (dosColumnas) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp), content = izquierda)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp), content = derecha!!)
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    izquierda()
+                    derecha?.invoke(this)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+/**
+ * Lo que se ha elegido para esta persona, solo para leer. Tocarlo lleva a
+ * editarlo, como el lapiz de arriba.
+ */
+@Composable
+private fun Resumen(contacto: Contacto, onEditar: () -> Unit) {
+    val recursos = LocalContext.current.resources
+    Surface(
+        onClick = onEditar,
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(20.dp)) {
+            FilaResumen(stringResource(R.string.cada_cuanto), recursos.cadaDias(contacto.frecuenciaDias))
+            FilaResumen(stringResource(R.string.al_tocar_aviso), stringResource(contacto.medio.etiqueta), contacto.medio.icono())
+            FilaResumen(stringResource(R.string.circulo), contacto.circulo ?: stringResource(R.string.circulo_ninguno))
+            if (contacto.notas.isNotBlank()) FilaResumen(stringResource(R.string.notas), contacto.notas)
+        }
+    }
+}
+
+@Composable
+private fun FilaResumen(etiqueta: String, valor: String, icono: Painter? = null) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (icono != null) {
+                Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            }
+            Text(valor, style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+/** Con los avisos en pausa, reanudarlos queda a mano sin entrar a editar. */
+@Composable
+private fun EnPausa(hasta: LocalDate, onReanudar: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.en_pausa_burbuja, hasta.bonita()),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            OutlinedButton(onClick = onReanudar, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.reanudar_avisos))
+            }
+        }
+    }
+}
+
 
 /**
  * Foto grande dentro de un anillo que se va llenando segun pasa el tiempo
@@ -711,8 +852,10 @@ private fun BotonRepetir(simbolo: String, descripcion: String, habilitado: Boole
 @Composable
 private fun AvisoGuardado(cambios: Int) {
     var visible by remember { mutableStateOf(false) }
+    // Al volver a entrar a editar no se repite el ultimo "Guardado".
+    val alEntrar = remember { cambios }
     LaunchedEffect(cambios) {
-        if (cambios == 0) return@LaunchedEffect
+        if (cambios == alEntrar) return@LaunchedEffect
         visible = true
         delay(1500)
         visible = false
