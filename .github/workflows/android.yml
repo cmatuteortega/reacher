@@ -13,7 +13,7 @@ jobs:
       # de git (v1.2.0 -> 1.2.0) mas lo que haya encima, o el commit si no hay.
       VERSION_CODE: ${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Toda la historia y las etiquetas, para git describe.
           fetch-depth: 0
@@ -21,12 +21,12 @@ jobs:
       - name: Version
         run: echo "VERSION_NAME=$(git describe --tags --always | sed 's/^v//')" >> "$GITHUB_ENV"
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       # Lo primero: si una prueba o lint falla, no se compila ni se sube nada.
       # Las pruebas corren en la JVM con Robolectric (base de datos,
@@ -65,7 +65,7 @@ jobs:
 
       - name: Informes de pruebas y lint
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: informes
           path: |
@@ -77,7 +77,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace -Pcontacto.versionCode=$VERSION_CODE -Pcontacto.versionName=$VERSION_NAME
 
       - name: Subir APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
@@ -142,7 +142,7 @@ jobs:
       # El mapping.txt de R8 va con el AAB: Play Console lo pide para leer las trazas.
       - name: Subir AAB
         if: steps.firma.outputs.hay == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-release-${{ env.VERSION_NAME }}
           path: |
