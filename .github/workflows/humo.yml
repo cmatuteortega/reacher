@@ -8,7 +8,7 @@ name: Humo
 # version cuyo Humo este en rojo.
 on:
   push:
-    branches: [main]
+    branches: [main, claude/roadmap-gaps-m5jbte]
     tags: ['v*']
   workflow_dispatch:
 
