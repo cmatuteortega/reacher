@@ -56,6 +56,8 @@ jobs:
             echo "El perfil no ha cambiado."
           else
             git commit -m "Perfil de referencia generado en CI"
+            # La rama puede haber avanzado mientras se generaba.
+            git pull --rebase origin "$GITHUB_REF_NAME"
             git push origin "HEAD:$GITHUB_REF_NAME"
           fi
 
