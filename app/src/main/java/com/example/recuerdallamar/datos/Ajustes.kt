@@ -33,10 +33,13 @@ enum class IdiomaElegido(val codigo: String?, val nombre: String?) {
     RU("ru", "Русский"),
 }
 
-/** Como se ensena la gente en Personas; los mismos datos y el mismo orden en todas. */
+/**
+ * Como se ensena la gente en Personas; los mismos datos y el mismo orden en
+ * todas. El boton de la barra las recorre en este orden. Se guarda por nombre.
+ */
 enum class VistaPersonas {
-    BURBUJAS,
     ORBITAS,
+    BURBUJAS,
     LISTA,
 }
 
@@ -56,7 +59,7 @@ data class Ajustes(
     val horasPosponer: Int = 2,
     val medioPorDefecto: MedioContacto = MedioContacto.MARCADOR,
     val tema: TemaElegido = TemaElegido.SISTEMA,
-    val vista: VistaPersonas = VistaPersonas.BURBUJAS,
+    val vista: VistaPersonas = VistaPersonas.ORBITAS,
     val idioma: IdiomaElegido = IdiomaElegido.SISTEMA,
     /** La bienvenida ya se vio (o se salto): no se vuelve a ensenar. */
     val bienvenidaHecha: Boolean = false,

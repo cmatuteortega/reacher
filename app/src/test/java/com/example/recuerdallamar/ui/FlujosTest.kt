@@ -71,11 +71,15 @@ class FlujosTest {
         compose.waitForIdle()
         compose.onNodeWithText(texto(R.string.ahora_no)).performClick()
         compose.waitForIdle()
+
+        // Sin tercer paso: ya en Personas, con el recado de que ya esta.
+        assertTrue(AlmacenAjustes.de(app).ajustes.value.bienvenidaHecha)
+        assertEquals(VistaPersonas.ORBITAS, AlmacenAjustes.de(app).ajustes.value.vista)
+        compose.onNodeWithContentDescription(texto(R.string.ajustes)).assertIsDisplayed()
+        compose.onNodeWithText(texto(R.string.listo_sin_gente)).assertIsDisplayed()
         compose.onNodeWithText(texto(R.string.entendido)).performClick()
         compose.waitForIdle()
-
-        assertTrue(AlmacenAjustes.de(app).ajustes.value.bienvenidaHecha)
-        compose.onNodeWithContentDescription(texto(R.string.ajustes)).assertIsDisplayed()
+        compose.onNodeWithText(texto(R.string.listo_sin_gente)).assertDoesNotExist()
     }
 
     @Test

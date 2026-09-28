@@ -89,7 +89,7 @@ internal const val HONDURA = 0.2f
 private const val GIRO_PUNTAS = 0.35f
 private const val GIRO_HALO = -0.22f
 
-/** El sol, en parte del lado menor del lienzo: solo o con gente alrededor. */
+/** El sol, en parte del lado menor del lienzo: en primer plano o con su orbita. */
 private const val SOL_SOLO = 0.2f
 private const val SOL_CON_GENTE = 0.12f
 
@@ -223,7 +223,8 @@ internal class Orbitas {
 /**
  * Tu sistema: el sol en el centro y [contactos] girando alrededor. Un toque
  * en un planeta llama a [onAbrir]; en el sol, se rie. [solGrande] lo pone en
- * primer plano, para cuando aun no hay nadie a quien mirar.
+ * primer plano, solo; si no, aun sin nadie ya se ve su orbita, vacia, donde
+ * entrara el primero.
  */
 @Composable
 fun SistemaSolar(
@@ -262,7 +263,7 @@ fun SistemaSolar(
         val planetaDp = radioPlaneta(cuantos)
         val conNombre = cuantos <= 10
 
-        val fraccionSol = if (solGrande || cuantos == 0) SOL_SOLO else SOL_CON_GENTE
+        val fraccionSol = if (solGrande) SOL_SOLO else SOL_CON_GENTE
         val fraccionVista by animateFloatAsState(
             fraccionSol,
             spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessVeryLow),
@@ -272,14 +273,15 @@ fun SistemaSolar(
 
         val ids = contactos.map { it.id }
         // Como en la vista de burbujas: al cambiar la gente o el tamano se recolocan.
-        remember(ids, lado, fraccionSol, densidad) {
+        remember(ids, lado, fraccionSol, solGrande, densidad) {
             with(densidad) {
                 val planeta = planetaDp.toPx()
                 val nombre = if (conNombre) ALTO_NOMBRE.toPx() else 0f
                 val cuerpoSol = lado * fraccionSol
                 val exterior = max(lado / 2 - planeta - nombre, cuerpoSol)
                 val interior = min(cuerpoSol * (1f + HONDURA) + planeta + HUECO_ANILLO.toPx(), exterior)
-                val (radiosAnillo, reparto) = repartir(cuantos, interior, exterior, planeta * 2 + if (conNombre) 26.dp.toPx() else 10.dp.toPx())
+                val hueco = planeta * 2 + if (conNombre) 26.dp.toPx() else 10.dp.toPx()
+                val (radiosAnillo, reparto) = repartir(cuantos, interior, exterior, hueco, anilloVacio = !solGrande)
                 radiosAnillo.also { orbitas.colocar(ids, it, reparto, cuerpoSol * 0.6f) }
             }
         }
@@ -334,13 +336,22 @@ fun SistemaSolar(
 
 /**
  * Cuantos anillos, a que radio y cuantos van en cada uno. Se llenan de
- * dentro afuera; con los que no quepan, el de fuera se aprieta.
+ * dentro afuera; con los que no quepan, el de fuera se aprieta. Sin nadie,
+ * con [anilloVacio] queda el anillo del primero, esperandolo.
  */
-private fun repartir(cuantos: Int, interior: Float, exterior: Float, hueco: Float): Pair<List<Float>, List<Int>> {
-    if (cuantos == 0) return emptyList<Float>() to emptyList()
+private fun repartir(
+    cuantos: Int,
+    interior: Float,
+    exterior: Float,
+    hueco: Float,
+    anilloVacio: Boolean,
+): Pair<List<Float>, List<Int>> {
+    if (cuantos == 0) {
+        return if (anilloVacio) listOf(radioUnAnillo(interior, exterior)) to listOf(0) else emptyList<Float>() to emptyList()
+    }
     for (n in 1..ANILLOS_MAX) {
         val radios = List(n) { k ->
-            if (n == 1) interior + (exterior - interior) * 0.4f else interior + (exterior - interior) * k / (n - 1)
+            if (n == 1) radioUnAnillo(interior, exterior) else interior + (exterior - interior) * k / (n - 1)
         }
         val capacidades = radios.map { max(3, floor(2f * PI.toFloat() * it / hueco).toInt()) }
         if (capacidades.sum() >= cuantos || n == ANILLOS_MAX) {
@@ -358,6 +369,9 @@ private fun repartir(cuantos: Int, interior: Float, exterior: Float, hueco: Floa
     }
     return emptyList<Float>() to emptyList()
 }
+
+/** Donde va el anillo cuando solo hay uno. */
+private fun radioUnAnillo(interior: Float, exterior: Float) = interior + (exterior - interior) * 0.4f
 
 /**
  * Tu. Una esfera con ojos como las burbujas, con puntas onduladas que giran

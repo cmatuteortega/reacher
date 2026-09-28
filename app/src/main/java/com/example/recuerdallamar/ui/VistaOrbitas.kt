@@ -45,6 +45,8 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -68,6 +70,7 @@ import com.example.recuerdallamar.datos.Contacto
 import java.time.LocalDate
 import kotlin.math.acos
 import kotlin.math.asin
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.hypot
@@ -375,6 +378,21 @@ internal class Orbitales {
         satelites.putAll(nuevos)
     }
 
+    /**
+     * Llega de fuera (un planeta de la bienvenida) en ([x], [y]) del lienzo y
+     * con [radio]: sale de ahi, ya entero, y va a su puesto como cualquiera.
+     */
+    fun recibir(id: Long, x: Float, y: Float, radio: Float) {
+        val s = satelites[id] ?: return
+        s.r = hypot(x, y - solY)
+        s.a = atan2(y - solY, x)
+        s.tam = radio
+        s.escala = 1f
+        s.espera = 0f
+        s.x = x
+        s.y = y
+    }
+
     fun paso(dt: Float) {
         t += dt
         val suave = 1f - exp(-2.2f * dt)
@@ -416,6 +434,8 @@ internal class Orbitales {
  * izquierdo. Abajo se dejan libres [huecoInferior], para el +. [contactos]
  * llega ya ordenado por urgencia: los primeros, junto al sol. Con TalkBack
  * se recorren en ese orden, con [onHablado] como accion ademas de abrir.
+ * Si [relevo] trae los planetas de la bienvenida, cada uno sale de donde
+ * estaba y va a su anillo.
  */
 @Composable
 fun VistaOrbitas(
@@ -427,11 +447,26 @@ fun VistaOrbitas(
     solArriba: Dp,
     solRadio: Dp,
     modifier: Modifier = Modifier,
+    relevo: Relevo? = null,
 ) {
     val densidad = LocalDensity.current
     val orbitales = remember { Orbitales() }
     orbitales.calma = LocalMovimientoReducido.current
-    BoxWithConstraints(modifier.fillMaxSize()) {
+    val llegadas = remember { relevo?.tomarPlanetas()?.toMutableMap() }
+    BoxWithConstraints(
+        modifier
+            .fillMaxSize()
+            .onGloballyPositioned { lienzo ->
+                // Los planetas de la bienvenida, desde donde estaban, en coordenadas del lienzo.
+                if (llegadas.isNullOrEmpty()) return@onGloballyPositioned
+                val origen = lienzo.positionInWindow()
+                llegadas.forEach { (id, p) ->
+                    val en = p.centro - origen
+                    orbitales.recibir(id, en.x, en.y, p.radio)
+                }
+                llegadas.clear()
+            },
+    ) {
         val ancho = constraints.maxWidth.toFloat()
         val alto = constraints.maxHeight.toFloat()
 

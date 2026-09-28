@@ -10,8 +10,8 @@ import kotlinx.coroutines.Deferred
  *
  * - La bienvenida: al terminar se saca una foto de tu sistema (donde esta el
  *   sol y donde y hacia donde va cada planeta) y la pantalla principal sigue
- *   desde ahi: el sol sube al horizonte y los planetas se salen de su orbita
- *   y caen a su sitio entre las burbujas.
+ *   desde ahi: el sol sube a la esquina y los planetas van a su sitio en los
+ *   anillos (o, en la vista de burbujas, se salen de su orbita y caen).
  * - La pantalla de arranque: el sol del icono, en el centro, sube a la
  *   esquina cada vez que se abre la app. Mientras el arranque se ve, la
  *   pantalla principal ya esta debajo esperando; al irse dice donde estaba

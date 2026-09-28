@@ -43,15 +43,17 @@ import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
 
-/** Pasos de la bienvenida: tu eres el sol, crea tu sistema y "ya puedes cerrar". */
-const val PASOS_BIENVENIDA = 3
+/** Pasos de la bienvenida: tu eres el sol y crea tu sistema. */
+const val PASOS_BIENVENIDA = 2
 
 /**
  * Primera vez que se abre la app. Todo pasa sobre tu sistema: arriba el sol
- * (tu), que se queda quieto entre paso y paso, y las personas que anades
+ * (tu), que se queda en su sitio entre paso y paso, y las personas que anades
  * entran en su orbita. Debajo cambia el texto de cada paso: que el sol eres
- * tu y la gente tu sistema, anadir al menos a una persona (los permisos se
- * piden al ir a la agenda), y el final con el recado de que ya se puede cerrar.
+ * tu y la gente tu sistema, y anadir al menos a una persona (los permisos se
+ * piden al ir a la agenda). Al pasar al segundo el sol encoge y aparece su
+ * orbita, vacia, esperando al primero. Seguir (o "ahora no") la termina: el
+ * recado de que ya se puede cerrar sale luego en Personas.
  *
  * Anadir abre la ficha de siempre; al darla de alta se vuelve aqui, al
  * mismo paso, con la persona ya girando alrededor del sol.
@@ -107,14 +109,10 @@ fun PantallaBienvenida(
                 ) {
                     when (actual) {
                         0 -> PasoSol(onEmpezar = { onPaso(1) })
-                        1 -> PasoAnadir(
+                        else -> PasoAnadir(
                             cuantos = contactos.size,
                             onAnadir = onAnadir,
-                            onSeguir = { onPaso(2) },
-                        )
-                        else -> PasoListo(
-                            hayAlguien = contactos.isNotEmpty(),
-                            onTerminar = onTerminar,
+                            onSeguir = onTerminar,
                         )
                     }
                 }
@@ -186,16 +184,6 @@ private fun PasoAnadir(cuantos: Int, onAnadir: () -> Unit, onSeguir: () -> Unit)
         BotonPrincipal(stringResource(R.string.elegir_de_la_agenda), onAnadir, icono = true)
         TextButton(onClick = onSeguir, modifier = Modifier.height(48.dp)) { Text(stringResource(R.string.ahora_no)) }
     }
-}
-
-@Composable
-private fun PasoListo(hayAlguien: Boolean, onTerminar: () -> Unit) {
-    Titulo(stringResource(R.string.ya_esta))
-    Spacer(Modifier.height(12.dp))
-    Explicacion(stringResource(if (hayAlguien) R.string.listo_con_gente else R.string.listo_sin_gente))
-    Spacer(Modifier.height(24.dp))
-    BotonPrincipal(stringResource(R.string.entendido), onTerminar)
-    Spacer(Modifier.height(48.dp))
 }
 
 @Composable

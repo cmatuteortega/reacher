@@ -62,7 +62,7 @@ están en el módulo `baselineprofile` y se lanzan a mano con el flujo
 
 ## Flujo
 
-**Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en tres
+**Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en dos
 pasos con puntos de progreso, todos sobre **tu sistema** (`ui/SistemaSolar.kt`):
 arriba el sol, que eres tú, y alrededor, en órbita, la gente que añades. El
 sol es una esfera con ojos como las burbujas, pero con puntas onduladas que
@@ -74,15 +74,15 @@ mirando hacia donde va. Solo cambia el texto de debajo:
 1. *Tú eres el sol*: la gente que te importa es tu sistema. *Empezar* pide
    los permisos (avisos y fotos de la agenda), ya explicados; fuera de la
    bienvenida se piden al abrir, como antes.
-2. *Crea tu sistema*: *Elegir de la agenda* abre la ficha de siempre y al
-   darla de alta se vuelve aquí, con la persona ya en órbita. *Ahora no*
-   salta el paso.
-3. *¡Ya está!*: tu sistema y el recado de que se puede cerrar la app y
-   seguir con la vida; se avisará cuando toque. Un toque en un planeta abre
-   su ficha. *Entendido* acaba en la vista de burbujas, sin cortar: el sol
-   sube y crece hasta la esquina de la pantalla principal y cada planeta se
-   sale de su órbita con su impulso y cae a su sitio entre las burbujas
-   (`ui/Relevo.kt` guarda dónde estaba cada cosa al pulsar).
+2. *Crea tu sistema*: el sol encoge y aparece su órbita, vacía, donde
+   entrará el primero. *Elegir de la agenda* abre la ficha de siempre y al
+   darla de alta se vuelve aquí, con la persona ya en órbita; un toque en
+   un planeta abre su ficha. *Continuar* (o *Ahora no*, sin nadie) acaba la
+   bienvenida en la vista de órbitas, sin cortar: el sol sube y crece hasta
+   la esquina de la pantalla principal y cada planeta va a su sitio en los
+   anillos (`ui/Relevo.kt` guarda dónde estaba cada cosa al pulsar). Allí,
+   abajo, sale el recado *¡Ya está!*: se puede cerrar la app y seguir con la
+   vida, que se avisará cuando toque. *Entendido* lo quita.
 
 Se recuerda en `Ajustes.bienvenidaHecha`. Quien ya tenía gente guardada al
 llegar esta versión no la ve.
@@ -139,8 +139,11 @@ flecha vuelven a Personas.
    luego saluda a quien llega. Se ve de dos formas, con los
    mismos datos y el mismo orden por **urgencia** (días desde el último
    contacto ÷ frecuencia de esa persona: 0 recién hablado, 1 toca hoy); el
-   icono de la barra superior alterna entre ellas y la elección se recuerda:
-   - **Burbujas** (por defecto, `ui/VistaBurbujas.kt`) — cada persona es una
+   icono de la barra superior las recorre (órbitas, burbujas, lista) y la
+   elección se recuerda:
+   - **Órbitas** (por defecto, `ui/VistaOrbitas.kt`) — las mismas burbujas
+     en anillos alrededor del sol de la esquina, las más urgentes junto a él.
+   - **Burbujas** (`ui/VistaBurbujas.kt`) — cada persona es una
      burbuja con cara, más grande cuanto más cerca está de su
      fecha; a quien ya le toca lleva anillo teja/naranja y un halo que respira. Se
      colocan con un empaquetado circular (las urgentes en el centro, sin

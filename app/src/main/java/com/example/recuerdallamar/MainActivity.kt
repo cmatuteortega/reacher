@@ -274,6 +274,8 @@ private fun AppRecuerda(
     }
 
     var pasoBienvenida by rememberSaveable { mutableIntStateOf(0) }
+    // Recien acabada la bienvenida: Personas ensena el recado de que ya esta.
+    var recienBienvenida by rememberSaveable { mutableStateOf(false) }
 
     // Quien ya tenia gente guardada de antes de que hubiera bienvenida no la
     // necesita. Solo se mira al cargar la primera vez: durante la bienvenida
@@ -494,10 +496,11 @@ private fun AppRecuerda(
                 fotosPermitidas = fotosPermitidas,
                 onAnadir = anadirPidiendoPermisos,
                 onAbrir = { navegador.navigate(Ruta.Ficha(it.id)) },
-                // Se acaba en la vista de burbujas, la que se acaba de ensenar.
+                // Se acaba en la vista de orbitas, la que se acaba de ensenar.
                 onTerminar = {
                     relevo.sacarFoto()
-                    cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.BURBUJAS) }
+                    recienBienvenida = true
+                    cambiarAjustes { it.copy(bienvenidaHecha = true, vista = VistaPersonas.ORBITAS) }
                     Telemetria.evento(Telemetria.Evento.BIENVENIDA_TERMINADA, "people" to contactos.orEmpty().size)
                     navegador.irAPersonas()
                 },
@@ -539,6 +542,8 @@ private fun AppRecuerda(
                     circulos = circulos,
                     filtro = filtro,
                     onFiltrar = vm::filtrar,
+                    listo = recienBienvenida,
+                    onListoVisto = { recienBienvenida = false },
                     modifier = modifier,
                     relevo = relevo,
                 )

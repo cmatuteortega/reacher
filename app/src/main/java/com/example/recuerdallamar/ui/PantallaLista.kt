@@ -2,13 +2,23 @@ package com.example.recuerdallamar.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +37,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -35,6 +46,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +60,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.FotoContacto
@@ -70,6 +83,8 @@ fun PantallaLista(
     filtro: String?,
     onFiltrar: (String?) -> Unit,
     modifier: Modifier = Modifier,
+    listo: Boolean = false,
+    onListoVisto: () -> Unit = {},
     relevo: Relevo? = null,
 ) {
     val estado = rememberLazyListState()
@@ -97,7 +112,7 @@ fun PantallaLista(
                     title = {},
                     actions = {
                         if (circulos.isNotEmpty()) FiltroCirculo(circulos, filtro, onFiltrar)
-                        // Un solo boton que va pasando por las tres: burbujas, orbitas, lista.
+                        // Un solo boton que va pasando por las tres: orbitas, burbujas, lista.
                         val entradas = VistaPersonas.entries
                         val otra = entradas[(vista.ordinal + 1) % entradas.size]
                         IconButton(onClick = { onCambiarVista(otra) }) {
@@ -125,7 +140,8 @@ fun PantallaLista(
             val bajoLaBarra = (radioSol - arriba).coerceAtLeast(0.dp)
             Box(Modifier.fillMaxSize().padding(relleno)) {
                 AnimatedVisibility(
-                    visible = contactos?.isEmpty() == true,
+                    // Con el recado de la bienvenida delante ya se dice lo mismo.
+                    visible = contactos?.isEmpty() == true && !listo,
                     enter = fadeIn(),
                     exit = fadeOut(),
                     modifier = Modifier.align(Alignment.Center).padding(bottom = hueco),
@@ -152,6 +168,7 @@ fun PantallaLista(
                                 huecoInferior = hueco,
                                 solArriba = arriba,
                                 solRadio = radioSol,
+                                relevo = relevo,
                             )
                         }
                         VistaPersonas.BURBUJAS -> if (!contactos.isNullOrEmpty()) {
@@ -193,6 +210,57 @@ fun PantallaLista(
             }
         }
         SolEsquina(relevo = relevo, cuantos = contactos?.size ?: 0, onAnadir = onAnadir)
+        RecadoListo(
+            visible = listo,
+            hayAlguien = !contactos.isNullOrEmpty(),
+            onEntendido = onListoVisto,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, bottom = hueco),
+        )
+    }
+}
+
+/** Lo que tarda el recado en salir: que antes llegue el sol a la esquina. */
+private const val RECADO_ESPERA_MS = 900
+
+/**
+ * Al acabar la bienvenida, abajo y sobre el +: ya esta, se puede cerrar la
+ * app, que ya se avisara. Se va con "Entendido" y no vuelve.
+ */
+@Composable
+private fun RecadoListo(visible: Boolean, hayAlguien: Boolean, onEntendido: () -> Unit, modifier: Modifier = Modifier) {
+    // Empieza oculto para que tambien entre animado la primera vez.
+    val estado = remember { MutableTransitionState(false) }
+    estado.targetState = visible
+    AnimatedVisibility(
+        visibleState = estado,
+        enter = fadeIn(tween(400, delayMillis = RECADO_ESPERA_MS)) +
+            slideInVertically(tween(400, delayMillis = RECADO_ESPERA_MS)) { it / 2 },
+        exit = fadeOut() + slideOutVertically { it / 2 },
+        modifier = modifier,
+    ) {
+        ElevatedCard(Modifier.widthIn(max = 480.dp).fillMaxWidth()) {
+            Column(Modifier.padding(start = 20.dp, top = 16.dp, end = 8.dp, bottom = 4.dp)) {
+                Text(
+                    stringResource(R.string.ya_esta),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(end = 12.dp),
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(if (hayAlguien) R.string.listo_con_gente else R.string.listo_sin_gente),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(end = 12.dp),
+                )
+                TextButton(onClick = onEntendido, modifier = Modifier.align(Alignment.End)) {
+                    Text(stringResource(R.string.entendido))
+                }
+            }
+        }
     }
 }
 
