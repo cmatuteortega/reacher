@@ -1,8 +1,9 @@
 # Roadmap to an "AAA" app
 
 What Contacto still needs to become a polished, store-quality app. The visual
-identity, animations and translations are already strong; the gaps are mostly
-in release engineering, reliability, testing and accessibility.
+identity, animations, translations and accessibility are already strong; the
+gaps left are mostly in release engineering (store listing, closed testing,
+upload from CI) and a few quality checks.
 
 Work through the phases in order.
 
