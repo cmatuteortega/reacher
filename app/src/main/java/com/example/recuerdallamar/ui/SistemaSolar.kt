@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -224,7 +225,8 @@ internal class Orbitas {
  * Tu sistema: el sol en el centro y [contactos] girando alrededor. Un toque
  * en un planeta llama a [onAbrir]; en el sol, se rie. [solGrande] lo pone en
  * primer plano, solo; si no, aun sin nadie ya se ve su orbita, vacia, donde
- * entrara el primero.
+ * entrara el primero (salvo sin [orbitaVacia]). [detras] va entre los
+ * anillos y el sol, centrado: el sol y los planetas quedan encima.
  */
 @Composable
 fun SistemaSolar(
@@ -234,6 +236,8 @@ fun SistemaSolar(
     onAbrir: (Contacto) -> Unit,
     modifier: Modifier = Modifier,
     relevo: Relevo? = null,
+    orbitaVacia: Boolean = !solGrande,
+    detras: @Composable BoxScope.() -> Unit = {},
 ) {
     val densidad = LocalDensity.current
     val orbitas = remember { Orbitas() }
@@ -273,7 +277,7 @@ fun SistemaSolar(
 
         val ids = contactos.map { it.id }
         // Como en la vista de burbujas: al cambiar la gente o el tamano se recolocan.
-        remember(ids, lado, fraccionSol, solGrande, densidad) {
+        remember(ids, lado, fraccionSol, orbitaVacia, densidad) {
             with(densidad) {
                 val planeta = planetaDp.toPx()
                 val nombre = if (conNombre) ALTO_NOMBRE.toPx() else 0f
@@ -281,7 +285,7 @@ fun SistemaSolar(
                 val exterior = max(lado / 2 - planeta - nombre, cuerpoSol)
                 val interior = min(cuerpoSol * (1f + HONDURA) + planeta + HUECO_ANILLO.toPx(), exterior)
                 val hueco = planeta * 2 + if (conNombre) 26.dp.toPx() else 10.dp.toPx()
-                val (radiosAnillo, reparto) = repartir(cuantos, interior, exterior, hueco, anilloVacio = !solGrande)
+                val (radiosAnillo, reparto) = repartir(cuantos, interior, exterior, hueco, anilloVacio = orbitaVacia)
                 radiosAnillo.also { orbitas.colocar(ids, it, reparto, cuerpoSol * 0.6f) }
             }
         }
@@ -313,6 +317,7 @@ fun SistemaSolar(
             }
         }
 
+        detras()
         Sol(radio = radioSol, orbitas = orbitas, cuantos = cuantos)
 
         val porId = contactos.associateBy { it.id }

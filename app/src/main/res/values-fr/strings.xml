@@ -38,11 +38,14 @@
     <string name="bienvenida_sol_titulo">Tu es le soleil</string>
     <string name="bienvenida_sol_texto">Les personnes qui comptent pour toi gravitent autour de toi : c\'est ton système. Contacto te prévient quand il est temps d\'appeler ou d\'écrire à chacune, pour que personne ne s\'éloigne de ton orbite.</string>
     <string name="empezar">Commencer</string>
+    <string name="cuando_y_como">Quand et comment</string>
+    <string name="bienvenida_horas_de_a">On te préviendra de %1$s à %2$s. Fais glisser les poignées autour du soleil pour changer.</string>
+    <string name="bienvenida_horas_todo_el_dia">On te préviendra à toute heure. Fais glisser les poignées autour du soleil pour changer.</string>
     <string name="crea_tu_sistema">Crée ton système</string>
     <string name="alguien_en_orbita">Quelqu\'un est déjà en orbite !</string>
     <string name="sistema_crece">Ton système grandit</string>
     <string name="anade_mas_texto">Ajoute quelqu\'un d\'autre ou continue : tu pourras toujours agrandir ton système plus tard.</string>
-    <string name="elige_agenda_texto">Choisis dans tes contacts quelqu\'un que tu ne veux pas perdre de vue : il entrera dans ton orbite. Sur sa fiche, tu choisis tous les combien de jours vous parler et comment : appel, WhatsApp, SMS ou Telegram.</string>
+    <string name="elige_agenda_texto">Choisis dans tes contacts quelqu\'un que tu ne veux pas perdre de vue : il entrera dans ton orbite. Sur sa fiche, tu choisis tous les combien de jours vous parler.</string>
     <string name="continuar">Continuer</string>
     <string name="anadir_otra_persona">Ajouter une autre personne</string>
     <string name="elegir_de_la_agenda">Choisir dans les contacts</string>

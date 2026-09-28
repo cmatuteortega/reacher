@@ -125,6 +125,8 @@ class AccesibilidadTest {
         compose.waitForIdle()
         revisarPulsables("bienvenida")
         compose.onNodeWithText(texto(R.string.empezar)).performClick()
+        revisarPulsables("bienvenida, cuando y como")
+        compose.onNodeWithText(texto(R.string.continuar)).performClick()
         revisarPulsables("bienvenida, anadir")
     }
 

@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -36,24 +38,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.MedioContacto
 
-/** Pasos de la bienvenida: tu eres el sol y crea tu sistema. */
-const val PASOS_BIENVENIDA = 2
+/** Pasos de la bienvenida: tu eres el sol, cuando y como, y crea tu sistema. */
+const val PASOS_BIENVENIDA = 3
 
 /**
  * Primera vez que se abre la app. Todo pasa sobre tu sistema: arriba el sol
  * (tu), que se queda en su sitio entre paso y paso, y las personas que anades
  * entran en su orbita. Debajo cambia el texto de cada paso: que el sol eres
- * tu y la gente tu sistema, y anadir al menos a una persona (los permisos se
- * piden al ir a la agenda). Al pasar al segundo el sol encoge y aparece su
- * orbita, vacia, esperando al primero. Seguir (o "ahora no") la termina: el
- * recado de que ya se puede cerrar sale luego en Personas.
+ * tu y la gente tu sistema; a que horas avisar y como contactar; y anadir al
+ * menos a una persona (los permisos se piden al ir a la agenda). En el
+ * segundo el sol encoge y la esfera de horas lo rodea, con la forma de
+ * contacto debajo; lo que se toca se guarda al momento en los ajustes. Al
+ * pasar al tercero la esfera se va y aparece su orbita, vacia, esperando al
+ * primero. Seguir (o "ahora no") la termina: el recado de que ya se puede
+ * cerrar sale luego en Personas.
  *
  * Anadir abre la ficha de siempre; al darla de alta se vuelve aqui, al
  * mismo paso, con la persona ya girando alrededor del sol.
@@ -64,6 +71,11 @@ fun PantallaBienvenida(
     onPaso: (Int) -> Unit,
     contactos: List<Contacto>,
     fotosPermitidas: Boolean,
+    horaDesde: Int,
+    horaHasta: Int,
+    onHorario: (desde: Int, hasta: Int) -> Unit,
+    medio: MedioContacto,
+    onMedio: (MedioContacto) -> Unit,
     onAnadir: () -> Unit,
     onAbrir: (Contacto) -> Unit,
     onTerminar: () -> Unit,
@@ -71,6 +83,7 @@ fun PantallaBienvenida(
     relevo: Relevo? = null,
 ) {
     BackHandler(enabled = paso > 0) { onPaso(paso - 1) }
+    val rueda by animateFloatAsState(if (paso == 1) 1f else 0f, tween(350), label = "rueda")
 
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -92,7 +105,24 @@ fun PantallaBienvenida(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 relevo = relevo,
-            )
+                orbitaVacia = paso >= 2,
+            ) {
+                // La rueda de las horas, alrededor del sol, solo en su paso:
+                // entra y sale fundiendose y creciendo un poco.
+                if (paso == 1 || rueda > 0f) {
+                    DialFranja(
+                        desde = horaDesde,
+                        hasta = horaHasta,
+                        onCambio = onHorario,
+                        conResumen = false,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = rueda
+                            scaleX = 0.85f + 0.15f * rueda
+                            scaleY = 0.85f + 0.15f * rueda
+                        },
+                    )
+                }
+            }
             AnimatedContent(
                 targetState = paso,
                 transitionSpec = {
@@ -109,6 +139,13 @@ fun PantallaBienvenida(
                 ) {
                     when (actual) {
                         0 -> PasoSol(onEmpezar = { onPaso(1) })
+                        1 -> PasoAjustes(
+                            desde = horaDesde,
+                            hasta = horaHasta,
+                            medio = medio,
+                            onMedio = onMedio,
+                            onSeguir = { onPaso(2) },
+                        )
                         else -> PasoAnadir(
                             cuantos = contactos.size,
                             onAnadir = onAnadir,
@@ -158,6 +195,38 @@ private fun PasoSol(onEmpezar: () -> Unit) {
     Explicacion(stringResource(R.string.bienvenida_sol_texto))
     Spacer(Modifier.height(24.dp))
     BotonPrincipal(stringResource(R.string.empezar), onEmpezar)
+    Spacer(Modifier.height(48.dp)) // mismo pie que los otros pasos, sin boton secundario
+}
+
+/** A que horas se puede avisar (la rueda, arriba) y como contactar al tocar el aviso. */
+@Composable
+private fun PasoAjustes(
+    desde: Int,
+    hasta: Int,
+    medio: MedioContacto,
+    onMedio: (MedioContacto) -> Unit,
+    onSeguir: () -> Unit,
+) {
+    Titulo(stringResource(R.string.cuando_y_como))
+    Spacer(Modifier.height(12.dp))
+    Explicacion(
+        if (desde == hasta) {
+            stringResource(R.string.bienvenida_horas_todo_el_dia)
+        } else {
+            stringResource(R.string.bienvenida_horas_de_a, hora(desde), hora(hasta))
+        },
+    )
+    Spacer(Modifier.height(16.dp))
+    SelectorMedio(medio = medio, onCambio = onMedio)
+    Spacer(Modifier.height(4.dp))
+    Text(
+        stringResource(medio.etiqueta),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+    Spacer(Modifier.height(16.dp))
+    BotonPrincipal(stringResource(R.string.continuar), onSeguir)
     Spacer(Modifier.height(48.dp)) // mismo pie que los otros pasos, sin boton secundario
 }
 

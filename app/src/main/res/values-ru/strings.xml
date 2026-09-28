@@ -38,11 +38,14 @@
     <string name="bienvenida_sol_titulo">Ты — солнце</string>
     <string name="bienvenida_sol_texto">Вокруг тебя вращаются люди, которые тебе дороги: это твоя система. Contacto напомнит, когда пора позвонить или написать каждому, чтобы никто не сошёл с твоей орбиты.</string>
     <string name="empezar">Начать</string>
+    <string name="cuando_y_como">Когда и как</string>
+    <string name="bienvenida_horas_de_a">Мы будем напоминать с %1$s до %2$s. Перетащи ручки вокруг солнца, чтобы изменить.</string>
+    <string name="bienvenida_horas_todo_el_dia">Мы будем напоминать в любое время. Перетащи ручки вокруг солнца, чтобы изменить.</string>
     <string name="crea_tu_sistema">Создай свою систему</string>
     <string name="alguien_en_orbita">Кто-то уже на твоей орбите!</string>
     <string name="sistema_crece">Твоя система растёт</string>
     <string name="anade_mas_texto">Добавь ещё кого-нибудь или продолжай: людей в систему всегда можно добавить позже.</string>
-    <string name="elige_agenda_texto">Выбери в контактах того, кого не хочешь терять из виду, и он выйдет на твою орбиту. В его карточке выбери, как часто и как общаться: звонок, WhatsApp, SMS или Telegram.</string>
+    <string name="elige_agenda_texto">Выбери в контактах того, кого не хочешь терять из виду, и он выйдет на твою орбиту. В его карточке выбери, как часто общаться.</string>
     <string name="continuar">Продолжить</string>
     <string name="anadir_otra_persona">Добавить ещё человека</string>
     <string name="elegir_de_la_agenda">Выбрать из контактов</string>

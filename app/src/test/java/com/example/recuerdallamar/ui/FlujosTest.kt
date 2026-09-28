@@ -21,6 +21,7 @@ import com.example.recuerdallamar.R
 import com.example.recuerdallamar.datos.AlmacenAjustes
 import com.example.recuerdallamar.datos.BaseDatos
 import com.example.recuerdallamar.datos.Contacto
+import com.example.recuerdallamar.datos.MedioContacto
 import com.example.recuerdallamar.datos.VistaPersonas
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -69,10 +70,19 @@ class FlujosTest {
         abrir()
         compose.onNodeWithText(texto(R.string.empezar)).performClick()
         compose.waitForIdle()
+
+        // Cuando y como: la forma de contacto elegida se guarda al momento
+        // como la de los que se anadan.
+        compose.onNodeWithText(texto(R.string.whatsapp)).performClick()
+        compose.waitForIdle()
+        assertEquals(MedioContacto.WHATSAPP, AlmacenAjustes.de(app).ajustes.value.medioPorDefecto)
+        compose.onNodeWithText(texto(R.string.continuar)).performClick()
+        compose.waitForIdle()
+
         compose.onNodeWithText(texto(R.string.ahora_no)).performClick()
         compose.waitForIdle()
 
-        // Sin tercer paso: ya en Personas, con el recado de que ya esta.
+        // Sin mas pasos: ya en Personas, con el recado de que ya esta.
         assertTrue(AlmacenAjustes.de(app).ajustes.value.bienvenidaHecha)
         assertEquals(VistaPersonas.ORBITAS, AlmacenAjustes.de(app).ajustes.value.vista)
         compose.onNodeWithContentDescription(texto(R.string.ajustes)).assertIsDisplayed()

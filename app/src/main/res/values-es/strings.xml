@@ -38,11 +38,14 @@
     <string name="bienvenida_sol_titulo">Tú eres el sol</string>
     <string name="bienvenida_sol_texto">A tu alrededor gira la gente que te importa: es tu sistema. Contacto te avisa cuando toca llamar o escribir a cada uno, para que nadie se aleje de tu órbita.</string>
     <string name="empezar">Empezar</string>
+    <string name="cuando_y_como">Cuándo y cómo</string>
+    <string name="bienvenida_horas_de_a">Te avisaremos de %1$s a %2$s. Arrastra las asas alrededor del sol para cambiarlo.</string>
+    <string name="bienvenida_horas_todo_el_dia">Te avisaremos a cualquier hora. Arrastra las asas alrededor del sol para cambiarlo.</string>
     <string name="crea_tu_sistema">Crea tu sistema</string>
     <string name="alguien_en_orbita">¡Ya tienes a alguien en órbita!</string>
     <string name="sistema_crece">Tu sistema crece</string>
     <string name="anade_mas_texto">Añade a alguien más o sigue: siempre podrás sumar gente a tu sistema después.</string>
-    <string name="elige_agenda_texto">Elige de tu agenda a quien no quieres perder de vista y entrará en tu órbita. En su ficha eliges cada cuántos días hablar y cómo: llamada, WhatsApp, SMS o Telegram.</string>
+    <string name="elige_agenda_texto">Elige de tu agenda a quien no quieres perder de vista y entrará en tu órbita. En su ficha eliges cada cuántos días hablar.</string>
     <string name="continuar">Continuar</string>
     <string name="anadir_otra_persona">Añadir a otra persona</string>
     <string name="elegir_de_la_agenda">Elegir de la agenda</string>

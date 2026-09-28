@@ -44,11 +44,14 @@
     <string name="bienvenida_sol_titulo">You are the sun</string>
     <string name="bienvenida_sol_texto">The people you care about revolve around you: they\'re your system. Contacto reminds you when it\'s time to call or message each of them, so no one drifts out of your orbit.</string>
     <string name="empezar">Get started</string>
+    <string name="cuando_y_como">When and how</string>
+    <string name="bienvenida_horas_de_a">We\'ll remind you from %1$s to %2$s. Drag the handles around the sun to change it.</string>
+    <string name="bienvenida_horas_todo_el_dia">We\'ll remind you at any time of day. Drag the handles around the sun to change it.</string>
     <string name="crea_tu_sistema">Build your system</string>
     <string name="alguien_en_orbita">You\'ve got someone in orbit!</string>
     <string name="sistema_crece">Your system is growing</string>
     <string name="anade_mas_texto">Add someone else or carry on: you can always add people to your system later.</string>
-    <string name="elige_agenda_texto">Pick someone from your contacts you don\'t want to lose touch with and they\'ll join your orbit. On their card you choose how often to talk and how: call, WhatsApp, SMS or Telegram.</string>
+    <string name="elige_agenda_texto">Pick someone from your contacts you don\'t want to lose touch with and they\'ll join your orbit. On their card you choose how often to talk.</string>
     <string name="continuar">Continue</string>
     <string name="anadir_otra_persona">Add another person</string>
     <string name="elegir_de_la_agenda">Pick from contacts</string>

@@ -62,7 +62,8 @@ private class Anillo(lado: Float, densidad: Density) {
  * Esfera de 24 horas con la franja de avisos pintada como un arco. Las dos asas
  * (inicio en el color principal, fin en teja) se arrastran alrededor y saltan
  * de hora en hora con un tic, como una rueda con dientes. Cruzar la medianoche
- * es solo seguir girando. El punto de fuera marca la hora de ahora.
+ * es solo seguir girando. El punto de fuera marca la hora de ahora. Sin
+ * [conResumen] el centro queda libre (en la bienvenida lo ocupa el sol).
  */
 @Composable
 fun DialFranja(
@@ -70,6 +71,7 @@ fun DialFranja(
     hasta: Int,
     onCambio: (desde: Int, hasta: Int) -> Unit,
     modifier: Modifier = Modifier,
+    conResumen: Boolean = true,
 ) {
     val vista = LocalView.current
     val medidor = rememberTextMeasurer()
@@ -199,17 +201,19 @@ fun DialFranja(
             }
         }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                stringResource(R.string.horas_corto, horasAvisando),
-                style = MaterialTheme.typography.displaySmall,
-                color = colores.onSurface,
-            )
-            Text(
-                if (todoElDia) stringResource(R.string.todo_el_dia) else "${hora(desde)} – ${hora(hasta)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colores.onSurfaceVariant,
-            )
+        if (conResumen) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    stringResource(R.string.horas_corto, horasAvisando),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = colores.onSurface,
+                )
+                Text(
+                    if (todoElDia) stringResource(R.string.todo_el_dia) else "${hora(desde)} – ${hora(hasta)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colores.onSurfaceVariant,
+                )
+            }
         }
     }
 }

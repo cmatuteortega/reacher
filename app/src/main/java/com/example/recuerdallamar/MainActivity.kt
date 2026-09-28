@@ -494,6 +494,12 @@ private fun AppRecuerda(
                 onPaso = { pasoBienvenida = it },
                 contactos = contactos.orEmpty(),
                 fotosPermitidas = fotosPermitidas,
+                // Como en Ajustes: se guarda al momento y vale para quien se anada luego.
+                horaDesde = ajustes.horaDesde,
+                horaHasta = ajustes.horaHasta,
+                onHorario = { desde, hasta -> cambiarAjustes { it.copy(horaDesde = desde, horaHasta = hasta) } },
+                medio = ajustes.medioPorDefecto,
+                onMedio = { medio -> cambiarAjustes { it.copy(medioPorDefecto = medio) } },
                 onAnadir = anadirPidiendoPermisos,
                 onAbrir = { navegador.navigate(Ruta.Ficha(it.id)) },
                 // Se acaba en la vista de orbitas, la que se acaba de ensenar.

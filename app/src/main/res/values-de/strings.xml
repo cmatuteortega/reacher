@@ -38,11 +38,14 @@
     <string name="bienvenida_sol_titulo">Du bist die Sonne</string>
     <string name="bienvenida_sol_texto">Um dich kreisen die Menschen, die dir wichtig sind: Das ist dein System. Contacto erinnert dich, wenn es Zeit ist, jemanden anzurufen oder ihm zu schreiben, damit niemand aus deiner Umlaufbahn driftet.</string>
     <string name="empezar">Los geht\'s</string>
+    <string name="cuando_y_como">Wann und wie</string>
+    <string name="bienvenida_horas_de_a">Wir erinnern dich von %1$s bis %2$s. Zieh die Griffe um die Sonne, um das zu ändern.</string>
+    <string name="bienvenida_horas_todo_el_dia">Wir erinnern dich zu jeder Tageszeit. Zieh die Griffe um die Sonne, um das zu ändern.</string>
     <string name="crea_tu_sistema">Erschaffe dein System</string>
     <string name="alguien_en_orbita">Jemand ist schon in deiner Umlaufbahn!</string>
     <string name="sistema_crece">Dein System wächst</string>
     <string name="anade_mas_texto">Füge noch jemanden hinzu oder mach weiter: Du kannst deinem System später jederzeit Leute hinzufügen.</string>
-    <string name="elige_agenda_texto">Wähle aus deinen Kontakten jemanden, den du nicht aus den Augen verlieren willst, und er tritt in deine Umlaufbahn ein. In seinem Profil legst du fest, wie oft ihr euch meldet und wie: Anruf, WhatsApp, SMS oder Telegram.</string>
+    <string name="elige_agenda_texto">Wähle aus deinen Kontakten jemanden, den du nicht aus den Augen verlieren willst, und er tritt in deine Umlaufbahn ein. In seinem Profil legst du fest, wie oft ihr euch meldet.</string>
     <string name="continuar">Weiter</string>
     <string name="anadir_otra_persona">Weitere Person hinzufügen</string>
     <string name="elegir_de_la_agenda">Aus Kontakten wählen</string>

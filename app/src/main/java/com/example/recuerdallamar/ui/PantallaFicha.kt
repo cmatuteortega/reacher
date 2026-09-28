@@ -164,8 +164,9 @@ fun PantallaFicha(
     /** Junto a la lista en pantalla ancha: la flecha de volver pasa a ser una X que la cierra. */
     enPanel: Boolean = false,
     /**
-     * Alta en la bienvenida: solo lo esencial (cada cuanto, como y circulo).
-     * Cumpleanos y notas quedan para luego, tras el lapiz de la ficha.
+     * Alta en la bienvenida: solo lo esencial (cada cuanto y circulo). La
+     * forma de contacto ya se eligio en la bienvenida y viene en el borrador;
+     * esa, el cumpleanos y las notas quedan para luego, tras el lapiz de la ficha.
      */
     sencilla: Boolean = false,
 ) {
@@ -281,14 +282,16 @@ fun PantallaFicha(
         TarjetaFicha(stringResource(R.string.cada_cuanto)) {
             SelectorFrecuencia(frecuencia, onCambio = { frecuencia = it })
         }
-        TarjetaFicha(stringResource(R.string.al_tocar_aviso)) {
-            SelectorMedio(medio = medio, onCambio = { medio = it })
-            Text(
-                stringResource(medio.etiqueta),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
+        if (!sencilla) {
+            TarjetaFicha(stringResource(R.string.al_tocar_aviso)) {
+                SelectorMedio(medio = medio, onCambio = { medio = it })
+                Text(
+                    stringResource(medio.etiqueta),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
         }
         TarjetaFicha(stringResource(R.string.circulo)) {
             SelectorCirculo(circulo, circulos, onCambio = { circulo = it })

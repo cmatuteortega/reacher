@@ -62,7 +62,7 @@ están en el módulo `baselineprofile` y se lanzan a mano con el flujo
 
 ## Flujo
 
-**Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en dos
+**Bienvenida** (`ui/PantallaBienvenida.kt`) — solo la primera vez, en tres
 pasos con puntos de progreso, todos sobre **tu sistema** (`ui/SistemaSolar.kt`):
 arriba el sol, que eres tú, y alrededor, en órbita, la gente que añades. El
 sol es una esfera con ojos como las burbujas, pero con puntas onduladas que
@@ -74,7 +74,11 @@ mirando hacia donde va. Solo cambia el texto de debajo:
 1. *Tú eres el sol*: la gente que te importa es tu sistema. *Empezar* pide
    los permisos (avisos y fotos de la agenda), ya explicados; fuera de la
    bienvenida se piden al abrir, como antes.
-2. *Crea tu sistema*: el sol encoge y aparece su órbita, vacía, donde
+2. *Cuándo y cómo*: el sol encoge al tamaño del paso siguiente y lo rodea la
+   rueda de las horas de aviso (la de Ajustes, `ui/DialFranja.kt`, sin el
+   resumen del centro); debajo, la forma de contacto para quien se añada.
+   Se guarda al momento, como en Ajustes; *Continuar* sigue.
+3. *Crea tu sistema*: se va la rueda y aparece la órbita del sol, vacía, donde
    entrará el primero. *Elegir de la agenda* abre la ficha de siempre y al
    darla de alta se vuelve aquí, con la persona ya en órbita; un toque en
    un planeta abre su ficha. *Continuar* (o *Ahora no*, sin nadie) acaba la
@@ -192,8 +196,9 @@ flecha vuelven a Personas.
    de **depuración** que fuerza la notificación (solo en depuración). *Atrás*
    vuelve de Editar a la ficha. Al dar de alta a alguien nuevo todo va en una
    sola pantalla, con solo *Añadir* abajo (sin *Contactar*). Durante la
-   bienvenida esa pantalla se queda en lo esencial: frecuencia, forma de
-   contacto y círculo; cumpleaños y notas se ponen luego desde Editar.
+   bienvenida esa pantalla se queda en lo esencial: frecuencia y círculo; la
+   forma de contacto es la elegida en *Cuándo y cómo*, y esa, el cumpleaños y
+   las notas se cambian luego desde Editar.
    La ficha entra ya pintada: se abre con la persona que ya estaba en la lista
    (luego se lee en vivo de la base de datos) y con su foto de la caché, así
    que no se monta a mitad del deslizamiento.
