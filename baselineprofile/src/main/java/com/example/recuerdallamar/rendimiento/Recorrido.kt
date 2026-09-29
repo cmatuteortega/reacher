@@ -19,6 +19,8 @@ fun MacrobenchmarkScope.recorridoHabitual() {
     // Bienvenida (solo la primera vez tras instalar).
     device.findObject(By.text("Get started"))?.let { empezar ->
         empezar.click()
+        // Con los avisos concedidos sale "Cuando y como"; sin ellos se salta.
+        device.wait(Until.findObject(By.text("Continue")), ESPERA_MS)?.click()
         device.wait(Until.findObject(By.text("Not now")), ESPERA_MS)?.click()
         device.wait(Until.findObject(By.text("Got it")), ESPERA_MS)?.click()
     }

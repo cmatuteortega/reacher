@@ -66,6 +66,10 @@ class Humo {
         // Bienvenida sin anadir a nadie.
         capturar("1-bienvenida")
         pulsar(By.text("Get started"))
+        // Avisos ya concedidos: sigue a "Cuando y como".
+        esperar(By.text("When and how"))
+        capturar("1-bienvenida-horas")
+        pulsar(By.text("Continue"))
         pulsar(By.text("Not now"))
         pulsar(By.text("Got it"))
         cerrarDialogos()
