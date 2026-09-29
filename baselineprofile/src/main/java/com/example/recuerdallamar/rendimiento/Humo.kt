@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.Direction
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
@@ -77,9 +78,7 @@ class Humo {
         // Las tres vistas: burbujas, orbitas y lista (el boton pasa por todas).
         repeat(3) { n ->
             capturar("2-vista-$n")
-            val vista = esperar(By.descStartsWith("Show as"))
-            vista.click()
-            device.waitForIdle()
+            pulsar(By.descStartsWith("Show as"))
             sigueViva()
         }
 
@@ -87,11 +86,11 @@ class Humo {
         pulsar(By.desc("Settings"))
         esperar(By.text("Reminders"))
         capturar("3-ajustes")
-        bajarHasta(By.text("Dark")).click()
-        device.waitForIdle()
+        bajarHasta(By.text("Dark"))
+        pulsar(By.text("Dark"))
         capturar("4-ajustes-oscuro")
-        bajarHasta(By.text("System")).click()
-        device.waitForIdle()
+        bajarHasta(By.text("System"))
+        pulsar(By.text("System"))
         bajarHasta(By.text("Backup"))
         capturar("5-ajustes-final")
         sigueViva()
@@ -119,10 +118,14 @@ class Humo {
      */
     private fun cerrarDialogos() {
         device.waitForIdle()
-        device.wait(Until.findObject(By.res(Pattern.compile("com\\.android\\.permissioncontroller:id/permission_allow.*"))), 1_500L)
-            ?.click()
-        listOf("No thanks", "Not now").forEach { texto ->
-            device.wait(Until.findObject(By.text(texto)), 1_500L)?.click()
+        try {
+            device.wait(Until.findObject(By.res(Pattern.compile("com\\.android\\.permissioncontroller:id/permission_allow.*"))), 1_500L)
+                ?.click()
+            listOf("No thanks", "Not now").forEach { texto ->
+                device.wait(Until.findObject(By.text(texto)), 1_500L)?.click()
+            }
+        } catch (_: StaleObjectException) {
+            // Se ha ido solo mientras se pulsaba.
         }
     }
 
@@ -135,13 +138,31 @@ class Humo {
         repeat(10) {
             device.findObject(selector)?.let { return it }
             val lista = device.findObject(By.scrollable(true)) ?: return esperar(selector)
-            lista.scroll(Direction.DOWN, 0.5f)
+            try {
+                lista.scroll(Direction.DOWN, 0.5f)
+            } catch (_: StaleObjectException) {
+                // Recompuesta: la siguiente vuelta la busca otra vez.
+            }
             device.waitForIdle()
         }
         return esperar(selector)
     }
 
+    /**
+     * Pulsa lo que casa con [selector]. Si la pantalla se recompone entre
+     * encontrarlo y pulsarlo (el relevo al acabar la bienvenida, un cambio de
+     * vista), el objeto caduca: se vuelve a buscar.
+     */
     private fun pulsar(selector: BySelector) {
+        repeat(3) {
+            try {
+                esperar(selector).click()
+                device.waitForIdle()
+                return
+            } catch (_: StaleObjectException) {
+                device.waitForIdle()
+            }
+        }
         esperar(selector).click()
         device.waitForIdle()
     }
