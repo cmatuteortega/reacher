@@ -66,6 +66,7 @@
     <string name="recoger">Einklappen</string>
     <string name="con_calma">Entspannt</string>
     <string name="tu_el_sol">Du, die Sonne deines Systems</string>
+    <string name="letrero_orbita">&lt;%1$d T</string>
     <string name="anadir_persona">Person hinzufügen</string>
     <string name="proximo_aviso_el">nächste Erinnerung %1$s</string>
 

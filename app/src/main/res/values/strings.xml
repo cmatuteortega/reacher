@@ -72,6 +72,8 @@
     <string name="recoger">Collapse</string>
     <string name="con_calma">Doing fine</string>
     <string name="tu_el_sol">You, the sun of your system</string>
+    <!-- Letrero de cada anillo de las orbitas, muy corto: "menos de N dias". -->
+    <string name="letrero_orbita">&lt;%1$d D</string>
     <string name="anadir_persona">Add person</string>
     <string name="proximo_aviso_el">next reminder %1$s</string>
 

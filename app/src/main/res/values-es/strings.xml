@@ -66,6 +66,7 @@
     <string name="recoger">Recoger</string>
     <string name="con_calma">Con calma</string>
     <string name="tu_el_sol">Tú, el sol de tu sistema</string>
+    <string name="letrero_orbita">&lt;%1$d D</string>
     <string name="anadir_persona">Añadir persona</string>
     <string name="proximo_aviso_el">próximo aviso %1$s</string>
 

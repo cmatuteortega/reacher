@@ -1,6 +1,7 @@
 package com.example.recuerdallamar.ui
 
 import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -150,7 +151,7 @@ internal class EnOrbita(val id: Long, val frecuencia: Int, val urgencia: Float)
 /** Donde descansa cada persona: anillo, angulo (0 a la derecha, PI/2 abajo) y radio de su burbuja. */
 internal class Puesto(val anillo: Int, val angulo: Float, val radio: Float)
 
-/** El letrero de un anillo: "< [dias] dias", empezando en [angulo]. */
+/** El letrero de un anillo: "<[dias] D", empezando en [angulo]. */
 internal class Letrero(val dias: Int, val angulo: Float)
 
 internal class PlanoOrbitas(
@@ -521,19 +522,21 @@ fun VistaOrbitas(
         val hoy = remember(contactos) { LocalDate.now() }
         val urgencias = remember(contactos, hoy) { contactos.associate { it.id to it.urgencia(hoy) } }
 
-        // Los letreros de los anillos: "< 7 dias", del color de los trazos.
+        // Los letreros de los anillos: "<7 D", estrechos, espaciados y del
+        // color del sol, como en un mapa del cielo.
         val recursos = LocalContext.current.resources
         val esquema = MaterialTheme.colorScheme
         val estilo = MaterialTheme.typography.labelSmall
         val pincel = remember(esquema, estilo, densidad) {
             Paint().apply {
                 isAntiAlias = true
-                color = esquema.onSurfaceVariant.toArgb()
-                textSize = with(densidad) { estilo.fontSize.toPx() }
-                letterSpacing = 0.04f
+                color = esquema.tertiary.toArgb()
+                typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+                textSize = with(densidad) { estilo.fontSize.toPx() * 1.1f }
+                letterSpacing = 0.18f
             }
         }
-        val letrero = { dias: Int -> "< " + recursos.dias(dias) }
+        val letrero = { dias: Int -> recursos.getString(R.string.letrero_orbita, dias) }
         val separacionLetrero = with(densidad) { SEPARACION_LETRERO.toPx() }
         // Sitio para el mas largo, que ninguno pise a la primera burbuja.
         val largoLetrero = remember(contactos, pincel) {

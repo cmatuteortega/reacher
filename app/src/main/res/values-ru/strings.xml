@@ -66,6 +66,7 @@
     <string name="recoger">Свернуть</string>
     <string name="con_calma">Не к спеху</string>
     <string name="tu_el_sol">Ты — солнце своей системы</string>
+    <string name="letrero_orbita">&lt;%1$d Д</string>
     <string name="anadir_persona">Добавить человека</string>
     <string name="proximo_aviso_el">следующее напоминание %1$s</string>
 

@@ -153,7 +153,7 @@ flecha vuelven a Personas.
      en el tamaño: el anillo es la **frecuencia** (de dentro afuera, de quien
      va más a menudo a quien menos, con una parte fija de la gente en cada
      anillo y sin partir frecuencias salvo que no quepan), y cada anillo lleva
-     escrito a lo largo «< X días». Con los días nadie cambia de anillo; solo
+     escrito a lo largo «<X D». Con los días nadie cambia de anillo; solo
      se reordenan al añadir o quitar gente o al cambiar una frecuencia.
    - **Burbujas** (`ui/VistaBurbujas.kt`) — cada persona es una
      burbuja con cara, más grande cuanto más cerca está de su

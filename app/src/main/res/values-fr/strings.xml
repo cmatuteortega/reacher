@@ -66,6 +66,7 @@
     <string name="recoger">Replier</string>
     <string name="con_calma">Tranquilles</string>
     <string name="tu_el_sol">Toi, le soleil de ton système</string>
+    <string name="letrero_orbita">&lt;%1$d J</string>
     <string name="anadir_persona">Ajouter une personne</string>
     <string name="proximo_aviso_el">prochain rappel %1$s</string>
 
