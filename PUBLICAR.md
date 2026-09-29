@@ -183,12 +183,18 @@ ejecución de CI que la compiló). CI comprueba que todos los idiomas tengan los
 mismos ficheros y que ninguno pase de 500 caracteres, el límite de Play.
 Actualizar `default.txt` en los cinco idiomas antes de cada versión.
 
-Falta, a mano, en cada `images/`:
+Las imágenes de cada `images/` (cinco capturas con título, `icon.png` de
+512×512 y `featureGraphic.png` de 1024×500) las genera
+`app/src/test/.../escaparate/EscaparateTest.kt` con las pantallas de verdad
+(Robolectric) y gente de ejemplo en cada idioma. Rehacerlas cuando cambien
+las pantallas, desde la raíz del repositorio:
 
-- `phoneScreenshots/`: de 2 a 8 capturas del teléfono (1080×1920 o similar):
-  burbujas, órbitas, ficha, aviso, widget, tema oscuro.
-- `featureGraphic.png`: 1024×500, el sol sobre marino.
-- `icon.png`: 512×512 (el icono de la app).
+```sh
+ESCAPARATE=$PWD ./gradlew :app:testDebugUnitTest --tests '*Escaparate*'
+```
+
+Sin `ESCAPARATE` esas pruebas se saltan (CI no las corre). Los títulos y los
+nombres de ejemplo están al principio del fichero.
 
 ## Play Console, paso a paso
 

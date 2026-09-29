@@ -26,9 +26,10 @@ screenshots, closed testing) are in [PUBLICAR.md](PUBLICAR.md).
       in the contact screen and *Settings › Debug › App language*.
 - [x] **Privacy policy** and Play **Data Safety** form (the app reads
       contacts).
-- [ ] **Store listing**: localized description, screenshots and feature
-      graphic. Texts are done (`fastlane/metadata`); screenshots and the
-      feature graphic are still to do.
+- [x] **Store listing**: localized description, screenshots and feature
+      graphic, all in `fastlane/metadata`. Screenshots (with captions), the
+      512px icon and the feature graphic are generated from the real screens
+      by `EscaparateTest` (`PUBLICAR.md`).
 - [x] **Target API 36**: Play requires new apps and updates to target the
       Android release from the year before (API 36 from 31 August 2026).
       `compileSdk`/`targetSdk` 36 with AGP 8.9.
