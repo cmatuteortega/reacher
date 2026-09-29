@@ -166,7 +166,8 @@ internal class PlanoOrbitas(
  * Anillos y puestos de todos. [personas] van ordenadas por frecuencia, de la
  * mas corta a la mas larga. El sol tiene centro en (0, [solY]) y radio
  * [solRadio]; la zona libre va de 0 a [ancho] y de 0 a [alto]. Al principio
- * de cada anillo quedan libres [largoLetrero] para su letrero.
+ * de cada anillo quedan libres [largoLetrero] para su letrero, que va
+ * pegado a la punta, sin mas margen que [altoLetrero].
  *
  * Quien va en cada anillo no depende de la urgencia, solo de cuantos son,
  * sus frecuencias y el lienzo: se cuenta con burbujas de un tamano fijo. Si
@@ -182,12 +183,13 @@ internal fun planearOrbitas(
     solRadio: Float,
     largoLetrero: Float,
     densidad: Density,
+    altoLetrero: Float = 0f,
 ): PlanoOrbitas {
     if (personas.isEmpty()) return PlanoOrbitas(emptyList(), emptyMap(), emptyList(), emptyList())
     val anillos = anillosPara(personas.size)..min(ANILLOS_MAX, max(anillosPara(personas.size), personas.size))
     return with(densidad) {
         fun intentar(n: Int, contando: Dp, aunqueNoQuepan: Boolean = false) =
-            repartirEnAnillos(personas, n, contando.toPx(), aunqueNoQuepan, ancho, alto, solY, solRadio, largoLetrero)
+            repartirEnAnillos(personas, n, contando.toPx(), aunqueNoQuepan, ancho, alto, solY, solRadio, largoLetrero, altoLetrero)
         listOf(RADIO_MIN, RADIO_SUELO).firstNotNullOfOrNull { contando ->
             anillos.firstNotNullOfOrNull { intentar(it, contando) }
         } ?: intentar(anillos.last, RADIO_SUELO, aunqueNoQuepan = true)!!
@@ -210,6 +212,7 @@ private fun Density.repartirEnAnillos(
     solY: Float,
     solRadio: Float,
     largoLetrero: Float,
+    altoLetrero: Float,
 ): PlanoOrbitas? {
     val cuantos = personas.size
     val grupos = cortesPorFrecuencia(personas.map { it.frecuencia }, PARTES[anillosPedidos - 1])
@@ -297,7 +300,8 @@ private fun Density.repartirEnAnillos(
         val aqui = reparto[k]
         // Todos los suyos van cada tantos dias o menos.
         val dias = personas.subList(i, i + aqui).maxOfOrNull { it.frecuencia } ?: 0
-        letreros += Letrero(dias, visible(r, tamanos.max()).first)
+        // En la punta del anillo: las burbujas empiezan igual, pasado su hueco.
+        letreros += Letrero(dias, min(visible(r, altoLetrero).first, visible(r, tamanos.max()).first))
         val sobra = r * (hasta - desde) - largo(tamanos, i, i + aqui)
         if (sobra >= 0f) {
             val hueco = sobra / (aqui + 1)
@@ -556,6 +560,7 @@ fun VistaOrbitas(
                     sol,
                     largoLetrero,
                     densidad,
+                    altoLetrero = pincel.textSize,
                 ).also { orbitales.colocar(it, porFrecuencia.map { c -> c.id }, solY, sol * 0.5f) }
             }
         }
