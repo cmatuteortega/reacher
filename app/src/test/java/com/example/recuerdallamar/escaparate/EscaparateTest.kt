@@ -71,7 +71,10 @@ enum class Lengua(val carpeta: String, val idioma: IdiomaElegido, val locale: Lo
     RU("ru-RU", IdiomaElegido.RU, Locale("ru", "RU")),
 }
 
-/** Cada captura, en el orden de la ficha: orbitas, burbujas, ficha, horas, orbitas en oscuro. */
+/**
+ * Cada captura, en el orden de la ficha, alternando claro y oscuro: orbitas,
+ * burbujas (oscuro), ficha, horas (oscuro), orbitas en oscuro.
+ */
 private val TITULOS = mapOf(
     Lengua.ES to listOf(
         "Tu gente, en órbita a tu alrededor",
@@ -257,7 +260,7 @@ class EscaparateTest(private val lengua: Lengua) {
         pasar(4_000)
         guardar(lengua, 1, "orbitas", pantalla())
 
-        almacen.cambiar { it.copy(vista = VistaPersonas.BURBUJAS) }
+        almacen.cambiar { it.copy(vista = VistaPersonas.BURBUJAS, tema = TemaElegido.OSCURO) }
         pasar(4_000)
         guardar(lengua, 2, "burbujas", pantalla())
 
@@ -356,7 +359,7 @@ class EscaparateBienvenidaTest(private val lengua: Lengua) {
         assumeTrue(System.getenv("ESCAPARATE") != null)
         shadowOf(app).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         AlmacenAjustes.de(app).cambiar {
-            it.copy(idioma = lengua.idioma, tema = TemaElegido.CLARO, horaDesde = 10, horaHasta = 21)
+            it.copy(idioma = lengua.idioma, tema = TemaElegido.OSCURO, horaDesde = 10, horaHasta = 21)
         }
         escenario = ActivityScenario.launch(MainActivity::class.java)
         compose.waitForIdle()
