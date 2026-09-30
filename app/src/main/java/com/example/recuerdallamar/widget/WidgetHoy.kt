@@ -65,6 +65,9 @@ private val colorTarde = ColorProvider(day = claro.acentoLegible, night = oscuro
  * cumple anos. Tocar a alguien abre su ficha; el titulo, Personas; el +, la
  * agenda para anadir. Se redibuja cada vez que cambia la base de datos (ver
  * App) y una vez al dia desde los trabajos de avisos, que es cuando cambia la fecha.
+ *
+ * Solo actionStartActivity: el manifiesto quita los trampolines de Glance, que
+ * hacen falta para cualquier otra accion (ver AndroidManifest).
  */
 class WidgetHoy : GlanceAppWidget() {
 
