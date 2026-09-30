@@ -117,5 +117,22 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_hoy" />
         </receiver>
+
+        <!--
+          Trampolines de Glance: solo se usan para acciones que no son
+          actionStartActivity (callbacks, broadcasts, servicios). El widget solo
+          abre actividades, que Glance lanza directas, asi que nunca las usamos.
+          En EMUI (Honor/Huawei, Android 11) el sistema relanzaba la invisible
+          sin su intent y la app se caia (IllegalArgumentException en
+          launchTrampolineAction). Quitadas, ese relanzamiento falla fuera de
+          nuestro proceso. Si el widget llega a usar otro tipo de accion,
+          hay que quitar estas lineas.
+        -->
+        <activity
+            android:name="androidx.glance.appwidget.action.ActionTrampolineActivity"
+            tools:node="remove" />
+        <activity
+            android:name="androidx.glance.appwidget.action.InvisibleActionTrampolineActivity"
+            tools:node="remove" />
     </application>
 </manifest>
