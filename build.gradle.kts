@@ -8,5 +8,5 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0" apply false
     // Informes de fallos: sube el mapping de R8 para leer las trazas.
-    id("io.sentry.android.gradle") version "5.12.2" apply false
+    id("io.sentry.android.gradle") version "6.23.0" apply false
 }
