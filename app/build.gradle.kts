@@ -197,8 +197,8 @@ dependencies {
 
     // Informes de fallos (activados por defecto, se apagan en Ajustes) y
     // estadisticas de uso anonimas (solo si el usuario acepta).
-    implementation("io.sentry:sentry-android:8.58.0")
-    implementation("com.posthog:posthog-android:3.71.1")
+    implementation("io.sentry:sentry-android:8.60.0")
+    implementation("com.posthog:posthog-android:3.72.1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
