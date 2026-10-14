@@ -174,9 +174,9 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     implementation("androidx.navigation:navigation-compose:2.8.5")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0")
     // Copia de seguridad en JSON (Ajustes > Copia de seguridad).
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Widget de la pantalla de inicio.
@@ -206,7 +206,7 @@ dependencies {
     testImplementation("androidx.test.ext:junit-ktx:1.2.1")
     testImplementation("androidx.room:room-testing:2.6.1")
     testImplementation("androidx.work:work-testing:2.10.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation(composeBom)
     testImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
