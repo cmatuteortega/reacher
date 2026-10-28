@@ -754,17 +754,13 @@ private fun BurbujaOrbita(
                     )
                 },
         ) {
-            CaraBurbuja(animoPara(urgencia, atenuada = false), pulsada, false, contacto.id.toInt(), fotograma) {
-                Offset(satelite.vx, satelite.vy)
-            }
-            foto?.let {
-                Avatar(
-                    contacto.nombre,
-                    it,
-                    radio * 0.7f,
-                    inicial,
-                    Modifier.align(Alignment.BottomEnd).offset(-radio * 0.12f, -radio * 0.12f),
-                )
+            val fotoContacto = foto
+            if (fotoContacto != null) {
+                Avatar(contacto.nombre, fotoContacto, radio * 2, inicial, Modifier.align(Alignment.Center))
+            } else {
+                CaraBurbuja(animoPara(urgencia, atenuada = false), pulsada, false, contacto.id.toInt(), fotograma) {
+                    Offset(satelite.vx, satelite.vy)
+                }
             }
         }
         if (conNombre) {

@@ -581,9 +581,9 @@ private fun PlanetaVista(
                 Avatar(
                     contacto.nombre,
                     it,
-                    radio * 0.8f,
+                    radio * 2,
                     MaterialTheme.typography.labelSmall,
-                    Modifier.align(Alignment.BottomEnd),
+                    Modifier.align(Alignment.Center),
                 )
             }
         }

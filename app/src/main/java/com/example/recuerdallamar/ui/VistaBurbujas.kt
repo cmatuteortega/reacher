@@ -389,16 +389,12 @@ private fun BurbujaPersona(
         onToque = onToque,
         acciones = acciones,
     ) { pulsada, agarrada ->
-        CaraBurbuja(animo, pulsada, agarrada, cuerpo.clave.toInt(), fotograma) { Offset(cuerpo.vx, cuerpo.vy) }
-        // La foto va en una chapita abajo a la derecha: la cara es la burbuja.
-        foto?.let {
-            Avatar(
-                contacto.nombre,
-                it,
-                radio * 0.7f,
-                inicial,
-                Modifier.align(Alignment.BottomEnd).offset(-radio * 0.12f, -radio * 0.12f),
-            )
+        // Con foto, la foto cubre toda la burbuja; sin ella, la cara.
+        val fotoContacto = foto
+        if (fotoContacto != null) {
+            Avatar(contacto.nombre, fotoContacto, radio * 2, inicial, Modifier.align(Alignment.Center))
+        } else {
+            CaraBurbuja(animo, pulsada, agarrada, cuerpo.clave.toInt(), fotograma) { Offset(cuerpo.vx, cuerpo.vy) }
         }
     }
 }
