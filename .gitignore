@@ -10,3 +10,10 @@ captures/
 keystore.properties
 *.jks
 *.keystore
+
+# iOS: salen de ios/project.yml (XcodeGen)
+ios/Contacto.xcodeproj/
+ios/Contacto/Info.plist
+xcuserdata/
+DerivedData/
+*.xcresult

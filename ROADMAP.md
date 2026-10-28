@@ -172,3 +172,21 @@ Moved out of phase 5 so it could be closed; not scheduled yet.
 - [ ] **History and streaks/stats** per person.
 - [ ] **Optional sync** across devices (keeping local-only as the default and
       privacy selling point).
+
+## iOS
+
+Native SwiftUI version in [`ios/`](ios/README.md) with its own workflow
+(`.github/workflows/ios.yml`).
+
+- [x] Core app: people, urgency, orbits / bubbles / list, contact card, edit,
+      settings, welcome, local-notification reminders, JSON backup compatible
+      with Android, 5 languages generated from the Android strings.
+- [x] CI: tests on a simulator, simulator build as artifact, signed `.ipa` and
+      TestFlight upload on `ios-v*` tags (needs the Apple secrets in
+      `ios/PUBLICAR.md`).
+- [ ] First CI run and first run on a real iPhone: the SwiftUI layer was
+      written without a Mac (only the Foundation-level logic was compiled and
+      tested, on Linux), so expect compile fixes and visual tweaks.
+- [ ] App Store listing (metadata and screenshots in five languages).
+- [ ] Home-screen widget and quick action (WidgetKit + App Group).
+- [ ] Bubble physics (throw and collide) and the "doing fine" collapse.

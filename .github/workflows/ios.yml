@@ -1,0 +1,198 @@
+name: iOS
+
+# La version de iOS (SwiftUI, carpeta ios/). Compila, pasa las pruebas en un
+# simulador y deja la app de simulador como artefacto. Con los secretos de la
+# firma de Apple, tambien deja el .ipa firmado, y en una etiqueta ios-v* lo
+# sube a TestFlight. Como subirlo todo: ios/PUBLICAR.md.
+on:
+  push:
+    paths:
+      - 'ios/**'
+      - 'app/src/main/res/values*/strings.xml'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'app/src/main/res/values*/strings.xml'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      # El numero de compilacion sube con cada ejecucion; la version es la de la
+      # ultima etiqueta ios-v* (ios-v1.2.0 -> 1.2.0), o 1.0.0 si aun no hay.
+      BUILD_NUMBER: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Version
+        run: |
+          version=$(git describe --tags --match 'ios-v*' --abbrev=0 2>/dev/null | sed 's/^ios-v//' || true)
+          # Apple solo admite 1 a 3 numeros separados por puntos.
+          if ! [[ "$version" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then version=1.0.0; fi
+          echo "MARKETING_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Version $version ($BUILD_NUMBER)"
+
+      # Las traducciones salen de los strings.xml de Android: si alguien toca
+      # uno y no regenera el catalogo de iOS, esto falla.
+      - name: Catalogo de textos al dia
+        run: python3 ios/tools/generar_cadenas.py --comprobar
+
+      - name: Instalar XcodeGen
+        run: brew install xcodegen
+
+      - name: Generar el proyecto de Xcode
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Elegir simulador
+        id: simulador
+        run: |
+          id=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          datos = json.load(sys.stdin)["devices"]
+          # El iOS mas nuevo instalado y, en el, el primer iPhone.
+          for runtime in sorted((r for r in datos if "iOS" in r), reverse=True):
+              for d in datos[runtime]:
+                  if d["name"].startswith("iPhone") and d["isAvailable"]:
+                      print(d["udid"]); raise SystemExit
+          raise SystemExit("no hay simulador de iPhone")
+          ')
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Pruebas
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project ios/Contacto.xcodeproj -scheme Contacto \
+            -destination "id=${{ steps.simulador.outputs.id }}" \
+            -resultBundlePath ios/build/Pruebas.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -n 80
+
+      - name: Informe de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-informe-pruebas
+          path: ios/build/Pruebas.xcresult
+          if-no-files-found: ignore
+
+      - name: Compilar la app de simulador
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project ios/Contacto.xcodeproj -scheme Contacto -configuration Debug \
+            -sdk iphonesimulator -derivedDataPath ios/build/simulador \
+            CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="$MARKETING_VERSION" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            | tail -n 20
+          cd ios/build/simulador/Build/Products/Debug-iphonesimulator
+          ditto -c -k --keepParent Contacto.app "$GITHUB_WORKSPACE/Contacto-simulador.zip"
+
+      - name: Subir la app de simulador
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulador
+          path: Contacto-simulador.zip
+
+      # Solo con los secretos de la firma (no llegan a los PR desde forks).
+      - name: Preparar firma
+        id: firma
+        env:
+          CERTIFICADO_BASE64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          CERTIFICADO_CLAVE: ${{ secrets.IOS_CERT_PASSWORD }}
+          PERFIL_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          EQUIPO: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          if [ -z "$CERTIFICADO_BASE64" ] || [ -z "$PERFIL_BASE64" ] || [ -z "$EQUIPO" ]; then
+            echo "::notice::Sin los secretos de firma de iOS (ios/PUBLICAR.md): no se compila el .ipa."
+            exit 0
+          fi
+          llavero="$RUNNER_TEMP/firma.keychain-db"
+          clave_llavero=$(uuidgen)
+          security create-keychain -p "$clave_llavero" "$llavero"
+          security set-keychain-settings -lut 21600 "$llavero"
+          security unlock-keychain -p "$clave_llavero" "$llavero"
+          echo "$CERTIFICADO_BASE64" | base64 --decode > "$RUNNER_TEMP/certificado.p12"
+          security import "$RUNNER_TEMP/certificado.p12" -P "$CERTIFICADO_CLAVE" -A -t cert -f pkcs12 -k "$llavero"
+          security set-key-partition-list -S apple-tool:,apple: -k "$clave_llavero" "$llavero"
+          security list-keychain -d user -s "$llavero" login.keychain-db
+          echo "$PERFIL_BASE64" | base64 --decode > "$RUNNER_TEMP/perfil.mobileprovision"
+          security cms -D -i "$RUNNER_TEMP/perfil.mobileprovision" > "$RUNNER_TEMP/perfil.plist"
+          nombre=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$RUNNER_TEMP/perfil.plist")
+          uuid=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/perfil.plist")
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$RUNNER_TEMP/perfil.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.mobileprovision"
+          echo "PERFIL_NOMBRE=$nombre" >> "$GITHUB_ENV"
+          echo "hay=true" >> "$GITHUB_OUTPUT"
+
+      - name: Archivar y exportar el .ipa
+        if: steps.firma.outputs.hay == 'true'
+        env:
+          EQUIPO: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project ios/Contacto.xcodeproj -scheme Contacto -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath ios/build/Contacto.xcarchive \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM="$EQUIPO" PROVISIONING_PROFILE_SPECIFIER="$PERFIL_NOMBRE" \
+            MARKETING_VERSION="$MARKETING_VERSION" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            | tail -n 20
+          cat > ios/build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$EQUIPO</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict><key>com.cmatuteortega.contacto</key><string>$PERFIL_NOMBRE</string></dict>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath ios/build/Contacto.xcarchive \
+            -exportOptionsPlist ios/build/ExportOptions.plist \
+            -exportPath ios/build/ipa \
+            | tail -n 20
+
+      - name: Subir el .ipa
+        if: steps.firma.outputs.hay == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ env.MARKETING_VERSION }}-${{ env.BUILD_NUMBER }}
+          path: |
+            ios/build/ipa/*.ipa
+            ios/build/Contacto.xcarchive/dSYMs
+
+      # Solo en una etiqueta ios-v*: lo que se etiqueta es lo que llega a TestFlight.
+      - name: Subir a TestFlight
+        if: steps.firma.outputs.hay == 'true' && startsWith(github.ref, 'refs/tags/ios-v')
+        env:
+          CLAVE_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          EMISOR: ${{ secrets.APPSTORE_ISSUER_ID }}
+          CLAVE_P8: ${{ secrets.APPSTORE_KEY_P8 }}
+        run: |
+          if [ -z "$CLAVE_ID" ] || [ -z "$EMISOR" ] || [ -z "$CLAVE_P8" ]; then
+            echo "::error::Faltan APPSTORE_KEY_ID, APPSTORE_ISSUER_ID o APPSTORE_KEY_P8 para subir a TestFlight (ios/PUBLICAR.md)."
+            exit 1
+          fi
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          printf '%s' "$CLAVE_P8" > "$HOME/.appstoreconnect/private_keys/AuthKey_${CLAVE_ID}.p8"
+          xcrun altool --upload-app --type ios \
+            --file ios/build/ipa/Contacto.ipa \
+            --apiKey "$CLAVE_ID" --apiIssuer "$EMISOR"
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${CLAVE_ID}.p8"

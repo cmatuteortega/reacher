@@ -37,6 +37,15 @@ El perfil de referencia (arranque más rápido) y las mediciones de arranque
 están en el módulo `baselineprofile` y se lanzan a mano con el flujo
 *Rendimiento* (`.github/workflows/rendimiento.yml`), que usa un emulador.
 
+## iOS
+
+También hay versión nativa para iPhone y iPad (SwiftUI + SwiftData, iOS 17+)
+en [`ios/`](ios/README.md): la misma paleta, pantallas y textos (salen de los
+`strings.xml` de esta app) y el mismo formato de copia de seguridad, de modo que
+se puede pasar la gente de un sistema a otro. Se compila, prueba y sube a
+TestFlight con `.github/workflows/ios.yml`; cómo publicarla:
+[ios/PUBLICAR.md](ios/PUBLICAR.md).
+
 ## Aspecto
 
 * **Icono**: el sol con ojos de la pantalla principal, en naranja sobre marino,
