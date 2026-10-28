@@ -86,6 +86,9 @@ def generar() -> str:
     for nombre in claves:
         cadenas[nombre] = {"localizations": {i: unidad(datos[i][0][nombre]) for i in IDIOMAS if nombre in datos[i][0]}}
     for nombre in sorted(datos["en"][1]):
+        # Un plural sin cifra ("dia · desliza") no vale para Apple, que lo exige; iOS no lo usa.
+        if not all("%lld" in v or "%1$lld" in v for i in IDIOMAS for v in datos[i][1].get(nombre, {}).values()):
+            continue
         loc = {}
         for i in IDIOMAS:
             if nombre not in datos[i][1]:
