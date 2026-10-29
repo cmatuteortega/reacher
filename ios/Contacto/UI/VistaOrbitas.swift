@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Las burbujas en anillos alrededor del sol de la esquina. La urgencia solo se
+/// Las burbujas en anillos alrededor del sol de la esquina de la pantalla. La urgencia solo se
 /// ve en el tamano; el anillo es la frecuencia, y cada anillo lleva escrito "<X D".
 struct VistaOrbitas: View {
     let personas: [Contacto]
@@ -8,11 +8,13 @@ struct VistaOrbitas: View {
     var alLlamarHoy: (Contacto) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reducirMovimiento
-    private let radioSol: CGFloat = 40
-    private let centroSol = CGPoint(x: 26, y: 26)
 
     var body: some View {
         GeometryReader { geo in
+            // El sol esta en la esquina de la pantalla, no en la de esta vista.
+            let marco = geo.frame(in: .global)
+            let centroSol = CGPoint(x: -marco.minX, y: -marco.minY)
+            let radioSol = SolEsquinaView.radioLibre(ancho: UIScreen.main.bounds.width)
             let ordenadas = personas.porFrecuencia()
             let plano = Orbitas.planear(
                 personas: ordenadas.map { EnOrbita(id: $0.uuid, frecuencia: $0.frecuenciaDias, urgencia: $0.urgencia()) },
@@ -22,8 +24,8 @@ struct VistaOrbitas: View {
                 TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: reducirMovimiento)) { linea in
                     let t = reducirMovimiento ? 0 : linea.date.timeIntervalSinceReferenceDate
                     ZStack(alignment: .topLeading) {
-                        anillos(plano)
-                        letreros(plano)
+                        anillos(plano, centroSol)
+                        letreros(plano, centroSol)
                         ForEach(ordenadas, id: \.uuid) { c in
                             if let puesto = plano.puestos[c.uuid] {
                                 let a = puesto.angulo + vaiven(anillo: puesto.anillo, t: t)
@@ -43,9 +45,6 @@ struct VistaOrbitas: View {
                         }
                     }
                 }
-                SolView(radio: radioSol)
-                    .position(centroSol)
-                    .allowsHitTesting(false)
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
             .animation(.spring(response: 0.6, dampingFraction: 0.8), value: ordenadas.map(\.uuid))
@@ -58,7 +57,7 @@ struct VistaOrbitas: View {
         0.05 * sin(t * 0.5 + Double(anillo) * 1.3) * (anillo % 2 == 0 ? 1 : -1)
     }
 
-    private func anillos(_ plano: PlanoOrbitas) -> some View {
+    private func anillos(_ plano: PlanoOrbitas, _ centroSol: CGPoint) -> some View {
         Canvas { contexto, _ in
             for (k, r) in plano.radios.enumerated() {
                 var camino = Path()
@@ -78,7 +77,7 @@ struct VistaOrbitas: View {
         .accessibilityHidden(true)
     }
 
-    private func letreros(_ plano: PlanoOrbitas) -> some View {
+    private func letreros(_ plano: PlanoOrbitas, _ centroSol: CGPoint) -> some View {
         ZStack(alignment: .topLeading) {
             ForEach(Array(plano.letreros.enumerated()), id: \.offset) { _, l in
                 let r = plano.radios[l.anillo]

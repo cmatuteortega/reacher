@@ -35,6 +35,8 @@ struct PantallaPersonas: View {
             }
             botonAnadir
         }
+        // El sol va por encima de todo, metido en la esquina de la pantalla.
+        .overlay(alignment: .topLeading) { SolEsquinaView() }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
@@ -54,29 +56,24 @@ struct PantallaPersonas: View {
 
     @ViewBuilder private var contenido: some View {
         if todos.isEmpty {
-            ZStack(alignment: .topLeading) {
-                Text("lista_vacia")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Paleta.textoSecundario)
-                    .padding(40)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                SolView(radio: 40).position(x: 26, y: 26).allowsHitTesting(false)
-            }
+            Text("lista_vacia")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Paleta.textoSecundario)
+                .padding(40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             switch vista {
             case .ORBITAS:
                 VistaOrbitas(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
             case .BURBUJAS:
-                ZStack(alignment: .topLeading) {
+                DejandoSitioAlSol { arriba in
                     VistaBurbujas(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
-                        .padding(.top, 70)
-                    SolView(radio: 40).position(x: 26, y: 26).allowsHitTesting(false)
+                        .padding(.top, arriba)
                 }
             case .LISTA:
-                ZStack(alignment: .topLeading) {
+                DejandoSitioAlSol { arriba in
                     VistaLista(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
-                        .safeAreaInset(edge: .top) { Color.clear.frame(height: 56) }
-                    SolView(radio: 40).position(x: 26, y: 26).allowsHitTesting(false)
+                        .safeAreaInset(edge: .top) { Color.clear.frame(height: arriba) }
                 }
             }
         }
@@ -92,7 +89,7 @@ struct PantallaPersonas: View {
             }
             .padding(.horizontal, 16)
             // A la derecha del sol, que ocupa la esquina.
-            .padding(.leading, 70)
+            .padding(.leading, SolEsquinaView.radioBase(ancho: UIScreen.main.bounds.width) * 0.6)
         }
         .padding(.vertical, 8)
     }
@@ -139,6 +136,18 @@ struct PantallaPersonas: View {
         case .ORBITAS: return "ver_como_orbitas"
         case .BURBUJAS: return "ver_como_burbujas"
         case .LISTA: return "ver_como_lista"
+        }
+    }
+}
+
+/// Da a su contenido lo que el sol de la esquina baja por debajo de su borde de arriba.
+private struct DejandoSitioAlSol<Contenido: View>: View {
+    @ViewBuilder var contenido: (CGFloat) -> Contenido
+
+    var body: some View {
+        GeometryReader { geo in
+            let radio = SolEsquinaView.radioLibre(ancho: geo.size.width)
+            contenido(max(radio - geo.frame(in: .global).minY, 0))
         }
     }
 }
