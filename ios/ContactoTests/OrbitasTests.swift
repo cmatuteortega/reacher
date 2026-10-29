@@ -67,18 +67,4 @@ final class OrbitasTests: XCTestCase {
             XCTAssertEqual(l.dias, delAnillo.map(\.frecuencia).max())
         }
     }
-
-    func testEmpaquetadoNoSolapaYCabeEnElAncho() {
-        let radios: [CGFloat] = [60, 55, 50, 44, 40, 38, 30, 28, 26, 24, 22, 20]
-        let (puestos, alto) = Empaquetado.colocar(radios: radios, ancho: 340)
-        XCTAssertEqual(puestos.count, radios.count)
-        XCTAssertGreaterThan(alto, 0)
-        for i in 0..<puestos.count {
-            XCTAssertLessThanOrEqual(abs(puestos[i].centro.x) + puestos[i].radio, 170 + 1)
-            for j in (i + 1)..<puestos.count {
-                let d = hypot(puestos[i].centro.x - puestos[j].centro.x, puestos[i].centro.y - puestos[j].centro.y)
-                XCTAssertGreaterThanOrEqual(d, puestos[i].radio + puestos[j].radio - 0.01)
-            }
-        }
-    }
 }

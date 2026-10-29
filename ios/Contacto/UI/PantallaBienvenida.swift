@@ -34,9 +34,10 @@ struct PantallaBienvenida: View {
     private var puntos: some View {
         HStack(spacing: 8) {
             ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .fill(i == paso ? Paleta.acento : Paleta.borde)
-                    .frame(width: i == paso ? 10 : 8, height: i == paso ? 10 : 8)
+                Capsule()
+                    .fill(i <= paso ? Paleta.acento : Paleta.borde)
+                    .frame(width: i == paso ? 24 : 8, height: 8)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: paso)
             }
         }
         .accessibilityHidden(true)
@@ -81,13 +82,17 @@ struct PantallaBienvenida: View {
         VStack(spacing: 12) {
             switch paso {
             case 0:
+                // La marca: el nombre (igual en todos los idiomas) y su lema.
+                Text(verbatim: "\(t("app_name")) · \(t("subtitulo"))")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Paleta.acentoLegible)
                 Text("bienvenida_sol_titulo").font(.largeTitle.weight(.bold))
                 Text("bienvenida_sol_texto").foregroundStyle(Paleta.textoSecundario)
             case 1:
                 Text("cuando_y_como").font(.largeTitle.weight(.bold))
                 Text(verbatim: resumenHorario).foregroundStyle(Paleta.textoSecundario)
             default:
-                Text(gente.isEmpty ? LocalizedStringKey("crea_tu_sistema") : LocalizedStringKey("alguien_en_orbita"))
+                Text(gente.isEmpty ? LocalizedStringKey("crea_tu_sistema") : (gente.count == 1 ? LocalizedStringKey("alguien_en_orbita") : LocalizedStringKey("sistema_crece")))
                     .font(.largeTitle.weight(.bold))
                 Text(gente.isEmpty ? LocalizedStringKey("elige_agenda_texto") : LocalizedStringKey("anade_mas_texto"))
                     .foregroundStyle(Paleta.textoSecundario)

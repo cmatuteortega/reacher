@@ -88,12 +88,28 @@ locales programadas por adelantado** (`Logica/Avisos.swift`, `PlanAvisos`):
 ## Diferencias con Android
 
 Lo que **no** está en la versión de iOS (todavía): el widget (necesita un App
-Group y otro perfil de firma), la física de las burbujas (arrastrar y soltar con
-impulso sí, con su háptico; chocar entre ellas no), la burbuja «Con calma», las
-actualizaciones dentro de la app (las da la App Store), el aviso de batería
-(no aplica: lo sustituye *Estado de los avisos*) y las estadísticas e informes
-de fallos (Sentry/PostHog): la de iOS no manda nada fuera del teléfono. Las
-caras y el sol son versiones más sencillas de `Cara.kt` y `SistemaSolar.kt`.
+Group y otro perfil de firma), las actualizaciones dentro de la app (las da la
+App Store), el aviso de batería (no aplica: lo sustituye *Estado de los avisos*),
+las estadísticas e informes de fallos (Sentry/PostHog: la de iOS no manda nada
+fuera del teléfono), el traspaso de los planetas de la bienvenida a la vista
+final, la marca de «aviso pulsado» de la ficha y refrescar foto y cumpleaños
+desde la agenda (el selector del sistema no da permiso para releerla). Las caras
+y el sol son versiones más sencillas de `Cara.kt` y `SistemaSolar.kt`.
+
+Lo que sí iguala a Android:
+
+* **Burbujas con física** (`Logica/Fisica.swift`, de `FisicaBurbujas.kt`): se
+  colocan con el mismo empaquetado voraz, chocan entre sí y con el sol de la
+  esquina, se estiran al correr, se lanzan y vuelven a casa con muelle; cada
+  choque vibra según su fuerza. Con más de 18 personas, las que van sobradas se
+  recogen en la burbuja «Con calma».
+* **Ficha**: anillo que se llena con la urgencia, «Mantén para anotar» (tics y
+  vibración firme), casillas de último contacto y próximo aviso, aviso
+  «Guardado» al editar y pausa con el mismo deslizador de días.
+* **iPad / pantalla ancha**: Personas a la izquierda y la ficha en un panel a
+  la derecha (desde 700 pt de ancho).
+* **Órbitas**: cada burbuja entra creciendo con rebote, una tras otra, y al
+  cambiar de frecuencia viaja a su anillo.
 
 Lo que sí tiene, a la manera de iOS:
 

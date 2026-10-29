@@ -15,6 +15,9 @@ struct FormularioPersona: View {
     @State private var nuevoCirculo = false
     @State private var textoCirculo = ""
     @State private var confirmarEliminar = false
+    @State private var diasPausa = 7
+    /// Cuantas veces se ha guardado solo al cambiar algo: el aviso «Guardado» se enciende con cada una.
+    @State private var guardados = 0
 
     private static let atajos: [(clave: String.LocalizationValue, dias: Int)] = [
         ("atajo_1_semana", 7), ("atajo_2_semanas", 14), ("atajo_1_mes", 30), ("atajo_2_meses", 60),
@@ -80,7 +83,9 @@ struct FormularioPersona: View {
             }
             .listRowBackground(Paleta.tarjeta)
 
-            if !alta {
+            if alta {
+                Section {} footer: { Text("se_guardara_hoy") }
+            } else {
                 Section { pausa }.listRowBackground(Paleta.tarjeta)
                 Section {
                     Button(role: .destructive) { confirmarEliminar = true } label: { Label("eliminar_contacto", systemImage: "trash") }
@@ -103,10 +108,13 @@ struct FormularioPersona: View {
             }
             if alta {
                 ToolbarItem(placement: .cancellationAction) { Button("cancelar") { alTerminar() } }
+            } else {
+                ToolbarItem(placement: .topBarLeading) { AvisoGuardado(cambios: guardados) }
             }
         }
         .onChange(of: contacto.frecuenciaDias) { guardarSiExiste() }
         .onChange(of: contacto.medioNombre) { guardarSiExiste() }
+        .onChange(of: contacto.circulo) { guardarSiExiste() }
         .sensoryFeedback(.selection, trigger: contacto.medioNombre)
         .sensoryFeedback(.selection, trigger: contacto.frecuenciaDias)
         .onDisappear { guardarSiExiste() }
@@ -128,6 +136,7 @@ struct FormularioPersona: View {
     private func guardarSiExiste() {
         guard !alta else { return }
         Entorno.shared.cambioGuardado()
+        guardados += 1
     }
 
     /// Familia, amigos y trabajo siempre, junto a los que haya.
@@ -174,14 +183,17 @@ struct FormularioPersona: View {
             Text(verbatim: t("en_pausa_burbuja", Formato.fecha(hasta)))
             Button { contacto.pausadoHasta = nil; guardarSiExiste() } label: { Label("reanudar_avisos", systemImage: "bell") }
         } else {
-            Menu {
-                ForEach(Self.plazosPausa, id: \.self) { dias in
-                    Button(t("pausar", Plural.dias(dias))) {
-                        contacto.pausadoHasta = Fechas.sumar(dias: dias, a: Date())
-                        guardarSiExiste()
-                    }
-                }
-            } label: { Label("pausa", systemImage: "bell.slash") }
+            Deslizador(
+                opciones: Self.plazosPausa,
+                elegida: diasPausa,
+                texto: { t("dias_corto", $0) },
+                alElegir: { diasPausa = $0 }
+            )
+            .padding(.vertical, 4)
+            Button {
+                contacto.pausadoHasta = Fechas.sumar(dias: diasPausa, a: Date())
+                guardarSiExiste()
+            } label: { Label(t("pausar", Plural.dias(diasPausa)), systemImage: "bell.slash") }
         }
     }
 }

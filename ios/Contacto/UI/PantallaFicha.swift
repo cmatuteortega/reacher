@@ -8,6 +8,8 @@ import UIKit
 struct PantallaFicha: View {
     @Bindable var contacto: Contacto
     var alEliminar: () -> Void
+    /// En el panel de una pantalla ancha no hay flecha de volver: una X la cierra.
+    var alCerrar: (() -> Void)?
 
     @Environment(\.dismiss) private var cerrar
     @State private var editando = false
@@ -29,19 +31,16 @@ struct PantallaFicha: View {
                         }
                     }
                 }
-                Button { llamadoHoy() } label: {
-                    Label("he_llamado_hoy", systemImage: "checkmark.circle")
-                }
-                .buttonStyle(EstiloBotonSecundario())
+                let yaHoy = Fechas.dias(de: contacto.ultimoContacto, a: Date()) == 0
+                BotonMantener(
+                    texto: yaHoy ? t("ultimo_contacto_hoy") : t("manten_para_anotar"),
+                    icono: "checkmark.circle",
+                    habilitado: !yaHoy,
+                    accesible: t("he_llamado_hoy"),
+                    alConfirmar: llamadoHoy
+                )
+                fechas
                 resumen
-                if !contacto.notas.isEmpty {
-                    Tarjeta {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("notas").font(.footnote.weight(.semibold)).foregroundStyle(Paleta.textoSecundario)
-                            Text(verbatim: contacto.notas)
-                        }
-                    }
-                }
             }
             .padding(16)
             .padding(.bottom, 80)
@@ -49,6 +48,12 @@ struct PantallaFicha: View {
         .background(Paleta.fondo)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if let alCerrar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: alCerrar) { Image(systemName: "xmark") }
+                        .accessibilityLabel(Text("cerrar"))
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button { editando = true } label: { Image(systemName: "pencil") }
                     .accessibilityLabel(Text("editar"))
@@ -94,8 +99,9 @@ struct PantallaFicha: View {
 
     private var cabecera: some View {
         VStack(spacing: 10) {
-            AvatarView(contacto: contacto, tamano: 120)
-                .overlay(Circle().stroke(contacto.tocaLlamar() ? Paleta.acento : .clear, lineWidth: 4))
+            AnilloUrgencia(urgencia: contacto.urgencia()) {
+                AvatarView(contacto: contacto, tamano: 124)
+            }
             Text(verbatim: contacto.nombre).font(.title.weight(.bold)).multilineTextAlignment(.center)
             Text(verbatim: contacto.telefono).foregroundStyle(Paleta.textoSecundario)
             if contacto.esCumpleanos() {
@@ -115,14 +121,38 @@ struct PantallaFicha: View {
         .padding(.top, 8)
     }
 
+    /// Ultimo contacto y proximo aviso en dos casillas, y lo que ha pasado con el aviso debajo.
+    private var fechas: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                casilla("ultimo_contacto", Formato.fecha(contacto.ultimoContacto))
+                casilla("proximo_aviso", Formato.fecha(contacto.proximoAviso()))
+            }
+            if contacto.descartes > 0 {
+                Text(verbatim: t("aviso_quitado", Plural.veces(contacto.descartes)))
+                    .font(.subheadline).foregroundStyle(Paleta.textoSecundario)
+                    .padding(.horizontal, 4)
+            }
+        }
+    }
+
+    private func casilla(_ titulo: LocalizedStringKey, _ valor: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(titulo).font(.footnote).foregroundStyle(Paleta.textoSecundario)
+            Text(verbatim: valor).font(.headline)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Paleta.tarjeta, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
     private var resumen: some View {
         Tarjeta {
             VStack(alignment: .leading, spacing: 12) {
                 fila("frecuencia", Plural.cadaDias(contacto.frecuenciaDias))
-                fila("ultimo_contacto", Formato.fecha(contacto.ultimoContacto))
-                fila("proximo_aviso", Formato.fecha(contacto.proximoAviso()))
                 fila("al_tocar_aviso", contacto.medio.etiqueta)
                 if let circulo = contacto.circulo { fila("circulo", circulo) }
+                if !contacto.notas.isEmpty { fila("notas", contacto.notas) }
             }
         }
         .onTapGesture { editando = true }
@@ -140,7 +170,6 @@ struct PantallaFicha: View {
     private func llamadoHoy() {
         contacto.llamadoHoy()
         Entorno.shared.cambioGuardado()
-        Haptico.confirmar()
         mostrar(t("anotado_hoy"))
     }
 

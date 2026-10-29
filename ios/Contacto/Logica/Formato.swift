@@ -17,6 +17,7 @@ enum Plural {
     static func diasTarde(_ n: Int) -> String { String(localized: "dias_tarde \(n)") }
     static func enDias(_ n: Int) -> String { String(localized: "en_dias \(n)") }
     static func resumenAvisos(_ n: Int) -> String { String(localized: "resumen_avisos \(n)") }
+    static func veces(_ n: Int) -> String { String(localized: "veces \(n)") }
     static func copiaExportada(_ n: Int) -> String { String(localized: "copia_exportada \(n)") }
 }
 

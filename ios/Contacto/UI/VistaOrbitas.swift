@@ -1,5 +1,27 @@
 import SwiftUI
 
+private struct Firma: Equatable {
+    let id: UUID
+    let frecuencia: Int
+}
+
+/// Cada una entra creciendo desde nada con un rebote, una tras otra (`Burbuja` de Android).
+private struct Aparece: ViewModifier {
+    let orden: Int
+    let sin: Bool
+    @State private var visible = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(visible ? 1 : 0.001)
+            .animation(
+                sin ? nil : Animation.spring(response: 0.7, dampingFraction: 0.55).delay(Double(min(orden * 30, 600)) / 1000),
+                value: visible
+            )
+            .onAppear { visible = true }
+    }
+}
+
 /// Las burbujas en anillos alrededor del sol de la esquina de la pantalla. La urgencia solo se
 /// ve en el tamano; el anillo es la frecuencia, y cada anillo lleva escrito "<X D".
 struct VistaOrbitas: View {
@@ -26,7 +48,7 @@ struct VistaOrbitas: View {
                     ZStack(alignment: .topLeading) {
                         anillos(plano, centroSol)
                         letreros(plano, centroSol)
-                        ForEach(ordenadas, id: \.uuid) { c in
+                        ForEach(Array(ordenadas.enumerated()), id: \.element.uuid) { orden, c in
                             if let puesto = plano.puestos[c.uuid] {
                                 let a = puesto.angulo + vaiven(anillo: puesto.anillo, t: t)
                                 let r = plano.radios[puesto.anillo]
@@ -35,6 +57,7 @@ struct VistaOrbitas: View {
                                     mostrarNombre: puesto.radio >= 20, urgencia: c.urgencia()
                                 )
                                 // El toque va antes que position: position ocupa todo el espacio y se lo comeria.
+                                .modifier(Aparece(orden: orden, sin: reducirMovimiento))
                                 .onTapGesture { alAbrir(c) }
                                 .accessibilityAction(named: Text("he_llamado_hoy")) { alLlamarHoy(c) }
                                 .position(
@@ -47,7 +70,8 @@ struct VistaOrbitas: View {
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
-            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: ordenadas.map(\.uuid))
+            // Al cambiar a alguien de frecuencia viaja a su anillo en vez de saltar.
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: ordenadas.map { Firma(id: $0.uuid, frecuencia: $0.frecuenciaDias) })
             .clipped()
         }
     }

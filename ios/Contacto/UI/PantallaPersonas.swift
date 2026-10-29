@@ -72,10 +72,8 @@ struct PantallaPersonas: View {
             case .ORBITAS:
                 VistaOrbitas(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
             case .BURBUJAS:
-                DejandoSitioAlSol { arriba in
-                    VistaBurbujas(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
-                        .padding(.top, arriba)
-                }
+                // Las burbujas chocan con el sol de la esquina: no hace falta dejarle sitio.
+                VistaBurbujas(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
             case .LISTA:
                 DejandoSitioAlSol { arriba in
                     VistaLista(personas: visibles, alAbrir: alAbrir, alLlamarHoy: llamadoHoy)
