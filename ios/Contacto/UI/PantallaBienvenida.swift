@@ -65,12 +65,11 @@ struct PantallaBienvenida: View {
     private var horas: some View {
         Tarjeta {
             VStack(spacing: 12) {
-                Picker("ios_desde", selection: $almacen.valores.horaDesde) {
-                    ForEach(0..<24, id: \.self) { Text(verbatim: Formato.hora($0)).tag($0) }
+                DialFranja(desde: almacen.valores.horaDesde, hasta: almacen.valores.horaHasta) { desde, hasta in
+                    almacen.valores.horaDesde = desde
+                    almacen.valores.horaHasta = hasta
                 }
-                Picker("ios_hasta", selection: $almacen.valores.horaHasta) {
-                    ForEach(0..<24, id: \.self) { Text(verbatim: Formato.hora($0)).tag($0) }
-                }
+                .frame(maxWidth: 280)
                 Picker(selection: $almacen.valores.medioPorDefecto) {
                     ForEach(MedioContacto.elegibles, id: \.self) { m in Text(verbatim: m.etiqueta).tag(m) }
                 } label: { Text("al_tocar_aviso") }

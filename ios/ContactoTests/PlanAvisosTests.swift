@@ -77,4 +77,15 @@ final class PlanAvisosTests: XCTestCase {
         XCTAssertEqual(fechas(ultimo: momento(1), ahora: momento(2), cantidad: 7).count, 7)
         XCTAssertTrue(fechas(ultimo: momento(1), ahora: momento(2), cantidad: 0).isEmpty)
     }
+
+    func testElAvisoMasAtrasadoPesaMasEnElResumenDelSistema() {
+        XCTAssertLessThan(Avisos.relevancia(urgencia: 1), Avisos.relevancia(urgencia: 1.5))
+        XCTAssertLessThan(Avisos.relevancia(urgencia: 1.5), Avisos.relevancia(urgencia: 2))
+    }
+
+    func testLaRelevanciaSeQuedaEntreCeroYUno() {
+        XCTAssertEqual(Avisos.relevancia(urgencia: 0), 0.3, accuracy: 0.0001)
+        XCTAssertEqual(Avisos.relevancia(urgencia: 50), 1, accuracy: 0.0001)
+        XCTAssertLessThan(Avisos.relevancia(urgencia: 1), Avisos.relevanciaCumple)
+    }
 }

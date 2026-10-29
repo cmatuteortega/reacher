@@ -13,6 +13,8 @@ struct RaizView: View {
     @ObservedObject var router: Router
     @Environment(\.scenePhase) private var fase
     @State private var ruta = NavigationPath()
+    /// Cada atajo de "Anadir persona" suma uno: Personas abre la agenda al verlo cambiar.
+    @State private var peticionesAnadir = 0
 
     var body: some View {
         Group {
@@ -34,6 +36,9 @@ struct RaizView: View {
                 // Los dias pasan: lo que toca hoy y los avisos de mañana se rehacen al volver.
                 Avisos.shared.reprogramar()
                 atender()
+            } else if fase == .background {
+                // Si no se vuelve a abrir, el sistema renueva los avisos cuando pueda.
+                Refresco.programar()
             }
         }
         .onChange(of: router.pendiente) { atender() }
@@ -44,7 +49,8 @@ struct RaizView: View {
         NavigationStack(path: $ruta) {
             PantallaPersonas(
                 alAbrir: { ruta.append($0) },
-                alAjustes: { ruta.append(Destino.ajustes) }
+                alAjustes: { ruta.append(Destino.ajustes) },
+                peticionAnadir: peticionesAnadir
             )
             .navigationDestination(for: Contacto.self) { contacto in
                 PantallaFicha(contacto: contacto, alEliminar: { eliminar(contacto) })
@@ -70,6 +76,11 @@ struct RaizView: View {
         switch pendiente {
         case .ficha(let id):
             if let c = Entorno.shared.contacto(uuid: id) { ruta = NavigationPath([c]) }
+        case .anadir:
+            ruta = NavigationPath()
+            peticionesAnadir += 1
+        case .ajustes:
+            ruta = NavigationPath([Destino.ajustes])
         case .contactar(let id):
             guard let c = Entorno.shared.contacto(uuid: id) else { return }
             Task { await Contactar.abrir(telefono: c.telefono, medio: c.medio) }

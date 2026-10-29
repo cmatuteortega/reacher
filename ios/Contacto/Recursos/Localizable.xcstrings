@@ -5743,6 +5743,74 @@
         }
       }
     },
+    "ios_abrir_ajustes_avisos": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungseinstellungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notification settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes de notificaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages des notifications"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки уведомлений"
+          }
+        }
+      }
+    },
+    "ios_aviso_oculto": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jemand wartet auf ein Lebenszeichen von dir"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Someone is waiting to hear from you"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alguien espera saber de ti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quelqu'un attend de vos nouvelles"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кто-то ждёт вашей весточки"
+          }
+        }
+      }
+    },
     "ios_copia_explicacion": {
       "localizations": {
         "de": {
@@ -5879,6 +5947,40 @@
         }
       }
     },
+    "ios_pedir_permiso": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungen erlauben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow notifications"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir notificaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser les notifications"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешить уведомления"
+          }
+        }
+      }
+    },
     "ios_privacidad_texto": {
       "localizations": {
         "de": {
@@ -5909,6 +6011,380 @@
           "stringUnit": {
             "state": "translated",
             "value": "Contacto ничего не отправляет с телефона: ни аккаунтов, ни слежки, ни статистики. Ваши люди остаются на нём."
+          }
+        }
+      }
+    },
+    "ios_resumen_categoria": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%u weitere von Contacto"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%u more from Contacto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%u más de Contacto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%u de plus de Contacto"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ещё %u от Contacto"
+          }
+        }
+      }
+    },
+    "ios_salud_ahorro": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Stromsparmodus ist an: iOS kann die Hintergrundaktualisierung, die deine Erinnerungen erneuert, verzögern."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Low Power Mode is on: iOS may delay the background refresh that renews your reminders."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modo de bajo consumo está activado: iOS puede retrasar la actualización en segundo plano que renueva tus avisos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le mode économie d'énergie est activé : iOS peut retarder l'actualisation en arrière-plan qui renouvelle vos rappels."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включён режим энергосбережения: iOS может задерживать фоновое обновление, продлевающее напоминания."
+          }
+        }
+      }
+    },
+    "ios_salud_ok": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles in Ordnung: Erinnerungen erreichen dich."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything is in order: reminders can reach you."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo en orden: los avisos pueden llegarte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est en ordre : les rappels peuvent vous parvenir."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всё в порядке: напоминания дойдут до вас."
+          }
+        }
+      }
+    },
+    "ios_salud_permiso": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnerungen brauchen deine Erlaubnis, um zu erscheinen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders need your permission to show up."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los avisos necesitan tu permiso para salir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les rappels ont besoin de votre autorisation pour s'afficher."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для напоминаний нужно ваше разрешение."
+          }
+        }
+      }
+    },
+    "ios_salud_resumen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die geplante Zusammenfassung ist an: iOS kann Erinnerungen bis zur Zusammenfassung zurückhalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scheduled Summary is on: iOS may hold reminders until the summary time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El resumen programado está activado: iOS puede retener los avisos hasta la hora del resumen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le résumé programmé est activé : iOS peut retenir les rappels jusqu'à l'heure du résumé."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включена доставка сводкой: iOS может придерживать напоминания до времени сводки."
+          }
+        }
+      }
+    },
+    "ios_salud_sin_alertas": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Hinweise von Contacto sind aus: Erinnerungen kommen ohne Banner und ohne Spur auf dem Sperrbildschirm."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerts are off for Contacto: reminders arrive without a banner or any trace on the lock screen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las alertas de Contacto están apagadas: los avisos llegan sin banner ni rastro en la pantalla de bloqueo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les alertes de Contacto sont désactivées : les rappels arrivent sans bannière ni trace sur l'écran verrouillé."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оповещения Contacto выключены: напоминания приходят без баннера и не видны на экране блокировки."
+          }
+        }
+      }
+    },
+    "ios_salud_sin_segundo_plano": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrundaktualisierung ist aus. Erinnerungen werden nur beim Öffnen von Contacto erneuert und können nach einer Woche ausgehen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background App Refresh is off. Reminders only renew when you open Contacto, so they can run out after a week."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La actualización en segundo plano está apagada. Los avisos solo se renuevan al abrir Contacto, así que pueden acabarse a la semana."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'actualisation en arrière-plan est désactivée. Les rappels ne se renouvellent qu'à l'ouverture de Contacto : ils peuvent s'arrêter au bout d'une semaine."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фоновое обновление выключено. Напоминания продлеваются только при открытии Contacto и могут закончиться через неделю."
+          }
+        }
+      }
+    },
+    "ios_salud_sin_sonido": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Ton von Contacto ist aus: Erinnerungen kommen lautlos an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sounds are off for Contacto: reminders arrive silently."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El sonido de Contacto está apagado: los avisos llegan en silencio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le son de Contacto est désactivé : les rappels arrivent en silence."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звук Contacto выключен: напоминания приходят без звука."
+          }
+        }
+      }
+    },
+    "ios_salud_titulo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zustand der Erinnerungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder health"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de los avisos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "État des rappels"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Состояние напоминаний"
+          }
+        }
+      }
+    },
+    "ios_sin_correo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine E-Mail-App gefunden. Wir haben die Adresse kopiert: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No email app found. We copied the address: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ninguna app de correo. Hemos copiado la dirección: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune app de messagerie. Nous avons copié l'adresse : %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Почтовое приложение не найдено. Адрес скопирован: %@"
+          }
+        }
+      }
+    },
+    "ios_valorar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contacto bewerten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate Contacto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valorar Contacto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noter Contacto"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оценить Contacto"
           }
         }
       }

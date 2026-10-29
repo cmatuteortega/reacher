@@ -10,6 +10,8 @@ struct PantallaPersonas: View {
 
     var alAbrir: (Contacto) -> Void
     var alAjustes: () -> Void
+    /// Sube cuando el atajo del icono pide dar de alta a alguien.
+    var peticionAnadir = 0
 
     @State private var filtro: String?
     @State private var eligiendo = false
@@ -55,6 +57,7 @@ struct PantallaPersonas: View {
             }
         }
         .altaDesdeAgenda(eligiendo: $eligiendo, medioPorDefecto: almacen.valores.medioPorDefecto)
+        .onChange(of: peticionAnadir) { eligiendo = true }
     }
 
     @ViewBuilder private var contenido: some View {

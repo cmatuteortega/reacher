@@ -23,25 +23,41 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
     func configurar() {
         guard !Entorno.enPruebas else { return }
         centro.delegate = self
+        // Con icono (SF Symbols) para que en la pulsacion larga se vean como las acciones del sistema.
         let acciones = [
-            UNNotificationAction(identifier: Avisos.accionContactar, title: t("aviso_contactar"), options: [.foreground]),
-            UNNotificationAction(identifier: Avisos.accionMasTarde, title: t("aviso_mas_tarde"), options: []),
-            UNNotificationAction(identifier: Avisos.accionMasOpciones, title: t("aviso_mas_opciones"), options: [.foreground]),
+            UNNotificationAction(identifier: Avisos.accionContactar, title: t("aviso_contactar"), options: [.foreground], icon: UNNotificationActionIcon(systemImageName: "phone")),
+            UNNotificationAction(identifier: Avisos.accionMasTarde, title: t("aviso_mas_tarde"), options: [], icon: UNNotificationActionIcon(systemImageName: "clock")),
+            UNNotificationAction(identifier: Avisos.accionMasOpciones, title: t("aviso_mas_opciones"), options: [.foreground], icon: UNNotificationActionIcon(systemImageName: "ellipsis.circle")),
         ]
         centro.setNotificationCategories([
-            UNNotificationCategory(identifier: Avisos.categoria, actions: acciones, intentIdentifiers: [], options: []),
+            UNNotificationCategory(
+                identifier: Avisos.categoria, actions: acciones, intentIdentifiers: [],
+                // Con la vista previa oculta en el bloqueo no salen los nombres.
+                hiddenPreviewsBodyPlaceholder: t("ios_aviso_oculto"),
+                // El sistema agrupa por hilo; esto es el "y 3 mas" del resumen plegado.
+                categorySummaryFormat: t("ios_resumen_categoria"),
+                // Sin esta opcion, quitar el aviso de la bandeja no llega a la app (el `DESCARTADO` de Android).
+                options: [.customDismissAction]
+            ),
         ])
     }
 
     /// Pide permiso para avisar. Devuelve si se puede avisar.
     func pedirPermiso() async -> Bool {
         guard !Entorno.enPruebas else { return false }
-        let concedido = (try? await centro.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        // `providesAppNotificationSettings`: Ajustes del sistema ofrece "Ajustes de notificaciones de
+        // Contacto" y aqui se abre la pantalla de Ajustes (el equivalente a los canales de Android).
+        let concedido = (try? await centro.requestAuthorization(options: [.alert, .sound, .badge, .providesAppNotificationSettings])) ?? false
         return concedido
     }
 
     func estado() async -> UNAuthorizationStatus {
         await centro.notificationSettings().authorizationStatus
+    }
+
+    /// Todo lo que el usuario ha dejado (o quitado) a la app: alertas, sonido, resumen programado...
+    func ajustesDelSistema() async -> UNNotificationSettings {
+        await centro.notificationSettings()
     }
 
     /// Lo que hace falta de una persona para avisarle, sin atarlo a la base de datos.
@@ -56,24 +72,60 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
         let cumple: (mes: Int, dia: Int)?
     }
 
+    /// La reprogramacion que va en curso: cada una espera a la anterior, para que dos
+    /// seguidas (un cambio y la vuelta a la app) no se pisen a medias.
+    @MainActor private var enCurso: Task<Void, Never>?
+
     /// Rehace todos los avisos pendientes con lo que hay ahora en la base y en los ajustes.
     @MainActor
     func reprogramar() {
         guard !Entorno.enPruebas else { return }
+        let anterior = enCurso
+        anterior?.cancel()
+        enCurso = Task {
+            await anterior?.value
+            await reprogramarAhora()
+        }
+    }
+
+    /// Lo mismo, pero esperando a que termine: para la tarea de segundo plano, que no puede acabar antes.
+    @MainActor
+    func reprogramarAhora() async {
+        guard !Entorno.enPruebas, !Task.isCancelled else { return }
         let entorno = Entorno.shared
-        let gente = entorno.todos().map {
+        let personas = entorno.todos()
+        let gente = personas.map {
             Datos(
                 uuid: $0.uuid, nombre: $0.nombre, medio: $0.medio, ultimo: $0.ultimoContacto,
                 frecuencia: $0.frecuenciaDias, pospuestoHasta: $0.pospuestoHasta, pausadoHasta: $0.pausadoHasta,
                 cumple: $0.cumpleanos
             )
         }
+        // A quien ya no le toca (se hablo con el, se pauso, se borro) se le quita el aviso que siga en la bandeja.
+        let tocan = Set(personas.filter { $0.tocaLlamar() && !$0.pausado() }.map { $0.uuid.uuidString })
         let peticiones = Avisos.peticiones(gente, ajustes: entorno.ajustes.valores, ahora: Date())
-        Task {
-            centro.removeAllPendingNotificationRequests()
-            for p in peticiones { try? await centro.add(p) }
+        let entregados = await centro.deliveredNotifications()
+        let obsoletos = entregados.filter { (n: UNNotification) -> Bool in
+            let info = n.request.content.userInfo
+            guard info["tipo"] as? String == "aviso", let id = info["id"] as? String else { return false }
+            return !tocan.contains(id)
+        }
+        centro.removeDeliveredNotifications(withIdentifiers: obsoletos.map { $0.request.identifier })
+        centro.removeAllPendingNotificationRequests()
+        for p in peticiones {
+            if Task.isCancelled { return }
+            try? await centro.add(p)
         }
     }
+
+    /// Cuanto pesa un aviso en el resumen del sistema (0 a 1): el que ya va tarde sube arriba.
+    /// `urgencia` es la de Plazos (1 = toca hoy) en el momento en que suena.
+    static func relevancia(urgencia: Double) -> Double {
+        min(1, max(0.3, 0.3 + 0.35 * urgencia))
+    }
+
+    /// Los cumpleanos pesan mas que un aviso normal, aunque menos que uno muy atrasado.
+    static let relevanciaCumple = 0.9
 
     private static func peticiones(_ gente: [Datos], ajustes: Ajustes, ahora: Date) -> [UNNotificationRequest] {
         guard !gente.isEmpty else { return [] }
@@ -90,6 +142,9 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
             contenido.body = t("cumpleanos_felicita")
             contenido.sound = .default
             contenido.threadIdentifier = "cumpleanos"
+            contenido.summaryArgument = p.nombre
+            contenido.interruptionLevel = .active
+            contenido.relevanceScore = relevanciaCumple
             contenido.categoryIdentifier = Avisos.categoria
             contenido.userInfo = ["id": p.uuid.uuidString, "tipo": "cumpleanos"]
             var componentes = DateComponents(month: cumple.mes, day: cumple.dia, hour: ajustes.horaDesde, minute: 0)
@@ -124,6 +179,9 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
                 contenido.body = p.medio.aviso(nombre: p.nombre)
                 contenido.sound = .default
                 contenido.threadIdentifier = "personas"
+                contenido.summaryArgument = p.nombre
+                contenido.interruptionLevel = .active
+                contenido.relevanceScore = relevancia(urgencia: Plazos.urgencia(ultimo: p.ultimo, frecuencia: p.frecuencia, hoy: fecha))
                 contenido.categoryIdentifier = Avisos.categoria
                 contenido.userInfo = ["id": p.uuid.uuidString, "tipo": "aviso"]
                 let componentes = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: fecha)
@@ -141,10 +199,16 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
         [.banner, .list, .sound]
     }
 
+    /// Ajustes del sistema > Contacto > "Ajustes de notificaciones de Contacto".
+    func userNotificationCenter(_ center: UNUserNotificationCenter, openSettingsFor notification: UNNotification?) {
+        Task { @MainActor in Entorno.shared.router.pendiente = .ajustes }
+    }
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let info = response.notification.request.content.userInfo
         guard let texto = info["id"] as? String, let uuid = UUID(uuidString: texto) else { return }
         let accion = response.actionIdentifier
+        let esAviso = info["tipo"] as? String == "aviso"
         await MainActor.run {
             let entorno = Entorno.shared
             switch accion {
@@ -153,7 +217,8 @@ final class Avisos: NSObject, UNUserNotificationCenterDelegate {
             case Avisos.accionMasOpciones:
                 entorno.router.pendiente = .ficha(uuid)
             case UNNotificationDismissActionIdentifier:
-                break
+                // Lo quito de la bandeja sin hacerle caso: cuenta como descarte, nada mas.
+                if esAviso { entorno.descartar(uuid: uuid) }
             default:
                 // Tocar el aviso o "Contactar": abre la forma de contacto, que cuenta como contacto.
                 entorno.router.pendiente = .contactar(uuid)

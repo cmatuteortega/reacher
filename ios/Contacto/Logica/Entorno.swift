@@ -8,6 +8,10 @@ final class Router: ObservableObject {
     enum Pendiente: Equatable {
         case ficha(UUID)
         case contactar(UUID)
+        /// Del atajo del icono: abre la agenda para dar de alta a alguien.
+        case anadir
+        /// De Ajustes del sistema > Contacto > Ajustes de notificaciones.
+        case ajustes
     }
 
     @Published var pendiente: Pendiente?
@@ -60,6 +64,13 @@ final class Entorno {
         c.pospuestoHasta = Date().addingTimeInterval(Double(horas) * 3600)
         c.descartes += 1
         cambioGuardado()
+    }
+
+    /// El aviso se quito de la bandeja sin hacerle caso: solo se cuenta, el aviso de manana sigue en pie.
+    func descartar(uuid: UUID) {
+        guard let c = contacto(uuid: uuid) else { return }
+        c.descartes += 1
+        try? contexto.save()
     }
 
     func eliminar(_ c: Contacto) {

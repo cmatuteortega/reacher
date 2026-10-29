@@ -107,6 +107,8 @@ struct FormularioPersona: View {
         }
         .onChange(of: contacto.frecuenciaDias) { guardarSiExiste() }
         .onChange(of: contacto.medioNombre) { guardarSiExiste() }
+        .sensoryFeedback(.selection, trigger: contacto.medioNombre)
+        .sensoryFeedback(.selection, trigger: contacto.frecuenciaDias)
         .onDisappear { guardarSiExiste() }
         .alert("circulo_nuevo", isPresented: $nuevoCirculo) {
             TextField("circulo_pista", text: $textoCirculo)

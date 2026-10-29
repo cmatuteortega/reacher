@@ -78,6 +78,7 @@ struct EstiloBotonPrincipal: ButtonStyle {
             .padding(.horizontal, 20)
             .background(Paleta.principal, in: Capsule())
             .opacity(configuration.isPressed ? 0.85 : 1)
+            .modifier(Hundirse(pulsado: configuration.isPressed))
     }
 }
 
@@ -90,6 +91,19 @@ struct EstiloBotonSecundario: ButtonStyle {
             .padding(.horizontal, 20)
             .overlay(Capsule().stroke(Paleta.borde, lineWidth: 1.5))
             .opacity(configuration.isPressed ? 0.7 : 1)
+            .modifier(Hundirse(pulsado: configuration.isPressed))
+    }
+}
+
+/// Lo que se pulsa se hunde un poco y rebota al soltar, con un toque suave: `escalaAlPulsar` de Android.
+private struct Hundirse: ViewModifier {
+    let pulsado: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(pulsado ? 0.96 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: pulsado)
+            .sensoryFeedback(.impact(weight: .light), trigger: pulsado) { _, ahora in ahora }
     }
 }
 

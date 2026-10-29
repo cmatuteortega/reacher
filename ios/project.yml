@@ -37,6 +37,9 @@ targets:
         UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         ITSAppUsesNonExemptEncryption: false
         LSApplicationCategoryType: public.app-category.lifestyle
+        # Renovar los avisos en segundo plano (Logica/Refresco.swift).
+        BGTaskSchedulerPermittedIdentifiers: [com.cmatuteortega.contacto.refresco]
+        UIBackgroundModes: [fetch]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cmatuteortega.contacto

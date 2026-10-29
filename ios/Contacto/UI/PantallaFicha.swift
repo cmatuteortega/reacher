@@ -140,7 +140,7 @@ struct PantallaFicha: View {
     private func llamadoHoy() {
         contacto.llamadoHoy()
         Entorno.shared.cambioGuardado()
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        Haptico.confirmar()
         mostrar(t("anotado_hoy"))
     }
 

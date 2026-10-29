@@ -56,10 +56,14 @@ private struct BurbujaFlotante: View {
             .gesture(
                 DragGesture(minimumDistance: 6)
                     .onChanged { v in
+                        if !cogida { Haptico.agarrar() }
                         cogida = true
                         arrastre = v.translation
                     }
-                    .onEnded { _ in
+                    .onEnded { v in
+                        // Soltarla con impulso (lo que seguiria moviendose) es lanzarla.
+                        let impulso = hypot(v.predictedEndTranslation.width - v.translation.width, v.predictedEndTranslation.height - v.translation.height)
+                        if impulso > 220 { Haptico.lanzar() }
                         cogida = false
                         withAnimation(.interpolatingSpring(stiffness: 120, damping: 8)) { arrastre = .zero }
                     }

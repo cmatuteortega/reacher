@@ -1,4 +1,5 @@
 import SwiftData
+import StoreKit
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -6,14 +7,20 @@ import UserNotifications
 
 /// Los ajustes de la app, los de Android que tienen sentido en iOS: recordatorios
 /// (con pausa), horario, "Mas tarde", forma de contacto por defecto, apariencia,
-/// copia de seguridad y opiniones. La bateria (restricciones de los fabricantes)
-/// y la telemetria no existen aqui.
+/// copia de seguridad y opiniones. En lugar de la bateria (restricciones de los
+/// fabricantes) hay un repaso de lo que puede frenar los avisos en iOS: permisos,
+/// resumen programado, ahorro de energia y actualizacion en segundo plano. La
+/// telemetria no existe aqui.
 struct PantallaAjustes: View {
     @EnvironmentObject private var almacen: AlmacenAjustes
     @Query private var gente: [Contacto]
 
     @State private var preguntarPausa = false
-    @State private var estadoAvisos: UNAuthorizationStatus = .notDetermined
+    @State private var sistema: UNNotificationSettings?
+    @State private var ahorroEnergia = false
+    @State private var segundoPlano = UIBackgroundRefreshStatus.available
+    @Environment(\.scenePhase) private var fase
+    @Environment(\.requestReview) private var pedirValoracion
     @State private var exportando = false
     @State private var importando = false
     @State private var documento = ArchivoCopia(datos: Data())
@@ -24,6 +31,7 @@ struct PantallaAjustes: View {
     var body: some View {
         Form {
             recordatorios
+            salud
             horario
             masTarde
             contactosNuevos
@@ -36,7 +44,11 @@ struct PantallaAjustes: View {
         .background(Paleta.fondo)
         .navigationTitle(Text("ajustes"))
         .navigationBarTitleDisplayMode(.inline)
-        .task { estadoAvisos = await Avisos.shared.estado() }
+        .task { await refrescarSalud() }
+        // Se vuelve de los Ajustes del sistema con algo cambiado: se mira otra vez.
+        .onChange(of: fase) {
+            if fase == .active { Task { await refrescarSalud() } }
+        }
         // Cualquier cambio de aviso rehace las notificaciones pendientes.
         .onChange(of: almacen.valores) { Avisos.shared.reprogramar() }
         .confirmationDialog(Text("recordatorios"), isPresented: $preguntarPausa, titleVisibility: .visible) {
@@ -81,12 +93,6 @@ struct PantallaAjustes: View {
                     Text(verbatim: estadoRecordatorios).font(.footnote).foregroundStyle(Paleta.textoSecundario)
                 }
             }
-            if estadoAvisos == .denied {
-                Text("sin_permiso_avisos").font(.footnote).foregroundStyle(Paleta.acentoLegible)
-                Button("activa_notificaciones") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                }
-            }
         }
         .listRowBackground(Paleta.tarjeta)
     }
@@ -98,6 +104,86 @@ struct PantallaAjustes: View {
         return t("desactivados")
     }
 
+    // MARK: Salud de los avisos
+
+    /// Lo que en Android es la seccion de la bateria: aqui lo que puede frenar los
+    /// avisos son los permisos, el resumen programado, el ahorro de energia y la
+    /// actualizacion en segundo plano (que renueva los avisos sin abrir la app).
+    private var salud: some View {
+        Section("ios_salud_titulo") {
+            let problemas = problemasDeSalud
+            if problemas.isEmpty {
+                Label { Text("ios_salud_ok") } icon: { Image(systemName: "checkmark.circle") }
+                    .foregroundStyle(Paleta.textoSecundario)
+            } else {
+                ForEach(problemas, id: \.icono) { problema in
+                    Label { Text(verbatim: problema.texto) } icon: { Image(systemName: problema.icono) }
+                        .font(.subheadline)
+                        .foregroundStyle(Paleta.acentoLegible)
+                }
+                if sistema?.authorizationStatus == .notDetermined {
+                    Button {
+                        Task {
+                            _ = await Avisos.shared.pedirPermiso()
+                            await refrescarSalud()
+                            Avisos.shared.reprogramar()
+                        }
+                    } label: { Label("ios_pedir_permiso", systemImage: "bell.badge") }
+                } else {
+                    Button { abrirAjustesDeAvisos() } label: { Label("ios_abrir_ajustes_avisos", systemImage: "gearshape") }
+                }
+            }
+        }
+        .listRowBackground(Paleta.tarjeta)
+    }
+
+    private struct Problema {
+        let icono: String
+        let texto: String
+    }
+
+    private var problemasDeSalud: [Problema] {
+        var r: [Problema] = []
+        if let s = sistema {
+            switch s.authorizationStatus {
+            case .denied:
+                r.append(Problema(icono: "bell.slash", texto: t("sin_permiso_avisos")))
+            case .notDetermined:
+                r.append(Problema(icono: "bell.badge", texto: t("ios_salud_permiso")))
+            default:
+                if s.alertSetting == .disabled || (s.notificationCenterSetting == .disabled && s.lockScreenSetting == .disabled) {
+                    r.append(Problema(icono: "rectangle.badge.xmark", texto: t("ios_salud_sin_alertas")))
+                }
+                if s.soundSetting == .disabled {
+                    r.append(Problema(icono: "speaker.slash", texto: t("ios_salud_sin_sonido")))
+                }
+                if s.scheduledDeliverySetting == .enabled {
+                    r.append(Problema(icono: "clock.badge", texto: t("ios_salud_resumen")))
+                }
+            }
+        }
+        if segundoPlano != .available {
+            r.append(Problema(icono: "arrow.triangle.2.circlepath", texto: t("ios_salud_sin_segundo_plano")))
+        }
+        if ahorroEnergia {
+            r.append(Problema(icono: "battery.25", texto: t("ios_salud_ahorro")))
+        }
+        return r
+    }
+
+    private func refrescarSalud() async {
+        sistema = await Avisos.shared.ajustesDelSistema()
+        ahorroEnergia = ProcessInfo.processInfo.isLowPowerModeEnabled
+        segundoPlano = UIApplication.shared.backgroundRefreshStatus
+    }
+
+    /// Directo a la pantalla de notificaciones de la app, no a la general.
+    private func abrirAjustesDeAvisos() {
+        if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
+    }
+
     private func apagar(hasta: Date?) {
         almacen.valores.avisosActivos = false
         almacen.valores.pausaHasta = hasta
@@ -107,12 +193,13 @@ struct PantallaAjustes: View {
 
     private var horario: some View {
         Section("horario_avisos") {
-            Picker("ios_desde", selection: $almacen.valores.horaDesde) {
-                ForEach(0..<24, id: \.self) { Text(verbatim: Formato.hora($0)).tag($0) }
+            DialFranja(desde: almacen.valores.horaDesde, hasta: almacen.valores.horaHasta) { desde, hasta in
+                almacen.valores.horaDesde = desde
+                almacen.valores.horaHasta = hasta
             }
-            Picker("ios_hasta", selection: $almacen.valores.horaHasta) {
-                ForEach(0..<24, id: \.self) { Text(verbatim: Formato.hora($0)).tag($0) }
-            }
+            .frame(maxWidth: 280)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
             Text(verbatim: resumenHorario).font(.footnote).foregroundStyle(Paleta.textoSecundario)
         }
         .listRowBackground(Paleta.tarjeta)
@@ -156,10 +243,13 @@ struct PantallaAjustes: View {
 
     private var apariencia: some View {
         Section("apariencia") {
-            Picker(selection: $almacen.valores.tema) {
-                ForEach(TemaElegido.allCases, id: \.self) { Text(verbatim: $0.etiqueta).tag($0) }
-            } label: { Text("apariencia") }
-            .pickerStyle(.segmented)
+            Deslizador(
+                opciones: TemaElegido.allCases,
+                elegida: almacen.valores.tema,
+                texto: { $0.etiqueta },
+                alElegir: { almacen.valores.tema = $0 }
+            )
+            .padding(.vertical, 4)
         }
         .listRowBackground(Paleta.tarjeta)
     }
@@ -203,22 +293,36 @@ struct PantallaAjustes: View {
     private var opiniones: some View {
         Section("opiniones") {
             Text("ios_opiniones_explicacion").font(.footnote).foregroundStyle(Paleta.textoSecundario)
-            Link(destination: urlOpiniones) { Label("enviar_opiniones", systemImage: "envelope") }
+            Button { escribir() } label: { Label("enviar_opiniones", systemImage: "envelope") }
+            Button { pedirValoracion() } label: { Label("ios_valorar", systemImage: "star") }
         }
         .listRowBackground(Paleta.tarjeta)
     }
+
+    /// Sin app de correo el enlace `mailto:` no hace nada: se copia la direccion y se avisa.
+    private func escribir() {
+        Task {
+            let abierto = await UIApplication.shared.open(urlOpiniones)
+            if !abierto {
+                UIPasteboard.general.string = Self.correo
+                resultado = t("ios_sin_correo", Self.correo)
+            }
+        }
+    }
+
+    private static let correo = "cmatuteortega@gmail.com"
 
     private var urlOpiniones: URL {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let asunto = t("opiniones_asunto", "Contacto")
         var partes = URLComponents()
         partes.scheme = "mailto"
-        partes.path = "cmatuteortega@gmail.com"
+        partes.path = Self.correo
         partes.queryItems = [
             URLQueryItem(name: "subject", value: asunto),
             URLQueryItem(name: "body", value: "\n\nContacto \(version) · iOS \(UIDevice.current.systemVersion) · \(UIDevice.current.model)"),
         ]
-        return partes.url ?? URL(string: "mailto:cmatuteortega@gmail.com")!
+        return partes.url ?? URL(string: "mailto:\(Self.correo)")!
     }
 
     private var privacidad: some View {
