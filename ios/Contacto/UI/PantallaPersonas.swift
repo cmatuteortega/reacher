@@ -13,6 +13,9 @@ struct PantallaPersonas: View {
 
     @State private var filtro: String?
     @State private var eligiendo = false
+    /// El + esta apretado (el sol lo mira) y cuantas veces ha de reir por el.
+    @State private var masPulsado = false
+    @State private var risas = 0
 
     private var circulos: [String] {
         Array(Set(todos.compactMap(\.circulo))).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
@@ -36,7 +39,7 @@ struct PantallaPersonas: View {
             botonAnadir
         }
         // El sol va por encima de todo, metido en la esquina de la pantalla.
-        .overlay(alignment: .topLeading) { SolEsquinaView() }
+        .overlay(alignment: .topLeading) { SolEsquinaView(cuantos: todos.count, masPulsado: masPulsado, risas: risas) }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
@@ -106,7 +109,14 @@ struct PantallaPersonas: View {
     }
 
     private var botonAnadir: some View {
-        Button { eligiendo = true } label: {
+        Button {
+            // Que se le vea reir antes de que se abra la agenda.
+            risas += 1
+            Task {
+                try? await Task.sleep(for: .milliseconds(220))
+                eligiendo = true
+            }
+        } label: {
             Image(systemName: "plus")
                 .font(.system(size: 26, weight: .semibold))
                 .foregroundStyle(Paleta.sobrePrincipal)
@@ -114,6 +124,7 @@ struct PantallaPersonas: View {
                 .background(Paleta.principal, in: Circle())
                 .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
         }
+        .buttonStyle(BotonMas(alPulsar: { masPulsado = $0 }))
         .padding(.bottom, 20)
         .accessibilityLabel(Text("anadir_persona"))
     }
@@ -149,5 +160,17 @@ private struct DejandoSitioAlSol<Contenido: View>: View {
             let radio = SolEsquinaView.radioLibre(ancho: geo.size.width)
             contenido(max(radio - geo.frame(in: .global).minY, 0))
         }
+    }
+}
+
+/// El +: se encoge un poco al apretarlo y avisa al sol, que lo mira.
+private struct BotonMas: ButtonStyle {
+    var alPulsar: (Bool) -> Void
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.82 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { alPulsar(configuration.isPressed) }
     }
 }
