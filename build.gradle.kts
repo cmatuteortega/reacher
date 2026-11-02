@@ -2,7 +2,7 @@ plugins {
     id("com.android.application") version "8.9.3" apply false
     id("com.android.test") version "8.9.3" apply false
     // Perfil de referencia: el arranque y las pantallas principales, ya compilados al instalar.
-    id("androidx.baselineprofile") version "1.3.4" apply false
+    id("androidx.baselineprofile") version "1.5.0" apply false
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.0" apply false
     id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
