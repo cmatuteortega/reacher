@@ -30,7 +30,7 @@ jobs:
       # ultima etiqueta ios-v* (ios-v1.2.0 -> 1.2.0), o 1.0.0 si aun no hay.
       BUILD_NUMBER: ${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: Informe de pruebas
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-informe-pruebas
           path: ios/build/Pruebas.xcresult
@@ -100,7 +100,7 @@ jobs:
           ditto -c -k --keepParent Contacto.app "$GITHUB_WORKSPACE/Contacto-simulador.zip"
 
       - name: Subir la app de simulador
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-simulador
           path: Contacto-simulador.zip
@@ -171,7 +171,7 @@ jobs:
 
       - name: Subir el .ipa
         if: steps.firma.outputs.hay == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-ipa-${{ env.MARKETING_VERSION }}-${{ env.BUILD_NUMBER }}
           path: |
